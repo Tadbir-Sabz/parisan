@@ -75,9 +75,10 @@ function parisan_core_create_booking( $input ) {
 	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';
 	$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
+	$customer_access_token = isset( $input['customer_access_token'] ) && is_string( $input['customer_access_token'] ) ? trim( $input['customer_access_token'] ) : '';
 	$actor_id   = get_current_user_id();
 
-	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) ) {
+	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $customer_access_token && ! preg_match( '/^[a-f0-9]{64}$/D', $customer_access_token ) ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) ) {
 		return new WP_Error( 'parisan_invalid_booking_input', __( 'اطلاعات مشتری یا زمان رزرو معتبر نیست.', 'parisan-core' ) );
 	}
 	$phone = preg_replace( '/[^+0-9]/', '', $phone );
@@ -155,6 +156,11 @@ function parisan_core_create_booking( $input ) {
 				&& hash_equals( (string) $existing['customer_email'], $email )
 				&& hash_equals( (string) $existing['starts_at_utc'], $starts_sql )
 				&& hash_equals( (string) $existing['ends_at_utc'], $ends_sql );
+			if ( '' !== $customer_access_token && ! parisan_core_store_customer_access_token( (int) $existing['id'], $customer_access_token ) ) {
+				$wpdb->query( 'ROLLBACK' );
+				$transaction_started = false;
+				return new WP_Error( 'parisan_customer_token_store_failed', __( 'صدور دسترسی امن رزرو انجام نشد.', 'parisan-core' ) );
+			}
 			if ( false === $wpdb->query( 'COMMIT' ) ) {
 				$wpdb->query( 'ROLLBACK' );
 				$transaction_started = false;
@@ -222,6 +228,11 @@ function parisan_core_create_booking( $input ) {
 		}
 
 		$booking_id = (int) $wpdb->insert_id;
+		if ( '' !== $customer_access_token && ! parisan_core_store_customer_access_token( $booking_id, $customer_access_token ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			$transaction_started = false;
+			return new WP_Error( 'parisan_customer_token_store_failed', __( 'صدور دسترسی امن رزرو انجام نشد؛ رزرو ثبت نشد.', 'parisan-core' ) );
+		}
 		$event_data = array(
 			'booking_id' => $booking_id,
 			'event_type' => 'created',
