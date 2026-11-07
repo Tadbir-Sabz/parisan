@@ -84,7 +84,16 @@ function parisan_core_handle_schedule_exception_create() {
 		wp_die( esc_html__( 'ذخیره استثنای تقویم انجام نشد.', 'parisan-core' ), 500 );
 	}
 
-	$redirect = add_query_arg( array( 'page' => 'parisan-schedule-exceptions', 'exception_saved' => 1 ), admin_url( 'edit.php?post_type=parisan_staff' ) );
+	$bookings_table = $wpdb->prefix . 'parisan_bookings';
+	$conflicts = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM {$bookings_table} WHERE staff_id = %d AND status IN ('pending','confirmed') AND starts_at_utc < %s AND ends_at_utc > %s",
+			$staff_id,
+			$interval['end']->format( 'Y-m-d H:i:s' ),
+			$interval['start']->format( 'Y-m-d H:i:s' )
+		)
+	);
+	$redirect = add_query_arg( array( 'page' => 'parisan-schedule-exceptions', 'exception_saved' => 1, 'exception_conflicts' => $conflicts ), admin_url( 'edit.php?post_type=parisan_staff' ) );
 	wp_safe_redirect( $redirect );
 	exit;
 }
@@ -159,6 +168,10 @@ function parisan_core_render_schedule_exception_page() {
 		<p><?php esc_html_e( 'برای ثبت مرخصی، تعطیلی یک روز کامل یا مسدودکردن بخشی از ساعات کاری، از فرم زیر استفاده کنید. زمان‌ها بر اساس منطقه زمانی تنظیم‌شده در وردپرس ثبت می‌شوند.', 'parisan-core' ); ?></p>
 		<?php if ( isset( $_GET['exception_saved'] ) ) : ?>
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'استثنای تقویم ذخیره شد.', 'parisan-core' ); ?></p></div>
+			<?php $conflict_count = isset( $_GET['exception_conflicts'] ) ? absint( wp_unslash( $_GET['exception_conflicts'] ) ) : 0; ?>
+			<?php if ( $conflict_count > 0 ) : ?>
+				<div class="notice notice-warning"><p><?php printf( esc_html__( 'توجه: این بازه با %d رزرو در انتظار یا تأییدشده تداخل دارد. رزروهای قبلی تغییر نکرده‌اند؛ پیش از نهایی‌کردن برنامه، آن‌ها را جداگانه بررسی و تعیین تکلیف کنید.', 'parisan-core' ), $conflict_count ); ?></p></div>
+			<?php endif; ?>
 		<?php elseif ( isset( $_GET['exception_deleted'] ) ) : ?>
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'استثنای تقویم حذف شد.', 'parisan-core' ); ?></p></div>
 		<?php endif; ?>
