@@ -120,8 +120,8 @@ jobs:
               fwrite( STDERR, "Parisan schema version was not recorded.\\n" );
               exit( 1 );
             }
-            if ( ! function_exists( "parisan_core_normalize_weekly_schedule" ) ) {
-              fwrite( STDERR, "Weekly schedule validator was not loaded.\\n" );
+            if ( ! function_exists( "parisan_core_normalize_weekly_schedule" ) || ! function_exists( "parisan_core_local_interval_to_utc" ) || ! function_exists( "parisan_core_handle_schedule_exception_create" ) ) {
+              fwrite( STDERR, "Schedule/exception components were not loaded.\\n" );
               exit( 1 );
             }
             $service_id = wp_insert_post( array(
