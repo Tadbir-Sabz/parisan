@@ -365,6 +365,7 @@ function parisan_core_rest_customer_booking( $request ) {
 		'service' => get_the_title( (int) $booking['service_id'] ),
 		'specialist' => get_the_title( (int) $booking['staff_id'] ),
 		'starts_at_local' => $local->format( DateTimeInterface::ATOM ),
+		'starts_at_local_display' => $local->format( 'Y-m-d H:i' ),
 		'price_amount' => (int) $booking['price_amount'],
 		'currency_code' => $booking['currency_code'],
 		'can_cancel' => in_array( $booking['status'], array( 'pending', 'confirmed' ), true ),
@@ -623,7 +624,8 @@ function parisan_core_booking_shortcode() {
 					<select id="parisan-booking-service" name="service_id" required>
 						<option value=""><?php esc_html_e( 'انتخاب خدمت', 'parisan-core' ); ?></option>
 						<?php foreach ( $services as $service ) : ?>
-							<option value="<?php echo esc_attr( $service->ID ); ?>"><?php echo esc_html( get_the_title( $service ) ); ?></option>
+							<?php $price_type = get_post_meta( $service->ID, '_parisan_price_type', true ); ?>
+							<option value="<?php echo esc_attr( $service->ID ); ?>" <?php disabled( 'from', $price_type ); ?>><?php echo esc_html( get_the_title( $service ) . ( 'from' === $price_type ? ' — ' . __( 'نیازمند تعیین قیمت نهایی', 'parisan-core' ) : '' ) ); ?></option>
 						<?php endforeach; ?>
 					</select>
 				</p>
