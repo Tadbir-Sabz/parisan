@@ -162,5 +162,19 @@ $customer_token_row = $wpdb->get_row( $wpdb->prepare( "SELECT expires_at_utc FRO
 $expected_customer_expiry = ( new DateTimeImmutable( $booking_date . ' 12:45:00', new DateTimeZone( 'UTC' ) ) )->modify( '+30 days' )->format( 'Y-m-d H:i:s' );
 parisan_public_enabled_assert( is_array( $customer_token_row ) && $expected_customer_expiry === $customer_token_row['expires_at_utc'], 'customer reschedule moves token expiry to 30 days after the new appointment end' );
 
+$invalid_customer_reschedule = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
+$invalid_customer_reschedule->set_header( 'Origin', home_url( '/' ) );
+$invalid_customer_reschedule->set_header( 'X-Parisan-Booking-Token', bin2hex( random_bytes( 32 ) ) );
+$invalid_customer_reschedule->set_param( 'starts_at_local', $booking_date . ' 13:00' );
+$invalid_customer_reschedule_response = parisan_core_rest_customer_reschedule_booking( $invalid_customer_reschedule );
+parisan_public_enabled_assert( 404 === $invalid_customer_reschedule_response->get_status(), 'customer rescheduling rejects an invalid or unowned token' );
+
+$cross_origin_reschedule = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
+$cross_origin_reschedule->set_header( 'Origin', 'https://attacker.invalid' );
+$cross_origin_reschedule->set_header( 'X-Parisan-Booking-Token', $customer_token );
+$cross_origin_reschedule->set_param( 'starts_at_local', $booking_date . ' 13:00' );
+$cross_origin_response = parisan_core_rest_customer_reschedule_booking( $cross_origin_reschedule );
+parisan_public_enabled_assert( 403 === $cross_origin_response->get_status(), 'customer rescheduling rejects cross-origin mutations' );
+
 
 echo "PASS: explicit public API enablement, route registration, and Persian booking shortcode rendering.\n";
