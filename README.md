@@ -47,6 +47,8 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Service catalogue archive and detail templates.
 - [x] Parisan Core service and specialist content types.
 - [x] Service duration and pricing fields with nonce, capability, sanitization, and bounded values.
+- [x] Hierarchical service categories.
+- [x] Specialist profiles, service eligibility, and weekly recurring availability editor (runtime behavior pending).
 - [x] PHP syntax lint workflow for PHP 8.1, 8.2, and 8.3.
 - [ ] CI execution result and WordPress runtime activation.
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
