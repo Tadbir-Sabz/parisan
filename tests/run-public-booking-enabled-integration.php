@@ -55,4 +55,36 @@ parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Bookin
 parisan_public_enabled_assert( wp_script_is( 'parisan-public-booking', 'enqueued' ), 'public booking JavaScript is enqueued' );
 parisan_public_enabled_assert( wp_style_is( 'parisan-public-booking', 'enqueued' ), 'public booking CSS is enqueued' );
 
+update_post_meta( $staff_id, '_parisan_staff_weekly_schedule', array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) ) );
+$base_input = array(
+	'staff_id' => (int) $staff_id,
+	'service_id' => (int) $service_id,
+	'starts_at_local' => '2026-11-09 10:00',
+	'customer_name' => 'Synthetic Booking Customer',
+	'customer_phone' => '09123456789',
+	'customer_email' => 'public-booking@example.test',
+	'idempotency_token' => str_repeat( 'a', 64 ),
+	'customer_access_token' => bin2hex( random_bytes( 32 ) ),
+);
+$first_customer_token = $base_input['customer_access_token'];
+$first_booking = parisan_core_create_booking( $base_input );
+parisan_public_enabled_assert( ! is_wp_error( $first_booking ), 'public booking service creates a pending booking with scoped token' );
+
+$conflicting_input = $base_input;
+$conflicting_input['customer_name'] = 'Different Synthetic Customer';
+$conflicting_input['customer_access_token'] = bin2hex( random_bytes( 32 ) );
+$conflict_token = $conflicting_input['customer_access_token'];
+$conflict_result = parisan_core_create_booking( $conflicting_input );
+parisan_public_enabled_assert( is_wp_error( $conflict_result ) && 'parisan_idempotency_conflict' === $conflict_result->get_error_code(), 'idempotency key cannot be reused with different customer data' );
+parisan_public_enabled_assert( is_array( parisan_core_resolve_customer_access_token( $first_customer_token ) ), 'idempotency conflict cannot rotate or revoke the original customer token' );
+parisan_public_enabled_assert( false === parisan_core_resolve_customer_access_token( $conflict_token ), 'conflicting request token is never stored' );
+
+$retry_input = $base_input;
+$retry_input['customer_access_token'] = bin2hex( random_bytes( 32 ) );
+$replacement_customer_token = $retry_input['customer_access_token'];
+$retry_booking = parisan_core_create_booking( $retry_input );
+parisan_public_enabled_assert( ! is_wp_error( $retry_booking ) && ! empty( $retry_booking['reused'] ), 'valid idempotent retry reuses the original booking' );
+parisan_public_enabled_assert( false === parisan_core_resolve_customer_access_token( $first_customer_token ), 'valid idempotent retry rotates and revokes the previous token' );
+parisan_public_enabled_assert( is_array( parisan_core_resolve_customer_access_token( $replacement_customer_token ) ), 'valid idempotent retry stores the replacement customer token' );
+
 echo "PASS: explicit public API enablement, route registration, and Persian booking shortcode rendering.\n";
