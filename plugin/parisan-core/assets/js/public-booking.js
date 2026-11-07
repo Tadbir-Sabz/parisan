@@ -145,7 +145,7 @@
 			pending: 'در انتظار بررسی سالن', confirmed: 'تأیید شده', cancelled: 'لغو شده',
 			completed: 'انجام شده', expired: 'منقضی شده', no_show: 'عدم مراجعه'
 		};
-		const date = data.starts_at_local ? new Date(data.starts_at_local).toLocaleString('fa-IR') : '';
+		const date = data.starts_at_local_display || data.starts_at_local || '';
 		summaryText.textContent = [
 			'وضعیت: ' + (labels[data.status] || data.status || '—'),
 			'خدمت: ' + (data.service || '—'), 'متخصص: ' + (data.specialist || '—'), 'زمان: ' + (date || '—')
