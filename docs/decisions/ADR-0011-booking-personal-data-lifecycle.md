@@ -30,5 +30,6 @@ Booking records contain customer contact details and may contain free-form notes
 
 ## Verification
 
-- Dedicated PHP 8.1/8.2/8.3 workflow and focused unit assertions are added for identity matching, export shape, terminal/active status policy, anonymization SQL/transaction sequence, rate-limit allow/deny/fail-closed behavior, and retention default/scheduling.
-- Actual WordPress privacy screen interaction, real MariaDB erasure/rollback, proxy topology, distributed multi-node rate-limit behavior, and legal retention configuration remain UNVERIFIED pending an integration environment and owner policy.
+- Dedicated PHP 8.1/8.2/8.3 workflow passed all three jobs: [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545). Assertions cover identity matching, export shape, terminal/active status policy, anonymization SQL/transaction sequence, rate-limit allow/deny/fail-closed behavior, and retention default/scheduling.
+- Disposable WordPress + MariaDB integration passed: [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422). It verifies booking export, terminal-only erasure, active booking retention, event-note removal while preserving event rows, rollback after forced event-update failure, opt-in old-record cleanup, and request throttling.
+- Browser privacy screen interaction, production proxy topology, distributed multi-node rate-limit behavior, and owner-approved legal retention configuration remain UNVERIFIED.
