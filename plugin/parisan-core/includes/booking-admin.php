@@ -242,6 +242,11 @@ function parisan_core_render_booking_detail( $booking_id ) {
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'جزئیات نوبت', 'parisan-core' ); ?></h1>
+		<?php if ( isset( $_GET['booking_updated'] ) ) : ?>
+			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'وضعیت نوبت به‌روزرسانی شد.', 'parisan-core' ); ?></p></div>
+		<?php elseif ( isset( $_GET['booking_error'] ) ) : ?>
+			<div class="notice notice-error"><p><?php esc_html_e( 'تغییر وضعیت نوبت انجام نشد؛ وضعیت و دسترسی را بررسی کنید.', 'parisan-core' ); ?></p></div>
+		<?php endif; ?>
 		<p><a href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings' ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'بازگشت به فهرست نوبت‌ها', 'parisan-core' ); ?></a></p>
 		<h2><?php echo esc_html( $booking['customer_name'] ); ?></h2>
 		<table class="widefat striped" style="max-width:900px"><tbody>
