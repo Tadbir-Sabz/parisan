@@ -111,6 +111,9 @@ function parisan_core_create_booking( $input ) {
 	if ( false === $start_utc ) {
 		return new WP_Error( 'parisan_invalid_local_booking_time', __( 'زمان محلی انتخاب‌شده معتبر نیست.', 'parisan-core' ) );
 	}
+	if ( $start_utc <= new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) ) ) {
+		return new WP_Error( 'parisan_booking_time_in_past', __( 'زمان رزرو باید در آینده باشد.', 'parisan-core' ) );
+	}
 	$end_utc = $start_utc->modify( '+' . $duration . ' minutes' );
 	$starts_sql = $start_utc->format( 'Y-m-d H:i:s' );
 	$ends_sql = $end_utc->format( 'Y-m-d H:i:s' );
