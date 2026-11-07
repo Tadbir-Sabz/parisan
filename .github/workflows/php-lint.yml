@@ -115,6 +115,11 @@ jobs:
                 fwrite( STDERR, "Expected schema table missing: " . $suffix . "\\n" );
                 exit( 1 );
               }
+              $table_status = $wpdb->get_row( $wpdb->prepare( "SHOW TABLE STATUS LIKE %s", $wpdb->esc_like( $table ) ), ARRAY_A );
+              if ( ! is_array( $table_status ) || "InnoDB" !== $table_status["Engine"] ) {
+                fwrite( STDERR, "Expected InnoDB engine for " . $suffix . "\\n" );
+                exit( 1 );
+              }
             }
             if ( 1 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
               fwrite( STDERR, "Parisan schema version was not recorded.\\n" );
@@ -212,6 +217,16 @@ jobs:
               exit( 1 );
             }
             update_post_meta( $service_id, "_parisan_price", 1200 );
+            if ( ! function_exists( "parisan_core_acquire_staff_schedule_lock" ) || ! function_exists( "parisan_core_release_staff_schedule_lock" ) ) {
+              fwrite( STDERR, "Shared staff schedule lock helpers were not loaded.\\n" );
+              exit( 1 );
+            }
+            $probe_lock = parisan_core_acquire_staff_schedule_lock( $staff_id );
+            if ( is_wp_error( $probe_lock ) ) {
+              fwrite( STDERR, "Could not acquire the staff schedule lock.\\n" );
+              exit( 1 );
+            }
+            parisan_core_release_staff_schedule_lock( $probe_lock );
             $payload = array(
               "service_id" => $service_id,
               "staff_id" => $staff_id,
@@ -251,5 +266,13 @@ jobs:
               fwrite( STDERR, "Overlapping booking was not rejected after locked availability recheck.\\n" );
               exit( 1 );
             }
-            echo "Transactional booking creation, audit event, idempotent replay/conflict, and overlap rejection passed.\\n";
+            update_post_meta( $service_id, "_parisan_price_type", "from" );
+            $from_price_payload = $payload;
+            $from_price_payload["idempotency_token"] = "ci-idempotency-token-0003";
+            $from_price = parisan_core_create_booking( $from_price_payload );
+            if ( ! is_wp_error( $from_price ) || "parisan_service_requires_price_confirmation" !== $from_price->get_error_code() ) {
+              fwrite( STDERR, "A starting-from service price was incorrectly accepted as a final booking price.\\n" );
+              exit( 1 );
+            }
+            echo "Transactional booking creation, InnoDB, shared lock, audit event, idempotent replay/conflict, overlap rejection, and fixed-price gate passed.\\n";
           ' --path="$WP_PATH"
