@@ -50,7 +50,8 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Hierarchical service categories.
 - [x] Specialist profiles, service eligibility, and weekly recurring availability editor.
 - [x] Timezone-aware availability calculation for a salon-local date, including existing bookings, stored unavailability intervals, service duration, slot interval, and before/after buffers.
-- [x] Persian admin calendar for full-day and partial-day specialist leave/unavailability, with local-time validation and UTC persistence.\n- [~] Internal booking creation service with per-staff advisory lock, InnoDB transaction gate, locked availability recheck, idempotency, and atomic audit event; CI integration evidence pending. No public REST/AJAX endpoint is exposed.
+- [x] Persian admin calendar for full-day and partial-day specialist leave/unavailability, with local-time validation and UTC persistence.
+- [~] Internal booking creation service with per-staff advisory lock, InnoDB transaction gate, locked availability recheck, idempotency, and atomic audit event; CI integration evidence pending. No public REST/AJAX endpoint is exposed.
 - [x] PHP syntax lint workflow for PHP 8.1, 8.2, and 8.3.
 - [x] Standalone schedule-normalization test suite passes in CI on PHP 8.1, 8.2, and 8.3.
 - [x] Disposable WordPress + MariaDB activation/registration smoke test passes.
@@ -59,6 +60,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
 - [~] Availability, date-exception administration, and internal booking-write foundation implemented; break management, resource schedules, lock stress/forced rollback tests, and public booking lifecycle remain pending.
-- [ ] Customer portal, SMS, forms, SEO, caching, and integrations.\n- [ ] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md) for the internal booking transaction boundary.
+- [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
+- [ ] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md) for the internal booking transaction boundary.
 
 **Do not infer runtime readiness from source files.** This is an implementation foundation, not a production release. Each feature requires evidence from automated tests and relevant manual flows.
