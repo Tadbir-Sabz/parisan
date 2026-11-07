@@ -39,6 +39,8 @@
 }
 .parisan-booking-shell input:focus, .parisan-booking-shell select:focus { outline: 3px solid rgba(182, 154, 112, .32); border-color: var(--pb-plum); }
 .parisan-booking-shell input:disabled, .parisan-booking-shell select:disabled { cursor: not-allowed; background: #f4f0eb; color: #817a74; }
+.parisan-booking-privacy-note { margin: 18px 0 0; color: var(--pb-muted); font-size: 12px; }
+.parisan-booking-privacy-note a { color: var(--pb-plum); text-decoration: underline; text-underline-offset: 3px; }
 .parisan-booking-button {
 	display: inline-flex;
 	align-items: center;
