@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.7.0
+Stable tag: 0.7.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,13 @@ Availability results are advisory only and do not reserve a slot. Availability r
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.7.1 =
+* Added internal transactional booking creation with staff-level advisory locking and idempotency.
+* Serialized calendar exception writes with booking creation using the same staff lock.
+* Required InnoDB for booking, booking-event, and schedule-exception tables.
+* Rejected “price from” services until the final price is confirmed.
+
 
 = 0.6.0 =
 * Added Persian admin calendar for full-day and partial-day staff unavailability.
