@@ -29,7 +29,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Inspect repository branch protections, CI, permissions, and initial commit state; document verified baseline.
 - [ ] Add architecture decision records for theme/core separation, booking data model, timezone/calendar, and integration strategy.
 - [ ] Define supported WordPress/PHP matrix based on current stable releases and available test environments.
-- [~] Establish CI and focused automated validation; PHP lint matrix, standalone weekly schedule tests, and a disposable WordPress/MariaDB activation smoke test are added. The new WordPress job result is pending; broader static analysis and end-to-end tests remain pending.
+- [~] Establish CI and focused automated validation; PHP lint and standalone weekly schedule tests PASS on PHP 8.1, 8.2, and 8.3. Disposable WordPress/MariaDB activation, plugin/theme activation, post type/taxonomy registration, and template asset smoke test PASS. Broader static analysis and end-to-end tests remain pending.
 - [ ] Define local development environment and synthetic seed data.
 - [ ] Add security/privacy threat model and data classification.
 
