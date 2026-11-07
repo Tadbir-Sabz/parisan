@@ -2,7 +2,7 @@
 
 > Product vision, architecture, delivery roadmap, and mandatory contributor instructions.
 
-**Project status:** Initial theme/catalogue, timezone-aware availability, date-specific calendar exceptions, and internal transactional booking-write service; public booking lifecycle pending  
+**Project status:** Internal booking lifecycle, staff operations, concurrency-safe rescheduling, and first privacy/retention controls implemented on the feature branch; public booking/customer portal and release readiness remain incomplete  
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`
 
@@ -63,12 +63,14 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Manual booking workflow CI run 42376730497 passed all 4 jobs; the WordPress/MariaDB test rendered the manual booking form, normalized Persian phone digits, and rejected past appointment times.
 - [x] Admin availability slot picker CI run 42376924602 passed all 4 jobs; the authenticated nonce-protected AJAX handler is registered only for logged-in admins, the script is enqueued on the booking screen, and Node syntax validation passes. Booking creation still rechecks availability under the staff lock.
 - [x] Booking detail and audit timeline CI run 42377096704 passed all 4 jobs; the protected detail page rendered the seeded booking and its audit events.
+- [x] Concurrency-safe rescheduling CI run 42377819791 passed all 4 jobs; duration/price snapshots are preserved, conflict/terminal cases are rejected, and forced audit failure rolls back the schedule update.
+- [~] Booking privacy exporter/eraser, terminal-record anonymization, administrator opt-in retention (disabled by default), and a MySQL-lock-serialized request limiter are implemented in source. Dedicated PHP 8.1/8.2/8.3 CI run 42398794932 is queued; do not mark these controls PASS until it completes.
 - [x] Rescheduling CI run 42377819791 passed all 4 jobs; schema v2 persists the original duration, rescheduling preserves duration/price, rejects exception conflicts and terminal bookings, records a reschedule audit event, and proves a forced audit failure rolls the time change back.
 - [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
 - [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
-- [~] Availability, date-exception administration, internal booking creation, controlled status lifecycle, and concurrency-safe rescheduling implemented and CI-verified. Booking accepts only fixed service prices; booking and calendar exception writes share the staff lock. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, browser booking/admin visual and accessibility review, break management, and resource schedules remain pending.
+- [~] Availability, date-exception administration, internal booking creation, controlled status lifecycle, and concurrency-safe rescheduling implemented and CI-verified. Booking accepts only fixed service prices; booking and calendar exception writes share the staff lock. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, real MariaDB privacy-erasure integration, browser booking/admin visual and accessibility review, break management, and resource schedules remain pending.
 - [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
-- [x] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md), [ADR-0006](docs/decisions/ADR-0006-controlled-booking-lifecycle.md), [ADR-0007](docs/decisions/ADR-0007-staff-booking-operations-screen.md), [ADR-0008](docs/decisions/ADR-0008-staff-created-manual-bookings.md), [ADR-0009](docs/decisions/ADR-0009-booking-detail-and-audit-timeline.md), and [ADR-0010](docs/decisions/ADR-0010-concurrency-safe-rescheduling.md) for booking persistence, lifecycle, staff operations, manual booking, audit detail, and rescheduling boundaries.
+- [x] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md), [ADR-0006](docs/decisions/ADR-0006-controlled-booking-lifecycle.md), [ADR-0007](docs/decisions/ADR-0007-staff-booking-operations-screen.md), [ADR-0008](docs/decisions/ADR-0008-staff-created-manual-bookings.md), [ADR-0009](docs/decisions/ADR-0009-booking-detail-and-audit-timeline.md), [ADR-0010](docs/decisions/ADR-0010-concurrency-safe-rescheduling.md), and [ADR-0011](docs/decisions/ADR-0011-booking-personal-data-lifecycle.md) for booking and privacy boundaries.
 
 **Do not infer runtime readiness from source files.** This is an implementation foundation, not a production release. Each feature requires evidence from automated tests and relevant manual flows.
