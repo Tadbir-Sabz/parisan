@@ -690,6 +690,10 @@ function parisan_core_booking_shortcode() {
 					<input id="parisan-booking-email" name="customer_email" type="email" maxlength="190" autocomplete="email">
 				</p>
 			</div>
+			<p class="parisan-booking-privacy-note"><?php esc_html_e( 'اطلاعات تماس شما فقط برای ثبت و مدیریت درخواست نوبت استفاده می‌شود.', 'parisan-core' ); ?>
+				<?php $privacy_url = function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : ''; ?>
+				<?php if ( $privacy_url ) : ?> <a href="<?php echo esc_url( $privacy_url ); ?>"><?php esc_html_e( 'مطالعهٔ سیاست حریم خصوصی', 'parisan-core' ); ?></a><?php endif; ?>
+			</p>
 			<button class="parisan-booking-button" type="submit"><?php esc_html_e( 'ثبت درخواست نوبت', 'parisan-core' ); ?></button>
 		</form>
 
