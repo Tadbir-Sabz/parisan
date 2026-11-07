@@ -199,6 +199,7 @@ function parisan_core_create_booking( $input ) {
 				'customer_email' => $email,
 				'starts_at_utc' => $starts_sql,
 				'ends_at_utc' => $ends_sql,
+				'duration_minutes' => $duration,
 				'salon_timezone' => $timezone_name,
 				'status' => 'pending',
 				'price_amount' => $price_irr,
@@ -207,7 +208,7 @@ function parisan_core_create_booking( $input ) {
 				'created_at_utc' => $now,
 				'updated_at_utc' => $now,
 			),
-			array( '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
+			array( '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
 		);
 		if ( false === $inserted ) {
 			$wpdb->query( 'ROLLBACK' );
