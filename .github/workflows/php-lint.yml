@@ -251,6 +251,13 @@ jobs:
               fwrite( STDERR, "Booking creation failed: " . ( is_wp_error( $created ) ? $created->get_error_code() : "unexpected result" ) . "\\n" );
               exit( 1 );
             }
+            $customer_token = bin2hex( random_bytes( 32 ) );
+            $customer_tokens_table = $wpdb->prefix . "parisan_customer_tokens";
+            if ( false === $wpdb->query( "START TRANSACTION" ) || ! parisan_core_store_customer_access_token( $created["booking_id"], $customer_token ) || false === $wpdb->query( "COMMIT" ) ) {
+              $wpdb->query( "ROLLBACK" );
+              fwrite( STDERR, "Could not issue synthetic customer token for reschedule test.\\n" );
+              exit( 1 );
+            }
             $event_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"created\"", $created["booking_id"] ) );
             $stored = $wpdb->get_row( $wpdb->prepare( "SELECT status, price_amount, currency_code, duration_minutes FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ), ARRAY_A );
             if ( 1 !== $event_count || ! is_array( $stored ) || "pending" !== $stored["status"] || 12000 !== (int) $stored["price_amount"] || "IRR" !== $stored["currency_code"] || 45 !== (int) $stored["duration_minutes"] ) {
@@ -286,6 +293,12 @@ jobs:
               fwrite( STDERR, "Booking reschedule failed or did not preserve its duration: " . ( is_wp_error( $rescheduled ) ? $rescheduled->get_error_code() : "unexpected result" ) . "\\n" );
               exit( 1 );
             }
+            $rescheduled_token_expiry = $wpdb->get_var( $wpdb->prepare( "SELECT expires_at_utc FROM {$customer_tokens_table} WHERE booking_id = %d AND revoked_at_utc IS NULL", $created["booking_id"] ) );
+            $expected_token_expiry = ( new DateTimeImmutable( $rescheduled["ends_at_utc"], new DateTimeZone( "UTC" ) ) )->modify( "+30 days" )->format( "Y-m-d H:i:s" );
+            if ( $expected_token_expiry !== $rescheduled_token_expiry || ! is_array( parisan_core_resolve_customer_access_token( $customer_token ) ) ) {
+              fwrite( STDERR, "Rescheduling did not keep the customer token valid through the new appointment end.\\n" );
+              exit( 1 );
+            }
             $reschedule_replay = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 10:45" );
             if ( is_wp_error( $reschedule_replay ) || empty( $reschedule_replay["reused"] ) ) {
               fwrite( STDERR, "Idempotent booking reschedule replay failed.\\n" );
@@ -313,7 +326,8 @@ jobs:
             }
             $reschedule_rollback_error = is_wp_error( $reschedule_rollback_result ) ? $reschedule_rollback_result->get_error_code() : "not_wp_error";
             $start_after_reschedule_rollback = $wpdb->get_var( $wpdb->prepare( "SELECT starts_at_utc FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
-            if ( "parisan_booking_audit_failed" !== $reschedule_rollback_error || "2026-11-09 10:45:00" !== $start_after_reschedule_rollback ) {
+            $expiry_after_reschedule_rollback = $wpdb->get_var( $wpdb->prepare( "SELECT expires_at_utc FROM {$customer_tokens_table} WHERE booking_id = %d AND revoked_at_utc IS NULL", $created["booking_id"] ) );
+            if ( "parisan_booking_audit_failed" !== $reschedule_rollback_error || "2026-11-09 10:45:00" !== $start_after_reschedule_rollback || $expected_token_expiry !== $expiry_after_reschedule_rollback ) {
               fwrite( STDERR, "Reschedule audit failure did not roll back the booking time. error=" . $reschedule_rollback_error . ", start=" . $start_after_reschedule_rollback . "\\n" );
               exit( 1 );
             }
