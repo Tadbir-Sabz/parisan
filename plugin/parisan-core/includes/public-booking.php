@@ -752,6 +752,8 @@ function parisan_core_booking_shortcode() {
 				'bookingCreated' => __( 'درخواست نوبت ثبت شد. توکن دسترسی را در جای امن نگه دارید.', 'parisan-core' ),
 				'bookingLoaded' => __( 'اطلاعات رزرو دریافت شد.', 'parisan-core' ),
 				'bookingCancelled' => __( 'رزرو لغو شد.', 'parisan-core' ),
+				'rescheduled' => __( 'زمان نوبت با موفقیت تغییر کرد.', 'parisan-core' ),
+				'customerSlotsLoaded' => __( 'زمان‌های آزاد برای تغییر نوبت بارگذاری شد.', 'parisan-core' ),
 				'genericError' => __( 'انجام درخواست ممکن نشد؛ دوباره تلاش کنید.', 'parisan-core' ),
 				'copySuccess' => __( 'توکن کپی شد.', 'parisan-core' ),
 				'copyFailure' => __( 'کپی خودکار ممکن نشد؛ توکن را دستی کپی کنید.', 'parisan-core' ),
