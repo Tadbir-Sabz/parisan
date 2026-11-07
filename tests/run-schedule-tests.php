@@ -56,12 +56,12 @@ parisan_test_expect( '2026-11-09 09:00:00' === $slots[0]['ends_at_utc'], 'return
 
 $busy = array( array( 'start' => '2026-11-09 08:30:00', 'end' => '2026-11-09 09:30:00' ) );
 $without_busy = parisan_core_calculate_available_slots( '2026-11-09', $weekly, 'Europe/Berlin', 60, 30, $busy );
-parisan_test_expect( 3 === count( $without_busy ), 'excludes slots overlapping an existing booking' );
-parisan_test_expect( '2026-11-09 10:00' === $without_busy[0]['starts_at_local'], 'first available slot follows the busy interval' );
+parisan_test_expect( 2 === count( $without_busy ), 'excludes slots overlapping an existing booking' );
+parisan_test_expect( '2026-11-09 10:30' === $without_busy[0]['starts_at_local'], 'first available slot follows the busy interval' );
 
 $blocked = array( array( 'start' => '2026-11-09 09:00:00', 'end' => '2026-11-09 10:00:00' ) );
 $without_exception = parisan_core_calculate_available_slots( '2026-11-09', $weekly, 'Europe/Berlin', 60, 30, array(), $blocked );
-parisan_test_expect( 3 === count( $without_exception ), 'excludes slots overlapping date-specific unavailable intervals' );
+parisan_test_expect( 2 === count( $without_exception ), 'excludes slots overlapping date-specific unavailable intervals' );
 
 $buffered = parisan_core_calculate_available_slots( '2026-11-09', $weekly, 'Europe/Berlin', 60, 30, array(), array(), 15, 15 );
 parisan_test_expect( 3 === count( $buffered ), 'reserves before/after buffers and keeps them inside working hours' );
