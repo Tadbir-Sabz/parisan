@@ -38,13 +38,13 @@ function parisan_core_render_staff_meta_box( $post ) {
 	$services = is_array( $services ) ? array_map( 'absint', $services ) : array();
 	$schedule = is_array( $schedule ) ? $schedule : array();
 	$days     = array(
+		6 => __( 'شنبه', 'parisan-core' ),
 		0 => __( 'یکشنبه', 'parisan-core' ),
 		1 => __( 'دوشنبه', 'parisan-core' ),
 		2 => __( 'سه‌شنبه', 'parisan-core' ),
 		3 => __( 'چهارشنبه', 'parisan-core' ),
 		4 => __( 'پنجشنبه', 'parisan-core' ),
 		5 => __( 'جمعه', 'parisan-core' ),
-		6 => __( 'شنبه', 'parisan-core' ),
 	);
 	$service_posts = get_posts(
 		array(
