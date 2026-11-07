@@ -2,7 +2,7 @@
 
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Initial theme and service-catalogue source implementation committed on a feature branch; runtime validation pending.  
+**Roadmap status:** Initial theme/catalogue and timezone-aware availability calculation source implemented on a feature branch; availability CI validation pending.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -72,7 +72,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 **Status:** [~] IN PROGRESS — schema foundation only
 
 - [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration; disposable WordPress/MariaDB smoke test confirms all three tables and schema version.
-- [ ] Implement availability calculation with staff, service duration, buffers, breaks, leave, holidays, resources, capacity, lead time, and booking horizon.
+- [~] Implement availability calculation: core supports staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Date-exception admin UI, breaks, leave/holiday management, resources, capacity, lead time, and booking horizon remain pending.
 - [ ] Implement concurrency-safe booking creation and double-book prevention.
 - [ ] Implement booking state machine, audit trail, manual receptionist booking, reschedule/cancel policies, and walk-ins.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
@@ -183,7 +183,7 @@ As of the current implementation branch:
 - A GitHub Actions PHP syntax workflow targets PHP 8.1, 8.2, and 8.3. Its run result is pending until GitHub executes it.
 - WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
 - Versioned booking/event/schedule-exception schema is implemented and verified by the disposable WordPress/MariaDB CI smoke test.
-- Date-specific exception management UI, breaks, leave/holiday rules, timezone-aware availability calculation, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters are NOT STARTED.
+- Timezone-aware availability calculation source is implemented; new CI validation is pending. Date-specific exception management UI, breaks, leave/holiday rules, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
