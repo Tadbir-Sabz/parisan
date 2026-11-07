@@ -50,6 +50,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Hierarchical service categories.
 - [x] Specialist profiles, service eligibility, and weekly recurring availability editor (runtime behavior pending).
 - [x] PHP syntax lint workflow for PHP 8.1, 8.2, and 8.3.
+- [x] Standalone schedule-normalization test suite added to CI (latest run pending).
 - [ ] CI execution result and WordPress runtime activation.
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
 - [ ] Staff schedule model, booking engine, customer portal, SMS, forms, SEO, caching, integrations.
