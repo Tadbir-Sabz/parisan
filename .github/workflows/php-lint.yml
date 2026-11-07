@@ -167,6 +167,7 @@ jobs:
               1 => array( "start" => "09:00", "end" => "12:00" ),
             ) ) );
             update_option( "timezone_string", "UTC" );
+            $ci_date = current_datetime()->modify( "next monday" )->format( "Y-m-d" );
             $booking_table = $wpdb->prefix . "parisan_bookings";
             $booking_inserted = $wpdb->insert( $booking_table, array(
               "public_id" => wp_generate_uuid4(),
@@ -175,8 +176,8 @@ jobs:
               "customer_name" => "Synthetic CI customer",
               "customer_phone" => "0000000000",
               "customer_email" => "",
-              "starts_at_utc" => "2026-11-09 09:00:00",
-              "ends_at_utc" => "2026-11-09 09:45:00",
+              "starts_at_utc" => $ci_date . " 09:00:00",
+              "ends_at_utc" => $ci_date . " 09:45:00",
               "salon_timezone" => "UTC",
               "status" => "confirmed",
               "price_amount" => 0,
@@ -192,8 +193,8 @@ jobs:
             $exception_table = $wpdb->prefix . "parisan_schedule_exceptions";
             $exception_inserted = $wpdb->insert( $exception_table, array(
               "staff_id" => $staff_id,
-              "starts_at_utc" => "2026-11-09 10:00:00",
-              "ends_at_utc" => "2026-11-09 10:30:00",
+              "starts_at_utc" => $ci_date . " 10:00:00",
+              "ends_at_utc" => $ci_date . " 10:30:00",
               "exception_type" => "unavailable",
               "note" => "Synthetic CI leave",
               "created_at_utc" => "2026-11-01 00:00:00",
@@ -202,8 +203,8 @@ jobs:
               fwrite( STDERR, "Synthetic exception insert failed: " . $wpdb->last_error . "\\n" );
               exit( 1 );
             }
-            $slots = parisan_core_get_available_slots( $staff_id, $service_id, "2026-11-09" );
-            if ( is_wp_error( $slots ) || ! is_array( $slots ) || empty( $slots ) || "2026-11-09 10:30" !== $slots[0]["starts_at_local"] ) {
+            $slots = parisan_core_get_available_slots( $staff_id, $service_id, $ci_date );
+            if ( is_wp_error( $slots ) || ! is_array( $slots ) || empty( $slots ) || $ci_date . " 10:30" !== $slots[0]["starts_at_local"] ) {
               fwrite( STDERR, "Availability adapter did not exclude seeded booking/exception intervals.\\n" );
               exit( 1 );
             }
@@ -220,6 +221,7 @@ jobs:
           set -euo pipefail
           wp eval '
             global $wpdb;
+            $ci_date = current_datetime()->modify( "next monday" )->format( "Y-m-d" );
             $service_id = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = \"parisan_service\" AND post_status = \"publish\" ORDER BY ID DESC LIMIT 1" );
             $staff_id = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = \"parisan_staff\" AND post_status = \"publish\" ORDER BY ID DESC LIMIT 1" );
             if ( ! $service_id || ! $staff_id || ! function_exists( "parisan_core_create_booking" ) ) {
@@ -240,7 +242,7 @@ jobs:
             $payload = array(
               "service_id" => $service_id,
               "staff_id" => $staff_id,
-              "starts_at_local" => "2026-11-09 10:30",
+              "starts_at_local" => $ci_date . " 10:30",
               "customer_name" => "Synthetic booking customer",
               "customer_phone" => "09123456789",
               "customer_email" => "booking@example.test",
@@ -288,8 +290,8 @@ jobs:
               fwrite( STDERR, "Booking reschedule service was not loaded.\\n" );
               exit( 1 );
             }
-            $rescheduled = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 10:45", "CI reschedule" );
-            if ( is_wp_error( $rescheduled ) || ! empty( $rescheduled["reused"] ) || "2026-11-09 10:45:00" !== $rescheduled["starts_at_utc"] || "2026-11-09 11:30:00" !== $rescheduled["ends_at_utc"] || 45 !== (int) $rescheduled["duration_minutes"] ) {
+            $rescheduled = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 10:45", "CI reschedule" );
+            if ( is_wp_error( $rescheduled ) || ! empty( $rescheduled["reused"] ) || ( $ci_date . " 10:45:00" ) !== $rescheduled["starts_at_utc"] || ( $ci_date . " 11:30:00" ) !== $rescheduled["ends_at_utc"] || 45 !== (int) $rescheduled["duration_minutes"] ) {
               fwrite( STDERR, "Booking reschedule failed or did not preserve its duration: " . ( is_wp_error( $rescheduled ) ? $rescheduled->get_error_code() : "unexpected result" ) . "\\n" );
               exit( 1 );
             }
@@ -299,12 +301,12 @@ jobs:
               fwrite( STDERR, "Rescheduling did not keep the customer token valid through the new appointment end.\\n" );
               exit( 1 );
             }
-            $reschedule_replay = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 10:45" );
+            $reschedule_replay = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 10:45" );
             if ( is_wp_error( $reschedule_replay ) || empty( $reschedule_replay["reused"] ) ) {
               fwrite( STDERR, "Idempotent booking reschedule replay failed.\\n" );
               exit( 1 );
             }
-            $blocked_reschedule = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 10:15" );
+            $blocked_reschedule = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 10:15" );
             if ( ! is_wp_error( $blocked_reschedule ) || "parisan_booking_slot_unavailable" !== $blocked_reschedule->get_error_code() ) {
               fwrite( STDERR, "Reschedule into an unavailable exception interval was not rejected.\\n" );
               exit( 1 );
@@ -320,14 +322,14 @@ jobs:
             }
             $reschedule_rollback_result = null;
             try {
-              $reschedule_rollback_result = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 11:15", "CI forced audit rollback" );
+              $reschedule_rollback_result = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 11:15", "CI forced audit rollback" );
             } finally {
               $wpdb->query( "DROP TRIGGER IF EXISTS " . $reschedule_trigger_name );
             }
             $reschedule_rollback_error = is_wp_error( $reschedule_rollback_result ) ? $reschedule_rollback_result->get_error_code() : "not_wp_error";
             $start_after_reschedule_rollback = $wpdb->get_var( $wpdb->prepare( "SELECT starts_at_utc FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
             $expiry_after_reschedule_rollback = $wpdb->get_var( $wpdb->prepare( "SELECT expires_at_utc FROM {$customer_tokens_table} WHERE booking_id = %d AND revoked_at_utc IS NULL", $created["booking_id"] ) );
-            if ( "parisan_booking_audit_failed" !== $reschedule_rollback_error || "2026-11-09 10:45:00" !== $start_after_reschedule_rollback || $expected_token_expiry !== $expiry_after_reschedule_rollback ) {
+            if ( "parisan_booking_audit_failed" !== $reschedule_rollback_error || $ci_date . " 10:45:00" !== $start_after_reschedule_rollback || $expected_token_expiry !== $expiry_after_reschedule_rollback ) {
               fwrite( STDERR, "Reschedule audit failure did not roll back the booking time. error=" . $reschedule_rollback_error . ", start=" . $start_after_reschedule_rollback . "\\n" );
               exit( 1 );
             }
@@ -364,7 +366,7 @@ jobs:
             $transition_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"status_changed\"", $created["booking_id"] ) );
             $reschedule_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"rescheduled\"", $created["booking_id"] ) );
             $invalid_transition = parisan_core_transition_booking( $created["booking_id"], "confirmed" );
-            $terminal_reschedule = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 11:15" );
+            $terminal_reschedule = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 11:15" );
             if ( "cancelled" !== $cancelled_status || 2 !== $transition_events || 1 !== $reschedule_events || ! is_wp_error( $invalid_transition ) || "parisan_invalid_booking_transition" !== $invalid_transition->get_error_code() || ! is_wp_error( $terminal_reschedule ) || "parisan_booking_reschedule_not_allowed" !== $terminal_reschedule->get_error_code() ) {
               fwrite( STDERR, "Booking lifecycle state machine or audit history assertion failed.\\n" );
               exit( 1 );
