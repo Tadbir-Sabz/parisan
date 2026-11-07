@@ -2,7 +2,7 @@
 
 > Product vision, architecture, delivery roadmap, and mandatory contributor instructions.
 
-**Project status:** Internal booking lifecycle, staff operations, concurrency-safe rescheduling, and first privacy/retention controls implemented and CI-verified on the feature branch; public booking/customer portal and release readiness remain incomplete  
+**Project status:** Internal booking operations, privacy lifecycle, gated public booking API, customer-token controls, and an initial Persian booking shortcode implemented on the feature branch; public activation and release readiness remain blocked pending security/browser validation  
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`
 
@@ -55,6 +55,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Internal booking creation service with per-staff advisory lock, InnoDB transaction gate, locked availability recheck, idempotency, and atomic booking/audit-event persistence.
 - [x] Controlled internal booking lifecycle: pending → confirmed/cancelled/expired and confirmed → cancelled/completed/no-show, with permission checks, confirmation conflict recheck, idempotent status replay, and audit events.
 - [x] Persian WordPress admin booking operations screen with status filters, pagination, local time range, customer contact, price, and guarded lifecycle actions. Public REST/AJAX booking endpoints remain disabled.
+- [~] Gated public REST API and `[parisan_booking]` shortcode for availability, pending booking creation, and token-scoped customer view/cancellation. Disabled by default; 256-bit HMAC-digested tokens, rate limiting, same-origin mutation checks, no-store responses, and transactional cancellation are implemented. Browser/device review and reverse-proxy/multi-node verification remain UNVERIFIED.
 - [x] PHP syntax lint workflow for PHP 8.1, 8.2, and 8.3.
 - [x] Standalone schedule-normalization test suite passes in CI on PHP 8.1, 8.2, and 8.3.
 - [x] Disposable WordPress + MariaDB activation/registration smoke test passes.
