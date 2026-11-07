@@ -56,7 +56,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Disposable WordPress + MariaDB activation/registration smoke test passes.
 - [x] Latest baseline CI run passed PHP 8.1/8.2/8.3 and disposable WordPress/MariaDB activation smoke test.
 - [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
-- [ ] CI validation of calendar exception administration and seeded database-backed availability integration (current run pending).
+- [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
 - [~] Availability calculation and date-exception admin foundation implemented; break management, resource schedules, and concurrency-safe booking creation remain pending.
 - [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
