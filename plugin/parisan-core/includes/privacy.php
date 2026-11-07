@@ -71,7 +71,8 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table   = $wpdb->prefix . 'parisan_booking_events';
-	foreach ( array( $bookings_table, $events_table ) as $table ) {
+	$tokens_table   = $wpdb->prefix . 'parisan_customer_tokens';
+	foreach ( array( $bookings_table, $events_table, $tokens_table ) as $table ) {
 		$status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $status ) || empty( $status['Engine'] ) || 'innodb' !== strtolower( $status['Engine'] ) ) {
 			return new WP_Error( 'parisan_privacy_storage_unavailable', __( 'ذخیره‌ساز امن برای اجرای درخواست حریم خصوصی آماده نیست.', 'parisan-core' ) );
@@ -93,6 +94,17 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	if ( false === $updated ) {
 		$wpdb->query( 'ROLLBACK' );
 		return new WP_Error( 'parisan_privacy_booking_update_failed', __( 'ناشناس‌سازی اطلاعات رزرو انجام نشد.', 'parisan-core' ) );
+	}
+
+	$tokens_updated = $wpdb->query(
+		$wpdb->prepare(
+			"UPDATE {$tokens_table} SET revoked_at_utc = %s WHERE booking_id IN ({$placeholders}) AND revoked_at_utc IS NULL",
+			array_merge( array( current_time( 'mysql', true ) ), $booking_ids )
+		)
+	);
+	if ( false === $tokens_updated ) {
+		$wpdb->query( 'ROLLBACK' );
+		return new WP_Error( 'parisan_privacy_token_revoke_failed', __( 'لغو دسترسی مشتری به رزرو انجام نشد.', 'parisan-core' ) );
 	}
 
 	$events_updated = $wpdb->query(
