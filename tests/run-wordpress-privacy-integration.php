@@ -18,6 +18,17 @@ function parisan_privacy_integration_assert( $condition, $message ) {
 	}
 }
 
+function parisan_privacy_integration_issue_customer_token( $booking_id ) {
+	global $wpdb;
+	$token = bin2hex( random_bytes( 32 ) );
+	if ( false === $wpdb->query( 'START TRANSACTION' ) || ! parisan_core_store_customer_access_token( $booking_id, $token ) || false === $wpdb->query( 'COMMIT' ) ) {
+		$wpdb->query( 'ROLLBACK' );
+		fwrite( STDERR, "Could not issue synthetic customer token.\n" );
+		exit( 1 );
+	}
+	return $token;
+}
+
 function parisan_privacy_integration_insert_booking( $email, $status, $token, $updated_at ) {
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_bookings';
@@ -69,6 +80,7 @@ function parisan_privacy_integration_insert_booking( $email, $status, $token, $u
 
 $terminal_id = parisan_privacy_integration_insert_booking( 'privacy@example.test', 'completed', 'privacy-terminal-0001', '2026-11-01 00:00:00' );
 $active_id = parisan_privacy_integration_insert_booking( 'privacy@example.test', 'pending', 'privacy-active-0002', '2026-11-01 00:00:00' );
+$terminal_customer_token = parisan_privacy_integration_issue_customer_token( $terminal_id );
 
 $export = parisan_core_privacy_exporter_callback( 'privacy@example.test', 1 );
 parisan_privacy_integration_assert( 2 === count( $export['data'] ), 'WordPress exporter returns both matching bookings' );
@@ -90,9 +102,11 @@ $terminal_note = $wpdb->get_var( $wpdb->prepare( "SELECT event_note FROM {$wpdb-
 $terminal_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d", $terminal_id ) );
 parisan_privacy_integration_assert( 'اطلاعات حذف‌شده' === $terminal['customer_name'] && '' === $terminal['customer_phone'] && '' === $terminal['customer_email'] && null === $terminal['customer_user_id'], 'terminal booking contact fields are anonymized' );
 parisan_privacy_integration_assert( null === $terminal_note && 1 === $terminal_events, 'event note is cleared while audit event remains' );
+parisan_privacy_integration_assert( false === parisan_core_resolve_customer_access_token( $terminal_customer_token ), 'terminal-booking anonymization revokes customer access token' );
 parisan_privacy_integration_assert( 'Synthetic Privacy Customer' === $active['customer_name'] && '09123456789' === $active['customer_phone'], 'active booking contact data is preserved' );
 
 $rollback_id = parisan_privacy_integration_insert_booking( 'rollback@example.test', 'completed', 'privacy-rollback-0003', '2026-11-01 00:00:00' );
+$rollback_customer_token = parisan_privacy_integration_issue_customer_token( $rollback_id );
 $events_table = $wpdb->prefix . 'parisan_booking_events';
 $trigger = 'parisan_privacy_force_event_update_failure';
 $created_trigger = $wpdb->query( "CREATE TRIGGER {$trigger} BEFORE UPDATE ON {$events_table} FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced_privacy_rollback'" );
@@ -105,13 +119,16 @@ try {
 $rollback_row = $wpdb->get_row( $wpdb->prepare( "SELECT customer_name, customer_phone, customer_email FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $rollback_id ), ARRAY_A );
 parisan_privacy_integration_assert( false === $rollback_result['items_removed'], 'eraser reports forced audit-note failure' );
 parisan_privacy_integration_assert( 'Synthetic Privacy Customer' === $rollback_row['customer_name'] && '09123456789' === $rollback_row['customer_phone'] && 'rollback@example.test' === $rollback_row['customer_email'], 'failed erasure rolls booking PII update back' );
+parisan_privacy_integration_assert( is_array( parisan_core_resolve_customer_access_token( $rollback_customer_token ) ), 'failed erasure rolls token revocation back too' );
 
 $retention_id = parisan_privacy_integration_insert_booking( 'retention@example.test', 'completed', 'privacy-retention-0004', '2025-01-01 00:00:00' );
+$retention_customer_token = parisan_privacy_integration_issue_customer_token( $retention_id );
 update_option( PARISAN_CORE_RETENTION_OPTION, 90, false );
 $retention_result = parisan_core_run_booking_retention_cleanup();
 $retention_row = $wpdb->get_row( $wpdb->prepare( "SELECT customer_name, customer_phone, customer_email FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $retention_id ), ARRAY_A );
 parisan_privacy_integration_assert( 1 === $retention_result, 'opt-in retention cleanup anonymizes one old terminal booking' );
 parisan_privacy_integration_assert( 'اطلاعات حذف‌شده' === $retention_row['customer_name'] && '' === $retention_row['customer_phone'] && '' === $retention_row['customer_email'], 'retention cleanup removes direct customer identifiers' );
+parisan_privacy_integration_assert( false === parisan_core_resolve_customer_access_token( $retention_customer_token ), 'automatic retention revokes customer access token' );
 
 $_SERVER['REMOTE_ADDR'] = '192.0.2.77';
 parisan_privacy_integration_assert( true === parisan_core_check_rate_limit( 'integration_test', 1, 300 ), 'first rate-limited request is accepted' );
