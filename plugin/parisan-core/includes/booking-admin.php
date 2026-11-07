@@ -115,6 +115,12 @@ function parisan_core_handle_booking_admin_transition() {
 			$redirect_args['status'] = $filter;
 		}
 	}
+	if ( isset( $_POST['booking_detail_id'] ) && is_scalar( $_POST['booking_detail_id'] ) ) {
+		$detail_id = absint( wp_unslash( $_POST['booking_detail_id'] ) );
+		if ( $detail_id === $booking_id ) {
+			$redirect_args['booking_id'] = $detail_id;
+		}
+	}
 	wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'edit.php?post_type=parisan_staff' ) ) );
 	exit;
 }
@@ -255,6 +261,7 @@ function parisan_core_render_booking_detail( $booking_id ) {
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;margin:0 6px 6px 0">
 					<input type="hidden" name="action" value="parisan_transition_booking">
 					<input type="hidden" name="booking_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
+					<input type="hidden" name="booking_detail_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
 					<input type="hidden" name="to_status" value="<?php echo esc_attr( $target_status ); ?>">
 					<?php wp_nonce_field( 'parisan_transition_booking_' . $booking['id'], 'parisan_booking_nonce' ); ?>
 					<button type="submit" class="button <?php echo 'cancelled' === $target_status ? 'button-link-delete' : 'button-secondary'; ?>" onclick="<?php echo esc_attr( $confirm_action ); ?>"><?php echo esc_html( $action_label ); ?></button>
