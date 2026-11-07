@@ -25,6 +25,7 @@ do_action( 'rest_api_init', rest_get_server() );
 $routes = rest_get_server()->get_routes();
 parisan_public_integration_assert( ! isset( $routes['/parisan/v1/bookings'] ), 'public booking route is not registered by default' );
 parisan_public_integration_assert( ! isset( $routes['/parisan/v1/customer-booking'] ), 'customer self-service route is not registered by default' );
+parisan_public_integration_assert( ! isset( $routes['/parisan/v1/customer-booking/reschedule'] ) && ! isset( $routes['/parisan/v1/customer-booking/availability'] ), 'customer rescheduling routes are not registered by default' );
 
 $tokens_table = $wpdb->prefix . 'parisan_customer_tokens';
 $bookings_table = $wpdb->prefix . 'parisan_bookings';
