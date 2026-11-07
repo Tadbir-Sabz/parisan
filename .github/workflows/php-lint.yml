@@ -293,6 +293,18 @@ jobs:
               fwrite( STDERR, "Booking lifecycle state machine or audit history assertion failed.\\n" );
               exit( 1 );
             }
+            if ( ! function_exists( "parisan_core_render_booking_admin_page" ) || ! function_exists( "parisan_core_handle_booking_admin_transition" ) || false === has_action( "admin_post_parisan_transition_booking", "parisan_core_handle_booking_admin_transition" ) ) {
+              fwrite( STDERR, "Booking operations admin page or transition handler was not registered.\\n" );
+              exit( 1 );
+            }
+            $_GET = array();
+            ob_start();
+            parisan_core_render_booking_admin_page();
+            $booking_admin_html = ob_get_clean();
+            if ( false === strpos( $booking_admin_html, "مدیریت نوبت‌ها" ) || false === strpos( $booking_admin_html, "Synthetic booking customer" ) ) {
+              fwrite( STDERR, "Booking operations admin page did not render the seeded booking.\\n" );
+              exit( 1 );
+            }
             update_post_meta( $service_id, "_parisan_price_type", "from" );
             $from_price_payload = $payload;
             $from_price_payload["idempotency_token"] = "ci-idempotency-token-0003";
