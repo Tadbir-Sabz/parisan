@@ -58,6 +58,7 @@ parisan_public_enabled_assert( wp_script_is( 'parisan-public-booking', 'enqueued
 parisan_public_enabled_assert( wp_style_is( 'parisan-public-booking', 'enqueued' ), 'public booking CSS is enqueued' );
 
 update_post_meta( $staff_id, '_parisan_staff_weekly_schedule', array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) ) );
+update_option( 'timezone_string', 'UTC' );
 $booking_date = current_datetime()->modify( 'next monday' )->format( 'Y-m-d' );
 $base_input = array(
 	'staff_id' => (int) $staff_id,
@@ -156,7 +157,10 @@ $customer_view_response = parisan_core_rest_customer_booking( $customer_view_req
 $customer_view_data = $customer_view_response->get_data();
 parisan_public_enabled_assert( 200 === $customer_view_response->get_status() && $booking_date . ' 12:00' === $customer_view_data['starts_at_local_display'] && true === $customer_view_data['can_reschedule'], 'customer view reflects the new local appointment time and reschedule capability' );
 
-$customer_token_row = $wpdb->get_row( $wpdb->prepare( "SELECT expires_at_utc FROM {$wpdb->prefix}parisan_customer_tokens WHERE booking_id = %d AND revoked_at_utc IS NULL", (int) $public_response_data['booking_id'] ), ARRAY_A );
+$customer_booking = parisan_core_resolve_customer_access_token( $customer_token );
+$customer_token_row = $wpdb->get_row( $wpdb->prepare( "SELECT expires_at_utc FROM {$wpdb->prefix}parisan_customer_tokens WHERE booking_id = %d AND revoked_at_utc IS NULL", (int) $customer_booking['id'] ), ARRAY_A );
+$expected_customer_expiry = ( new DateTimeImmutable( $booking_date . ' 12:45:00', new DateTimeZone( 'UTC' ) ) )->modify( '+30 days' )->format( 'Y-m-d H:i:s' );
+parisan_public_enabled_assert( is_array( $customer_token_row ) && $expected_customer_expiry === $customer_token_row['expires_at_utc'], 'customer reschedule moves token expiry to 30 days after the new appointment end' );
 
 
 echo "PASS: explicit public API enablement, route registration, and Persian booking shortcode rendering.\n";
