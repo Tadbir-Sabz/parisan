@@ -149,9 +149,10 @@
 			completed: 'انجام شده', expired: 'منقضی شده', no_show: 'عدم مراجعه'
 		};
 		const date = data.starts_at_local_display || data.starts_at_local || '';
+		const price = data.currency_code === 'IRR' && Number.isFinite(Number(data.price_amount)) ? new Intl.NumberFormat('fa-IR').format(Math.round(Number(data.price_amount) / 10)) + ' تومان' : '';
 		summaryText.textContent = [
 			'وضعیت: ' + (labels[data.status] || data.status || '—'),
-			'خدمت: ' + (data.service || '—'), 'متخصص: ' + (data.specialist || '—'), 'زمان: ' + (date || '—')
+			'خدمت: ' + (data.service || '—'), 'متخصص: ' + (data.specialist || '—'), 'زمان: ' + (date || '—'), 'مبلغ: ' + (price || '—')
 		].join(' | ');
 		summary.hidden = false;
 		cancelButton.hidden = !data.can_cancel;
