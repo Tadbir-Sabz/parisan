@@ -21,7 +21,8 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Specialist service eligibility and weekly recurring schedule.
 * Persian admin page for date-specific specialist leave, full-day closures, and partial-day unavailable intervals.
 * Additive booking, booking-event, and schedule-exception schema.
-* Read-only availability calculation with timezone conversion and overlap checks.\n* Internal booking creation service with per-staff advisory locking, InnoDB transaction checks, idempotency, and atomic booking/audit-event persistence.
+* Read-only availability calculation with timezone conversion and overlap checks.
+* Internal booking creation service with per-staff advisory locking, InnoDB transaction checks, idempotency, and atomic booking/audit-event persistence.
 
 == Important availability boundary ==
 
