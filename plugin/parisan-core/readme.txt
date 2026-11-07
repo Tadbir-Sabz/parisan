@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.7.1
+Stable tag: 0.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -22,11 +22,11 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Persian admin page for date-specific specialist leave, full-day closures, and partial-day unavailable intervals.
 * Additive booking, booking-event, and schedule-exception schema.
 * Read-only availability calculation with timezone conversion and overlap checks.
-* Internal booking creation service with per-staff advisory locking, InnoDB transaction checks, idempotency, and atomic booking/audit-event persistence.
+* Internal booking creation service with per-staff advisory locking, InnoDB transaction checks, idempotency, and atomic booking/audit-event persistence.\n* Internal booking lifecycle transitions for confirmation, cancellation, expiry, completion, and no-show with atomic audit events.
 
 == Important availability boundary ==
 
-Availability results are advisory only and do not reserve a slot. Availability remains advisory until a booking is committed. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; calendar exception writes use the same lock. Services with a starting-from price must have a final price confirmed before booking. The service is not exposed through a public REST/AJAX endpoint. Break management, resource schedules, booking state transitions, customer portal, and notifications remain future work.
+Availability results are advisory only and do not reserve a slot. Availability remains advisory until a booking is committed. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; calendar exception writes use the same lock. Services with a starting-from price must have a final price confirmed before booking. The service is not exposed through a public REST/AJAX endpoint. Break management, resource schedules, customer portal, and notifications remain future work. Public booking endpoints are not exposed.
 
 == Installation ==
 
@@ -39,6 +39,18 @@ Availability results are advisory only and do not reserve a slot. Availability r
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.8.0 =
+* Added controlled internal booking status transitions and audit history.
+* Confirmation rechecks overlapping bookings and unavailable calendar exceptions.
+* Added CI coverage for confirmation, cancellation, idempotent status replay, invalid transitions, and booking/audit atomicity.
+
+= 0.7.1 =
+* Added internal transactional booking creation with staff-level advisory locking and idempotency.
+* Serialized calendar exception writes with booking creation using the same staff lock.
+* Required InnoDB for booking, booking-event, and schedule-exception tables.
+* Rejected “price from” services until the final price is confirmed.
+
 
 = 0.7.1 =
 * Added internal transactional booking creation with staff-level advisory locking and idempotency.
