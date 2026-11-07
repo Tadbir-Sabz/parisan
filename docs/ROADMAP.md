@@ -42,7 +42,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Define brand concept, naming/wordmark direction, color tokens, Persian/Latin type system, iconography, spacing, motion, and responsive breakpoints.
 - [ ] Produce desktop/tablet/mobile design references and high-fidelity homepage/service/booking/account/admin prototypes.
 - [ ] Define complete RTL/LTR interaction rules and dark/light tokens.
-- [x] Add initial theme scaffold, semantic header/footer, navigation, homepage starter, and responsive RTL-aware base styles.
+- [x] Add initial theme scaffold, semantic header/footer, navigation, dedicated front page, standard page/post, archive, search, and 404 templates, and responsive RTL-aware base styles.
 - [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
 - [ ] Build public templates: home, service archive/detail, team, gallery, blog, contact, FAQ, policies, search, 404.
 - [ ] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action.
