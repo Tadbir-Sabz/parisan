@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.6.0
+Stable tag: 0.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,11 +21,11 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Specialist service eligibility and weekly recurring schedule.
 * Persian admin page for date-specific specialist leave, full-day closures, and partial-day unavailable intervals.
 * Additive booking, booking-event, and schedule-exception schema.
-* Read-only availability calculation with timezone conversion and overlap checks.
+* Read-only availability calculation with timezone conversion and overlap checks.\n* Internal booking creation service with per-staff advisory locking, InnoDB transaction checks, idempotency, and atomic booking/audit-event persistence.
 
 == Important availability boundary ==
 
-Availability results are advisory only and do not reserve a slot. Public booking endpoints and concurrency-safe booking creation are not implemented. Break management, resource schedules, booking state transitions, customer portal, and notifications remain future work.
+Availability results are advisory only and do not reserve a slot. Availability remains advisory until a booking is committed. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; it is not exposed through a public REST/AJAX endpoint. Break management, resource schedules, booking state transitions, customer portal, and notifications remain future work.
 
 == Installation ==
 
