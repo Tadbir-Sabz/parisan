@@ -266,6 +266,33 @@ jobs:
               fwrite( STDERR, "Overlapping booking was not rejected after locked availability recheck.\\n" );
               exit( 1 );
             }
+            wp_set_current_user( 1 );
+            if ( ! function_exists( "parisan_core_transition_booking" ) ) {
+              fwrite( STDERR, "Booking lifecycle service was not loaded.\\n" );
+              exit( 1 );
+            }
+            $confirmed = parisan_core_transition_booking( $created["booking_id"], "confirmed", "CI confirmation" );
+            if ( is_wp_error( $confirmed ) || "confirmed" !== $confirmed["to_status"] || ! empty( $confirmed["reused"] ) ) {
+              fwrite( STDERR, "Pending-to-confirmed transition failed: " . ( is_wp_error( $confirmed ) ? $confirmed->get_error_code() : "unexpected result" ) . "\\n" );
+              exit( 1 );
+            }
+            $confirmed_replay = parisan_core_transition_booking( $created["booking_id"], "confirmed" );
+            if ( is_wp_error( $confirmed_replay ) || empty( $confirmed_replay["reused"] ) ) {
+              fwrite( STDERR, "Idempotent booking status replay failed.\\n" );
+              exit( 1 );
+            }
+            $cancelled = parisan_core_transition_booking( $created["booking_id"], "cancelled", "CI cancellation" );
+            if ( is_wp_error( $cancelled ) || "cancelled" !== $cancelled["to_status"] ) {
+              fwrite( STDERR, "Confirmed-to-cancelled transition failed.\\n" );
+              exit( 1 );
+            }
+            $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
+            $transition_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"status_changed\"", $created["booking_id"] ) );
+            $invalid_transition = parisan_core_transition_booking( $created["booking_id"], "confirmed" );
+            if ( "cancelled" !== $cancelled_status || 2 !== $transition_events || ! is_wp_error( $invalid_transition ) || "parisan_invalid_booking_transition" !== $invalid_transition->get_error_code() ) {
+              fwrite( STDERR, "Booking lifecycle state machine or audit history assertion failed.\\n" );
+              exit( 1 );
+            }
             update_post_meta( $service_id, "_parisan_price_type", "from" );
             $from_price_payload = $payload;
             $from_price_payload["idempotency_token"] = "ci-idempotency-token-0003";
