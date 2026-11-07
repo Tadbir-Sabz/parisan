@@ -79,7 +79,9 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	}
 
 	$placeholders = implode( ',', array_fill( 0, count( $booking_ids ), '%d' ) );
-	$wpdb->query( 'START TRANSACTION' );
+	if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+		return new WP_Error( 'parisan_privacy_transaction_failed', __( 'شروع تراکنش درخواست حریم خصوصی ممکن نشد.', 'parisan-core' ) );
+	}
 	$updated = $wpdb->query(
 		$wpdb->prepare(
 			"UPDATE {$bookings_table}
@@ -325,7 +327,6 @@ function parisan_core_run_booking_retention_cleanup() {
 	$table = $wpdb->prefix . 'parisan_bookings';
 	$statuses = parisan_core_erasable_booking_statuses();
 	$placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
-	$args = array_merge( array( $cutoff ), $statuses, array( 250 ) );
 	$rows = $wpdb->get_results(
 		$wpdb->prepare(
 			"SELECT id FROM {$table} WHERE updated_at_utc < %s AND status IN ({$placeholders})
