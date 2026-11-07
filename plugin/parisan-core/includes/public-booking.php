@@ -279,7 +279,7 @@ function parisan_core_rest_public_create_booking( $request ) {
 	}
 
 	$idempotency = $request->get_header( 'idempotency-key' );
-	if ( ! is_string( $idempotency ) || ! preg_match( '/^[A-Za-z0-9._~-]{32,128}$/D', $idempotency ) ) {
+	if ( ! is_string( $idempotency ) || ! preg_match( '/^[a-f0-9]{64}$/D', $idempotency ) ) {
 		return parisan_core_public_booking_error( __( 'شناسه درخواست معتبر نیست؛ صفحه را تازه‌سازی و دوباره تلاش کنید.', 'parisan-core' ), 400 );
 	}
 
