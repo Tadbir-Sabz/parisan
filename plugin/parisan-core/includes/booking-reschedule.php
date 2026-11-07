@@ -19,12 +19,16 @@ defined( 'ABSPATH' ) || exit;
  * @param string $note Optional internal audit note.
  * @return array|WP_Error Safe reschedule result.
  */
-function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note = '' ) {
+function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note = '', $customer_token = '' ) {
 	global $wpdb;
 
 	$booking_id = absint( $booking_id );
 	$new_start_local = is_string( $new_start_local ) ? trim( $new_start_local ) : '';
 	$note = is_string( $note ) ? sanitize_textarea_field( $note ) : '';
+	$customer_token = is_string( $customer_token ) ? trim( $customer_token ) : '';
+	if ( '' !== $customer_token && ! preg_match( '/^[a-f0-9]{64}$/D', $customer_token ) ) {
+		return new WP_Error( 'parisan_customer_booking_unavailable', __( 'دسترسی رزرو معتبر نیست.', 'parisan-core' ) );
+	}
 	if ( ! $booking_id || ! preg_match( '/^\\d{4}-\\d{2}-\\d{2} (?:[01]\\d|2[0-3]):[0-5]\\d$/D', $new_start_local ) ) {
 		return new WP_Error( 'parisan_invalid_reschedule_input', __( 'تاریخ یا ساعت جدید معتبر نیست.', 'parisan-core' ) );
 	}
@@ -69,7 +73,23 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 		}
 
 		$actor_id = get_current_user_id();
-		if ( ! $actor_id || ! current_user_can( 'edit_post', (int) $booking['staff_id'] ) ) {
+		if ( '' !== $customer_token ) {
+			$token_row = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT id FROM {$tokens_table} WHERE booking_id = %d AND token_hash = %s AND revoked_at_utc IS NULL AND expires_at_utc > %s LIMIT 1 FOR UPDATE",
+					$booking_id,
+					parisan_core_customer_token_hash( $customer_token ),
+					current_time( 'mysql', true )
+				),
+				ARRAY_A
+			);
+			if ( ! is_array( $token_row ) ) {
+				$wpdb->query( 'ROLLBACK' );
+				$transaction_started = false;
+				return new WP_Error( 'parisan_customer_booking_unavailable', __( 'دسترسی رزرو معتبر نیست.', 'parisan-core' ) );
+			}
+			$actor_id = null;
+		} elseif ( ! $actor_id || ! current_user_can( 'edit_post', (int) $booking['staff_id'] ) ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
 			return new WP_Error( 'parisan_booking_transition_forbidden', __( 'اجازه تغییر زمان این رزرو را ندارید.', 'parisan-core' ) );
