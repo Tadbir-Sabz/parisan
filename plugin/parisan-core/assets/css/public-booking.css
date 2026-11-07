@@ -75,6 +75,9 @@
 .parisan-customer-access form .parisan-booking-button { flex: 0 0 auto; }
 .parisan-customer-summary { margin-top: 18px; padding: 16px; border-inline-start: 3px solid var(--pb-plum); background: var(--pb-paper); }
 .parisan-customer-summary p { margin: 0; color: var(--pb-ink); font-size: 14px; line-height: 2; }
+.parisan-customer-reschedule { margin-top: 18px; padding: 18px; border: 1px solid var(--pb-line); background: var(--pb-surface); }
+.parisan-customer-reschedule h4 { margin: 0 0 14px; color: var(--pb-ink); font-size: 16px; font-weight: 600; }
+.parisan-customer-reschedule .parisan-booking-button { margin-top: 14px; }
 .parisan-booking-notice { margin: 0; padding: 18px 20px; border-inline-start: 3px solid var(--pb-plum); background: var(--pb-paper); color: var(--pb-muted); }
 .parisan-booking-shell button:focus-visible { outline: 3px solid #b69a70; outline-offset: 3px; }
 @media (max-width: 620px) {
