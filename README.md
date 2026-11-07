@@ -2,8 +2,8 @@
 
 > Product vision, architecture, delivery roadmap, and mandatory contributor instructions.
 
-**Project status:** Planning / repository bootstrap  
-**Canonical branch:** main  
+**Project status:** Initial implementation scaffold — runtime validation pending  
+**Canonical branch:** main (implementation work is currently on `feature/phase-0-foundation`)  
 **Product:** A premium, Persian-first WordPress experience for women's beauty salons, backed by a first-party salon operations engine.
 
 ## Start here — mandatory for every agent
@@ -30,44 +30,29 @@ Parisan is intended to feel like a polished premium beauty brand while working a
 
 The product must not require unrelated third-party plugins for its advertised core capabilities. WordPress itself remains the platform; WooCommerce and Elementor are supported integrations, not silently bundled dependencies.
 
-## Important architecture decision
+## Architecture
 
 The product is delivered as a coordinated **theme + first-party companion plugin** in this same repository:
 
-- The **theme** owns presentation, templates, design system, responsive behavior, accessibility, and theme-specific settings.
-- The **Parisan Core plugin** owns durable business logic and data: bookings, staff, services, customers, notifications, forms, SEO features, and operational settings.
+- **Parisan Beauty theme:** presentation, templates, design system, responsive behavior, accessibility, and theme-specific settings.
+- **Parisan Core plugin:** durable business logic and data: bookings, staff, services, customers, notifications, forms, SEO features, and operational settings.
 - Core functionality must remain available when the visual theme is changed. Never store bookings or other business-critical data in theme options or theme-only custom post types.
-- The companion plugin is part of the Parisan product distribution. It is not an external dependency the customer must find independently.
 - WooCommerce and Elementor integrations are feature-detected and degrade gracefully when those plugins are absent. Do not reimplement their entire platforms.
 
-This separation is intentional: WordPress deactivates theme code on a theme switch, so putting booking and customer records in the theme would be fragile and unsafe.
+## Repository structure
 
-## Repository structure (target)
+- `AGENTS.md`, `README.md`
+- `docs/PRODUCT-PLAN.md`, `docs/ROADMAP.md`
+- `theme/parisan/` — initial WordPress theme scaffold
+- `plugin/parisan-core/` — initial companion plugin scaffold
+- Planned: architecture decision records, automated tests, CI, packaging and manuals.
 
-- AGENTS.md
-- README.md
-- docs/PRODUCT-PLAN.md
-- docs/ROADMAP.md
-- docs/ARCHITECTURE.md
-- docs/DESIGN-SYSTEM.md
-- docs/decisions/
-- theme/ — Parisan Beauty WordPress theme
-- plugin/parisan-core/ — first-party business and platform features
-- tests/ — automated and integration tests
-- .github/ — CI, issue and contribution templates
+## Current verified progress
 
-The repository is currently being bootstrapped. This target structure is a direction, not a claim that these directories or features already exist.
+- [x] Product plan, roadmap, and mandatory agent rules committed.
+- [x] Initial theme files added: metadata, bootstrap, header, footer, main template, and responsive RTL-aware stylesheet.
+- [x] Initial Parisan Core plugin added with service and specialist catalogue content types.
+- [ ] PHP lint, WordPress activation, browser rendering, accessibility, and responsive visual checks.
+- [ ] Booking engine, customer portal, SMS, forms, SEO, caching, and integrations.
 
-## Current delivery status
-
-- [x] Repository product entrypoint and mandatory documentation-first rule
-- [ ] Product requirements and architecture baseline
-- [ ] Delivery roadmap and acceptance criteria
-- [ ] UX flows and design system
-- [ ] Theme foundation and visual implementation
-- [ ] Parisan Core booking and salon operations engine
-- [ ] SEO, performance, forms, SMS, customer portal
-- [ ] WooCommerce and Elementor integrations
-- [ ] Security, accessibility, compatibility, and release validation
-
-**Do not describe a feature as implemented or PASS until code, tests, and evidence demonstrate it.**
+**Important:** The current branch is an implementation scaffold, not a release. Runtime compatibility and all feature behavior remain unverified until tested in a real WordPress environment.
