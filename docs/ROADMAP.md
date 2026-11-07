@@ -29,7 +29,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Inspect repository branch protections, CI, permissions, and initial commit state; document verified baseline.
 - [ ] Add architecture decision records for theme/core separation, booking data model, timezone/calendar, and integration strategy.
 - [ ] Define supported WordPress/PHP matrix based on current stable releases and available test environments.
-- [ ] Establish coding standards, static analysis, unit/integration test harness, and CI.
+- [~] Establish CI and focused automated validation; PHP lint matrix and standalone weekly schedule tests are added. WordPress integration tests and broader static analysis remain pending.
 - [ ] Define local development environment and synthetic seed data.
 - [ ] Add security/privacy threat model and data classification.
 
@@ -63,6 +63,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Build admin navigation and setup wizard.
 - [ ] Add seed/demo data that is clearly non-production.
 - [ ] Test deactivation/theme-switch data persistence.
+- [x] Add pure weekly schedule normalization tests to the PHP CI matrix; latest run pending.
 
 **Gate P2:** salon catalogue and staff/schedule administration usable; migrations tested; permissions enforced.
 
