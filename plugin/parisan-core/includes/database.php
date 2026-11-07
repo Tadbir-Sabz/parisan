@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 1 );
+define( 'PARISAN_CORE_DB_VERSION', 2 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -38,6 +38,7 @@ function parisan_core_install_database() {
 		customer_email varchar(190) NOT NULL DEFAULT '',
 		starts_at_utc datetime NOT NULL,
 		ends_at_utc datetime NOT NULL,
+		duration_minutes smallint(5) unsigned NOT NULL DEFAULT 0,
 		salon_timezone varchar(64) NOT NULL,
 		status varchar(24) NOT NULL DEFAULT 'pending',
 		price_amount bigint(20) unsigned NOT NULL DEFAULT 0,
