@@ -31,6 +31,12 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
+	foreach ( array( $bookings_table, $events_table ) as $table ) {
+		$table_status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
+		if ( ! is_array( $table_status ) || empty( $table_status['Engine'] ) || 'innodb' !== strtolower( $table_status['Engine'] ) ) {
+			return new WP_Error( 'parisan_transaction_storage_unavailable', __( 'ذخیره‌ساز تراکنشی امن برای رزرو آماده نیست.', 'parisan-core' ) );
+		}
+	}
 	$staff_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT staff_id FROM {$bookings_table} WHERE id = %d", $booking_id ) );
 	if ( ! $staff_id ) {
 		return new WP_Error( 'parisan_booking_not_found', __( 'رزرو موردنظر پیدا نشد.', 'parisan-core' ) );
