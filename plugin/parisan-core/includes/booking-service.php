@@ -71,6 +71,7 @@ function parisan_core_create_booking( $input ) {
 	$local_start = isset( $input['starts_at_local'] ) && is_string( $input['starts_at_local'] ) ? trim( $input['starts_at_local'] ) : '';
 	$name       = isset( $input['customer_name'] ) && is_string( $input['customer_name'] ) ? sanitize_text_field( $input['customer_name'] ) : '';
 	$phone      = isset( $input['customer_phone'] ) && is_string( $input['customer_phone'] ) ? trim( $input['customer_phone'] ) : '';
+	$phone      = strtr( $phone, array( '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9' ) );
 	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';
 	$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
