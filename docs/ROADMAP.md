@@ -78,12 +78,12 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Implement and CI-verify internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, and atomic pending booking + audit event transaction (run 42376217290). Multi-connection stress and lock-timeout behavior remain UNVERIFIED. No public endpoint is exposed.
 - [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
-- [~] Implement a gated public API foundation for availability, pending booking creation, token-scoped customer view, and cancellation (ADR-0012). Routes are absent unless the owner explicitly defines `PARISAN_PUBLIC_BOOKING_ENABLED=true`; browser booking wizard and mobile UX remain pending.
+- [~] Implement a gated public API foundation for availability, pending booking creation, token-scoped customer view, and cancellation (ADR-0012). Routes and the wizard remain disabled unless the owner explicitly defines `PARISAN_PUBLIC_BOOKING_ENABLED=true`; initial Persian RTL shortcode UI is implemented, while browser/device/accessibility review remains UNVERIFIED.
 - [~] Implement non-account customer ownership using 256-bit random, HMAC-digested, expiring, revocable access tokens (ADR-0012). Customer registration/login and account-based ownership remain future options.
-- [~] Add a minimal token-scoped booking view and cancellation API. Customer rescheduling, profile/preferences, full portal UI, and browser workflows remain pending.
+- [~] Add a minimal token-scoped booking view/cancellation API and initial shortcode UI for token-based lookup/cancellation. Customer rescheduling, profile/preferences, account-based portal, and browser workflows remain pending.
 - [~] Implement admin booking list, status filters/actions, detail/audit timeline, manual booking, and reschedule form; calendar-style operations view, search, and daily dashboard remain pending.
 - [ ] Add email notifications and testable notification queue.
-- [~] Test timezone boundaries, concurrent requests, token scoping/rotation/expiry, lifecycle transitions, privacy export/erasure, retention, and abuse controls; updated WordPress/MariaDB CI is pending. Browser, multi-connection stress, proxy, and multi-node evidence remains pending.
+- [~] Test timezone boundaries, concurrent requests, token scoping/rotation/expiry, lifecycle transitions, privacy export/erasure, retention, and abuse controls; updated WordPress/MariaDB CI covers token lifecycle and default-off/explicitly-enabled route/shortcode behavior. Browser, multi-connection stress, proxy, and multi-node evidence remains pending.
 
 **Gate P3:** a complete customer can book and manage an appointment; staff can operate the schedule; no double booking under tested concurrency.
 
