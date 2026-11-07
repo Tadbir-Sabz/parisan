@@ -173,6 +173,125 @@ function parisan_core_handle_manual_booking_create() {
 add_action( 'admin_post_parisan_create_manual_booking', 'parisan_core_handle_manual_booking_create' );
 
 /**
+ * Render one booking and its audit timeline.
+ *
+ * @param int $booking_id Booking row ID.
+ * @return void
+ */
+function parisan_core_render_booking_detail( $booking_id ) {
+	global $wpdb;
+
+	$bookings_table = $wpdb->prefix . 'parisan_bookings';
+	$events_table = $wpdb->prefix . 'parisan_booking_events';
+	$booking = $wpdb->get_row(
+		$wpdb->prepare(
+			"SELECT b.*, service_post.post_title AS service_title, staff_post.post_title AS staff_title
+			FROM {$bookings_table} b
+			LEFT JOIN {$wpdb->posts} service_post ON service_post.ID = b.service_id
+			LEFT JOIN {$wpdb->posts} staff_post ON staff_post.ID = b.staff_id
+			WHERE b.id = %d",
+			$booking_id
+		),
+		ARRAY_A
+	);
+	if ( ! is_array( $booking ) ) {
+		wp_die( esc_html__( 'نوبت موردنظر پیدا نشد.', 'parisan-core' ), 404 );
+	}
+	if ( ! current_user_can( 'edit_post', (int) $booking['staff_id'] ) ) {
+		wp_die( esc_html__( 'اجازه مشاهده این نوبت را ندارید.', 'parisan-core' ), 403 );
+	}
+
+	$events = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT e.*, users.display_name AS actor_name
+			FROM {$events_table} e
+			LEFT JOIN {$wpdb->users} users ON users.ID = e.actor_user_id
+			WHERE e.booking_id = %d
+			ORDER BY e.created_at_utc ASC, e.id ASC",
+			$booking_id
+		),
+		ARRAY_A
+	);
+	$status_labels = array(
+		'pending' => __( 'در انتظار تأیید', 'parisan-core' ),
+		'confirmed' => __( 'تأییدشده', 'parisan-core' ),
+		'cancelled' => __( 'لغوشده', 'parisan-core' ),
+		'expired' => __( 'منقضی‌شده', 'parisan-core' ),
+		'completed' => __( 'انجام‌شده', 'parisan-core' ),
+		'no_show' => __( 'عدم مراجعه', 'parisan-core' ),
+	);
+	$event_labels = array(
+		'created' => __( 'ثبت نوبت', 'parisan-core' ),
+		'status_changed' => __( 'تغییر وضعیت', 'parisan-core' ),
+	);
+	$start = ( new DateTimeImmutable( $booking['starts_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
+	$end = ( new DateTimeImmutable( $booking['ends_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
+	$price_toman = intdiv( (int) $booking['price_amount'], 10 );
+	$actions = array();
+	if ( 'pending' === $booking['status'] ) {
+		$actions = array( 'confirmed' => __( 'تأیید', 'parisan-core' ), 'cancelled' => __( 'لغو', 'parisan-core' ), 'expired' => __( 'انقضا', 'parisan-core' ) );
+	} elseif ( 'confirmed' === $booking['status'] ) {
+		$actions = array( 'cancelled' => __( 'لغو', 'parisan-core' ), 'completed' => __( 'انجام شد', 'parisan-core' ), 'no_show' => __( 'عدم مراجعه', 'parisan-core' ) );
+	}
+	?>
+	<div class="wrap">
+		<h1><?php esc_html_e( 'جزئیات نوبت', 'parisan-core' ); ?></h1>
+		<p><a href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings' ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'بازگشت به فهرست نوبت‌ها', 'parisan-core' ); ?></a></p>
+		<h2><?php echo esc_html( $booking['customer_name'] ); ?></h2>
+		<table class="widefat striped" style="max-width:900px"><tbody>
+			<tr><th><?php esc_html_e( 'شماره تماس', 'parisan-core' ); ?></th><td dir="ltr"><?php echo esc_html( $booking['customer_phone'] ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'ایمیل', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['customer_email'] ? $booking['customer_email'] : '—' ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['service_title'] ? $booking['service_title'] : '—' ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['staff_title'] ? $booking['staff_title'] : '—' ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'زمان', 'parisan-core' ); ?></th><td><?php echo esc_html( wp_date( 'Y/m/d H:i', $start->getTimestamp(), wp_timezone() ) . ' تا ' . wp_date( 'H:i', $end->getTimestamp(), wp_timezone() ) ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'مبلغ ثبت‌شده', 'parisan-core' ); ?></th><td><?php echo esc_html( number_format_i18n( $price_toman ) . ' تومان' ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'وضعیت', 'parisan-core' ); ?></th><td><?php echo esc_html( isset( $status_labels[ $booking['status'] ] ) ? $status_labels[ $booking['status'] ] : $booking['status'] ); ?></td></tr>
+		</tbody></table>
+
+		<?php if ( $actions ) : ?>
+			<h2><?php esc_html_e( 'عملیات مجاز', 'parisan-core' ); ?></h2>
+			<?php foreach ( $actions as $target_status => $action_label ) : ?>
+				<?php $confirm_action = 'cancelled' === $target_status ? "return confirm('" . esc_js( __( 'از لغو این نوبت مطمئن هستید؟', 'parisan-core' ) ) . "');" : ''; ?>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;margin:0 6px 6px 0">
+					<input type="hidden" name="action" value="parisan_transition_booking">
+					<input type="hidden" name="booking_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
+					<input type="hidden" name="to_status" value="<?php echo esc_attr( $target_status ); ?>">
+					<?php wp_nonce_field( 'parisan_transition_booking_' . $booking['id'], 'parisan_booking_nonce' ); ?>
+					<button type="submit" class="button <?php echo 'cancelled' === $target_status ? 'button-link-delete' : 'button-secondary'; ?>" onclick="<?php echo esc_attr( $confirm_action ); ?>"><?php echo esc_html( $action_label ); ?></button>
+				</form>
+			<?php endforeach; ?>
+		<?php endif; ?>
+
+		<h2><?php esc_html_e( 'سوابق و رویدادهای نوبت', 'parisan-core' ); ?></h2>
+		<?php if ( $events ) : ?>
+			<table class="widefat striped" style="max-width:1100px"><thead><tr>
+				<th><?php esc_html_e( 'زمان', 'parisan-core' ); ?></th>
+				<th><?php esc_html_e( 'رویداد', 'parisan-core' ); ?></th>
+				<th><?php esc_html_e( 'وضعیت قبلی', 'parisan-core' ); ?></th>
+				<th><?php esc_html_e( 'وضعیت جدید', 'parisan-core' ); ?></th>
+				<th><?php esc_html_e( 'کاربر', 'parisan-core' ); ?></th>
+				<th><?php esc_html_e( 'توضیح', 'parisan-core' ); ?></th>
+			</tr></thead><tbody>
+			<?php foreach ( $events as $event ) : ?>
+				<?php $event_time = ( new DateTimeImmutable( $event['created_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() ); ?>
+				<tr>
+					<td><?php echo esc_html( wp_date( 'Y/m/d H:i:s', $event_time->getTimestamp(), wp_timezone() ) ); ?></td>
+					<td><?php echo esc_html( isset( $event_labels[ $event['event_type'] ] ) ? $event_labels[ $event['event_type'] ] : $event['event_type'] ); ?></td>
+					<td><?php echo esc_html( isset( $status_labels[ $event['from_status'] ] ) ? $status_labels[ $event['from_status'] ] : ( $event['from_status'] ? $event['from_status'] : '—' ) ); ?></td>
+					<td><?php echo esc_html( isset( $status_labels[ $event['to_status'] ] ) ? $status_labels[ $event['to_status'] ] : ( $event['to_status'] ? $event['to_status'] : '—' ) ); ?></td>
+					<td><?php echo esc_html( $event['actor_name'] ? $event['actor_name'] : __( 'سامانه', 'parisan-core' ) ); ?></td>
+					<td><?php echo esc_html( $event['event_note'] ? $event['event_note'] : '—' ); ?></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody></table>
+		<?php else : ?>
+			<p><?php esc_html_e( 'رویدادی برای این نوبت ثبت نشده است.', 'parisan-core' ); ?></p>
+		<?php endif; ?>
+	</div>
+	<?php
+}
+
+/**
  * Render the paginated booking operations list.
  *
  * @return void
@@ -180,6 +299,12 @@ add_action( 'admin_post_parisan_create_manual_booking', 'parisan_core_handle_man
 function parisan_core_render_booking_admin_page() {
 	if ( ! current_user_can( 'edit_others_posts' ) ) {
 		wp_die( esc_html__( 'اجازه مشاهده این صفحه را ندارید.', 'parisan-core' ), 403 );
+	}
+
+	$detail_id = isset( $_GET['booking_id'] ) ? absint( wp_unslash( $_GET['booking_id'] ) ) : 0;
+	if ( $detail_id ) {
+		parisan_core_render_booking_detail( $detail_id );
+		return;
 	}
 
 	$staff_options = get_posts( array( 'post_type' => 'parisan_staff', 'post_status' => 'publish', 'posts_per_page' => 200, 'orderby' => 'title', 'order' => 'ASC' ) );
@@ -326,6 +451,8 @@ function parisan_core_render_booking_admin_page() {
 						<td><?php echo esc_html( number_format_i18n( $price_toman ) . ' تومان' ); ?></td>
 						<td><?php echo esc_html( isset( $status_labels[ $row['status'] ] ) ? $status_labels[ $row['status'] ] : $row['status'] ); ?></td>
 						<td>
+							<?php $detail_url = add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'booking_id' => (int) $row['id'] ), admin_url( 'edit.php' ) ); ?>
+							<a class="button button-secondary" href="<?php echo esc_url( $detail_url ); ?>"><?php esc_html_e( 'جزئیات', 'parisan-core' ); ?></a>
 							<?php foreach ( $actions as $target_status => $action_label ) : ?>
 								<?php $confirm_action = 'cancelled' === $target_status ? "return confirm('" . esc_js( __( 'از لغو این نوبت مطمئن هستید؟', 'parisan-core' ) ) . "');" : ''; ?>
 								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;margin:0 0 4px 4px">
