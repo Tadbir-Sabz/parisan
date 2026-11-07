@@ -4,8 +4,6 @@
  * Plugin URI: https://github.com/Tadbir-Sabz/parisan
  * Description: First-party salon operations foundation for the Parisan Beauty theme.
  * Version: 0.1.0
- * Requires at least: 6.5
- * Requires PHP: 8.1
  * Author: Tadbir-Sabz
  * License: GPL-2.0-or-later
  * Text Domain: parisan-core
