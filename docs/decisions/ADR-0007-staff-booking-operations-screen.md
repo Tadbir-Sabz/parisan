@@ -20,6 +20,6 @@ The booking write service and state machine need an operational interface for sa
 
 ## Verification and boundaries
 
-- CI run 42376370119 passed all four jobs and rendered the admin page with a seeded synthetic booking.
+- CI run 42376411637 passed all four jobs and rendered the admin page with a seeded synthetic booking.
 - Browser-based visual/RTL/mobile review, accessibility review, pagination/filter manual checks, and end-to-end staff browser actions remain UNVERIFIED.
 - This is an initial operations list, not a complete salon front-desk workspace.
