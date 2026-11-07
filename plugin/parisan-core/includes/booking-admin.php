@@ -25,6 +25,66 @@ function parisan_core_register_booking_admin_page() {
 add_action( 'admin_menu', 'parisan_core_register_booking_admin_page' );
 
 /**
+ * Load the slot picker only on the booking operations screen.
+ *
+ * @param string $hook_suffix Current admin screen hook.
+ * @return void
+ */
+function parisan_core_enqueue_booking_admin_assets( $hook_suffix ) {
+	if ( false === strpos( (string) $hook_suffix, 'parisan-bookings' ) ) {
+		return;
+	}
+	wp_enqueue_script(
+		'parisan-booking-admin',
+		plugins_url( 'assets/js/booking-admin.js', PARISAN_CORE_FILE ),
+		array(),
+		PARISAN_CORE_VERSION,
+		true
+	);
+	wp_localize_script(
+		'parisan-booking-admin',
+		'ParisanBookingAdmin',
+		array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce' => wp_create_nonce( 'parisan_admin_available_slots' ),
+		)
+	);
+}
+add_action( 'admin_enqueue_scripts', 'parisan_core_enqueue_booking_admin_assets' );
+
+/**
+ * Return advisory available start times to an authorized staff user.
+ *
+ * @return void
+ */
+function parisan_core_handle_admin_available_slots() {
+	check_ajax_referer( 'parisan_admin_available_slots', 'nonce' );
+	if ( ! current_user_can( 'edit_others_posts' ) ) {
+		wp_send_json_error( array( 'message' => __( 'اجازه مشاهده زمان‌های آزاد را ندارید.', 'parisan-core' ) ), 403 );
+	}
+
+	$staff_id = isset( $_POST['staff_id'] ) && is_scalar( $_POST['staff_id'] ) ? absint( wp_unslash( $_POST['staff_id'] ) ) : 0;
+	$service_id = isset( $_POST['service_id'] ) && is_scalar( $_POST['service_id'] ) ? absint( wp_unslash( $_POST['service_id'] ) ) : 0;
+	$date = isset( $_POST['date'] ) && is_string( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
+	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}$/D', $date ) || ! current_user_can( 'edit_post', $staff_id ) || ! current_user_can( 'edit_post', $service_id ) ) {
+		wp_send_json_error( array( 'message' => __( 'متخصص، خدمت یا تاریخ انتخاب‌شده معتبر نیست.', 'parisan-core' ) ), 400 );
+	}
+
+	$slots = parisan_core_get_available_slots( $staff_id, $service_id, $date );
+	if ( is_wp_error( $slots ) ) {
+		wp_send_json_error( array( 'message' => $slots->get_error_message() ), 400 );
+	}
+	$starts = array();
+	foreach ( $slots as $slot ) {
+		if ( isset( $slot['starts_at_local'] ) ) {
+			$starts[] = $slot['starts_at_local'];
+		}
+	}
+	wp_send_json_success( array( 'slots' => $starts ) );
+}
+add_action( 'wp_ajax_parisan_admin_available_slots', 'parisan_core_handle_admin_available_slots' );
+
+/**
  * Handle a staff-facing booking state transition.
  *
  * @return void
@@ -68,7 +128,9 @@ function parisan_core_handle_manual_booking_create() {
 
 	$staff_id = isset( $_POST['staff_id'] ) && is_scalar( $_POST['staff_id'] ) ? absint( wp_unslash( $_POST['staff_id'] ) ) : 0;
 	$service_id = isset( $_POST['service_id'] ) && is_scalar( $_POST['service_id'] ) ? absint( wp_unslash( $_POST['service_id'] ) ) : 0;
-	$local_start = isset( $_POST['starts_at_local'] ) && is_string( $_POST['starts_at_local'] ) ? sanitize_text_field( wp_unslash( $_POST['starts_at_local'] ) ) : '';
+	$booking_date = isset( $_POST['booking_date'] ) && is_string( $_POST['booking_date'] ) ? sanitize_text_field( wp_unslash( $_POST['booking_date'] ) ) : '';
+	$booking_time = isset( $_POST['booking_time'] ) && is_string( $_POST['booking_time'] ) ? sanitize_text_field( wp_unslash( $_POST['booking_time'] ) ) : '';
+	$local_start = $booking_date . ' ' . $booking_time;
 	$name = isset( $_POST['customer_name'] ) && is_string( $_POST['customer_name'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_name'] ) ) : '';
 	$phone = isset( $_POST['customer_phone'] ) && is_string( $_POST['customer_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_phone'] ) ) : '';
 	$email = isset( $_POST['customer_email'] ) && is_string( $_POST['customer_email'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['customer_email'] ) ) ) : '';
@@ -77,7 +139,7 @@ function parisan_core_handle_manual_booking_create() {
 	if ( ! $staff_id || ! $service_id || 'parisan_staff' !== get_post_type( $staff_id ) || 'parisan_service' !== get_post_type( $service_id ) || ! current_user_can( 'edit_post', $staff_id ) || ! current_user_can( 'edit_post', $service_id ) ) {
 		wp_die( esc_html__( 'خدمت یا متخصص انتخاب‌شده معتبر نیست یا اجازه ویرایش آن را ندارید.', 'parisan-core' ), 403 );
 	}
-	if ( ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}T(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $local_start ) ) {
+	if ( ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}$/D', $booking_date ) || ! preg_match( '/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $booking_time ) ) {
 		$redirect_args = array( 'page' => 'parisan-bookings', 'booking_error' => 'parisan_invalid_booking_input' );
 		wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'edit.php?post_type=parisan_staff' ) ) );
 		exit;
@@ -87,7 +149,7 @@ function parisan_core_handle_manual_booking_create() {
 		array(
 			'staff_id' => $staff_id,
 			'service_id' => $service_id,
-			'starts_at_local' => str_replace( 'T', ' ', $local_start ),
+			'starts_at_local' => $local_start,
 			'customer_name' => $name,
 			'customer_phone' => $phone,
 			'customer_email' => $email,
