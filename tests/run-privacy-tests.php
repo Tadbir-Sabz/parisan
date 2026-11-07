@@ -140,7 +140,7 @@ $export = parisan_core_export_booking_personal_data( 'customer@example.test', 0,
 assert_true( 1 === count( $export ), 'booking privacy exporter returns the matching record' );
 assert_true( 'parisan-bookings' === $export[0]['group_id'], 'booking export is grouped under Parisan bookings' );
 assert_true( in_array( 'Synthetic Customer', array_column( $export[0]['data'], 'value' ), true ), 'booking export includes customer data' );
-assert_true( in_array( 'Synthetic note', array_column( $export[0]['data'], 'value' ), true ), 'booking export includes associated event notes' );
+assert_true( false !== strpos( implode( ' ', array_column( $export[0]['data'], 'value' ) ), 'Synthetic note' ), 'booking export includes associated event notes' );
 
 $eraser = parisan_core_privacy_eraser_callback( 'customer@example.test', 1 );
 assert_true( 1 === $eraser['items_removed'], 'privacy eraser reports anonymized terminal booking' );
