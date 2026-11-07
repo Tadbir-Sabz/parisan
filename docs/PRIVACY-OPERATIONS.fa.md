@@ -78,8 +78,8 @@
 
 ## ۷. شواهد آزمون
 
-- PHP 8.1/8.2/8.3، بررسی نحوی JavaScript و WordPress activation/schema v3: [CI run 42404975178](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975178) — **PASS** روی commit `a7f7688`.
-- WordPress و MariaDB موقت: [CI run 42404975174](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975174) — **PASS** روی همان commit. شامل خروجی و ناشناس‌سازی اطلاعات، حفظ رزرو فعال، Rollback، نگهداری خودکار، لغو توکن هنگام ناشناس‌سازی، ذخیرهٔ هش توکن، چرخش/انقضا، لغو رزرو با توکن، خاموش‌بودن پیش‌فرض API، ثبت مسیرها با فعال‌سازی صریح، رندر شورت‌کد، ثبت رزرو از REST و کنترل کلید تکرار/بازهٔ ۹۰ روزه است.
-- آزمون‌های مستقل حریم خصوصی و محدودسازی سوءاستفاده: [CI run 42404975266](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975266) — **PASS** روی همان commit.
+- PHP 8.1/8.2/8.3، بررسی نحوی JavaScript و WordPress activation/schema v3: [CI run 42405607604](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405607604) — **PASS** روی commit `b355471`.
+- WordPress و MariaDB موقت: [CI run 42405607619](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405607619) — **PASS** روی همان commit. شامل خروجی و ناشناس‌سازی اطلاعات، حفظ رزرو فعال، Rollback، نگهداری خودکار، لغو توکن هنگام ناشناس‌سازی، ذخیرهٔ هش توکن، چرخش/انقضا، هماهنگی انقضای توکن با جابه‌جایی رزرو و Rollback آن، لغو رزرو با توکن، خاموش‌بودن پیش‌فرض API، ثبت مسیرها با فعال‌سازی صریح، رندر شورت‌کد، ثبت رزرو از REST و کنترل کلید تکرار/بازهٔ ۹۰ روزه است.
+- آزمون‌های مستقل حریم خصوصی و محدودسازی سوءاستفاده: [CI run 42405607581](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405607581) — **PASS** روی همان commit.
 
 بازبینی واقعی UI در مرورگر و موبایل، دسترس‌پذیری تعاملی، Reverse Proxy، رفتار چندگرهی و آزمون فشار هم‌زمان هنوز **UNVERIFIED** هستند.
