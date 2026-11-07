@@ -50,6 +50,7 @@ update_post_meta( $staff_id, '_parisan_staff_services', array( (int) $service_id
 $html = parisan_core_booking_shortcode();
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-booking' ), 'booking shortcode renders its accessible root' );
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-create-form' ), 'booking shortcode renders the create form' );
+parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-reschedule-form' ), 'booking shortcode renders token-based customer rescheduling controls' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Service' ), 'published services are offered in the wizard' );
 parisan_public_enabled_assert( false !== strpos( $html, 'تومان' ) && false !== strpos( $html, 'دقیقه' ), 'wizard displays fixed service price and duration before booking' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Specialist' ), 'eligible specialists are offered in the wizard' );
@@ -161,6 +162,13 @@ $customer_booking = parisan_core_resolve_customer_access_token( $customer_token 
 $customer_token_row = $wpdb->get_row( $wpdb->prepare( "SELECT expires_at_utc FROM {$wpdb->prefix}parisan_customer_tokens WHERE booking_id = %d AND revoked_at_utc IS NULL", (int) $customer_booking['id'] ), ARRAY_A );
 $expected_customer_expiry = ( new DateTimeImmutable( $booking_date . ' 12:45:00', new DateTimeZone( 'UTC' ) ) )->modify( '+30 days' )->format( 'Y-m-d H:i:s' );
 parisan_public_enabled_assert( is_array( $customer_token_row ) && $expected_customer_expiry === $customer_token_row['expires_at_utc'], 'customer reschedule moves token expiry to 30 days after the new appointment end' );
+
+$customer_reschedule_horizon = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
+$customer_reschedule_horizon->set_header( 'Origin', home_url( '/' ) );
+$customer_reschedule_horizon->set_header( 'X-Parisan-Booking-Token', $customer_token );
+$customer_reschedule_horizon->set_param( 'starts_at_local', current_datetime()->modify( '+91 days' )->format( 'Y-m-d' ) . ' 12:00' );
+$customer_reschedule_horizon_response = parisan_core_rest_customer_reschedule_booking( $customer_reschedule_horizon );
+parisan_public_enabled_assert( 400 === $customer_reschedule_horizon_response->get_status(), 'customer reschedule route enforces the 90-day horizon' );
 
 $invalid_customer_reschedule = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
 $invalid_customer_reschedule->set_header( 'Origin', home_url( '/' ) );
