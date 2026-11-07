@@ -379,6 +379,7 @@ function parisan_core_rest_customer_booking( $request ) {
 		'specialist' => get_the_title( (int) $booking['staff_id'] ),
 		'starts_at_local' => $local->format( DateTimeInterface::ATOM ),
 		'starts_at_local_display' => $local->format( 'Y-m-d H:i' ),
+		'timezone' => $booking['salon_timezone'],
 		'price_amount' => (int) $booking['price_amount'],
 		'currency_code' => $booking['currency_code'],
 		'can_cancel' => in_array( $booking['status'], array( 'pending', 'confirmed' ), true ),
@@ -627,7 +628,7 @@ function parisan_core_booking_shortcode() {
 		<header class="parisan-booking-heading">
 			<p class="parisan-booking-eyebrow"><?php esc_html_e( 'PARISAN APPOINTMENTS', 'parisan-core' ); ?></p>
 			<h2><?php esc_html_e( 'رزرو نوبت', 'parisan-core' ); ?></h2>
-			<p><?php esc_html_e( 'خدمت و متخصص را انتخاب کنید، زمان آزاد را ببینید و درخواست نوبت خود را ثبت کنید.', 'parisan-core' ); ?></p>
+			<p><?php esc_html_e( 'خدمت و متخصص را انتخاب کنید، زمان آزاد را ببینید و درخواست نوبت خود را ثبت کنید. ساعت‌ها بر اساس منطقهٔ زمانی سالن نمایش داده می‌شوند.', 'parisan-core' ); ?></p>
 		</header>
 
 		<form class="parisan-booking-form" data-parisan-create-form>
