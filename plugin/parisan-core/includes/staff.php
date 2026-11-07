@@ -130,28 +130,7 @@ function parisan_core_save_staff_meta( $post_id ) {
 	update_post_meta( $post_id, '_parisan_staff_services', $valid_services );
 
 	$input_schedule = isset( $_POST['parisan_staff_schedule'] ) && is_array( $_POST['parisan_staff_schedule'] ) ? wp_unslash( $_POST['parisan_staff_schedule'] ) : array();
-	$clean_schedule = array();
-	for ( $day = 0; $day <= 6; $day++ ) {
-		$row   = isset( $input_schedule[ $day ] ) && is_array( $input_schedule[ $day ] ) ? $input_schedule[ $day ] : array();
-		$off   = ! empty( $row['off'] );
-		$start = isset( $row['start'] ) && is_string( $row['start'] ) ? sanitize_text_field( $row['start'] ) : '';
-		$end   = isset( $row['end'] ) && is_string( $row['end'] ) ? sanitize_text_field( $row['end'] ) : '';
-		$valid_time = static function ( $time ) {
-			return is_string( $time ) && 1 === preg_match( '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $time );
-		};
-
-		if ( $off ) {
-			$clean_schedule[ $day ] = array( 'off' => true );
-		} elseif ( $valid_time( $start ) && $valid_time( $end ) && $end > $start ) {
-			$clean_schedule[ $day ] = array(
-				'off'   => false,
-				'start' => $start,
-				'end'   => $end,
-			);
-		} else {
-			$clean_schedule[ $day ] = array( 'off' => true );
-		}
-	}
+	$clean_schedule = parisan_core_normalize_weekly_schedule( $input_schedule );
 	update_post_meta( $post_id, '_parisan_staff_weekly_schedule', $clean_schedule );
 }
 add_action( 'save_post_parisan_staff', 'parisan_core_save_staff_meta' );
