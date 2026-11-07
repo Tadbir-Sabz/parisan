@@ -78,7 +78,8 @@
 
 ## ۷. شواهد آزمون
 
-- PHP 8.1، 8.2 و 8.3: [CI run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545)
-- WordPress و MariaDB موقت: [CI run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422)
+- PHP 8.1/8.2/8.3، بررسی نحوی JavaScript و WordPress activation/schema v3: [CI run 42404975178](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975178) — **PASS** روی commit `a7f7688`.
+- WordPress و MariaDB موقت: [CI run 42404975174](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975174) — **PASS** روی همان commit. شامل خروجی و ناشناس‌سازی اطلاعات، حفظ رزرو فعال، Rollback، نگهداری خودکار، لغو توکن هنگام ناشناس‌سازی، ذخیرهٔ هش توکن، چرخش/انقضا، لغو رزرو با توکن، خاموش‌بودن پیش‌فرض API، ثبت مسیرها با فعال‌سازی صریح، رندر شورت‌کد، ثبت رزرو از REST و کنترل کلید تکرار/بازهٔ ۹۰ روزه است.
+- آزمون‌های مستقل حریم خصوصی و محدودسازی سوءاستفاده: [CI run 42404975266](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975266) — **PASS** روی همان commit.
 
-آزمون MariaDB شامل خروجی اطلاعات، ناشناس‌سازی رزرو نهایی، حفظ رزرو فعال، پاک‌سازی توضیحات رویداد، Rollback اجباری، نگهداری خودکار، محدودسازی درخواست، ذخیرهٔ هش توکن، چرخش/انقضا و لغو رزرو با توکن مشتری است. شواهد نسخهٔ جدید فقط پس از موفقیت CI روی commit نهایی قابل تأیید هستند. بررسی ظاهری صفحهٔ تنظیمات در مرورگر، پیکربندی واقعی Reverse Proxy و رفتار چندگرهی هنوز تأیید نشده‌اند.
+بازبینی واقعی UI در مرورگر و موبایل، دسترس‌پذیری تعاملی، Reverse Proxy، رفتار چندگرهی و آزمون فشار هم‌زمان هنوز **UNVERIFIED** هستند.
