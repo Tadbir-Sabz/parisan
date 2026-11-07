@@ -21,6 +21,7 @@
 	const cancelButton = root.querySelector('[data-parisan-cancel]');
 	const copyButton = root.querySelector('[data-parisan-copy]');
 	let activeToken = '';
+	let pendingIdempotencyKey = '';
 	const message = (key) => (config.strings && config.strings[key]) || config.strings.genericError;
 	const setLive = (value) => { if (liveNode) liveNode.textContent = value || ''; };
 	const setStatus = (value) => { if (statusNode) statusNode.textContent = value || ''; };
@@ -119,9 +120,10 @@
 		try {
 			const response = await api('bookings', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json', 'Idempotency-Key': makeIdempotencyKey() },
+				headers: { 'Content-Type': 'application/json', 'Idempotency-Key': (pendingIdempotencyKey || (pendingIdempotencyKey = makeIdempotencyKey())) },
 				body: JSON.stringify(payload)
 			});
+			pendingIdempotencyKey = '';
 			activeToken = response.customer_access_token || '';
 			if (!activeToken) throw new Error(message('genericError'));
 			tokenOutput.value = activeToken;
@@ -131,6 +133,7 @@
 			setLive(message('bookingCreated'));
 			await loadCustomerBooking(activeToken);
 		} catch (error) {
+			if (error.status) pendingIdempotencyKey = '';
 			setStatus(error.message || message('genericError'));
 			setLive(error.message || message('genericError'));
 		} finally {
