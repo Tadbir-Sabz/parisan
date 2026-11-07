@@ -294,6 +294,8 @@ jobs:
               fwrite( STDERR, "Reschedule into an unavailable exception interval was not rejected.\\n" );
               exit( 1 );
             }
+            $events_table = $wpdb->prefix . "parisan_booking_events";
+            $quoted_events_table = "`" . str_replace( "`", "``", $events_table ) . "`";
             $reschedule_trigger_name = "parisan_ci_fail_reschedule_event";
             $reschedule_trigger_sql = "CREATE TRIGGER " . $reschedule_trigger_name . " BEFORE INSERT ON " . $quoted_events_table . " FOR EACH ROW SIGNAL SQLSTATE " . chr( 39 ) . "45000" . chr( 39 ) . " SET MESSAGE_TEXT = " . chr( 39 ) . "forced_reschedule_audit_failure" . chr( 39 );
             $reschedule_trigger_created = $wpdb->query( $reschedule_trigger_sql );
