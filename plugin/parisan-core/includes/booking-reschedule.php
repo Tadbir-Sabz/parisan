@@ -31,7 +31,8 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
-	foreach ( array( $bookings_table, $events_table ) as $table ) {
+	$tokens_table = $wpdb->prefix . 'parisan_customer_tokens';
+	foreach ( array( $bookings_table, $events_table, $tokens_table ) as $table ) {
 		$table_status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $table_status ) || empty( $table_status['Engine'] ) || 'innodb' !== strtolower( $table_status['Engine'] ) ) {
 			return new WP_Error( 'parisan_transaction_storage_unavailable', __( 'ذخیره‌ساز تراکنشی امن برای رزرو آماده نیست.', 'parisan-core' ) );
@@ -162,6 +163,20 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
 			return new WP_Error( 'parisan_booking_reschedule_update_failed', __( 'ذخیره زمان جدید انجام نشد.', 'parisan-core' ) );
+		}
+
+		$token_expiry = $new_end_utc->modify( '+30 days' )->format( 'Y-m-d H:i:s' );
+		$tokens_updated = $wpdb->update(
+			$tokens_table,
+			array( 'expires_at_utc' => $token_expiry ),
+			array( 'booking_id' => $booking_id, 'revoked_at_utc' => null ),
+			array( '%s' ),
+			array( '%d', null )
+		);
+		if ( false === $tokens_updated ) {
+			$wpdb->query( 'ROLLBACK' );
+			$transaction_started = false;
+			return new WP_Error( 'parisan_booking_token_expiry_update_failed', __( 'به‌روزرسانی اعتبار دسترسی مشتری انجام نشد؛ زمان رزرو تغییر نکرد.', 'parisan-core' ) );
 		}
 
 		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql;
