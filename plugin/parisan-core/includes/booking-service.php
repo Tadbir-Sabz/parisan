@@ -36,11 +36,11 @@ function parisan_core_create_booking( $input ) {
 	$local_start = isset( $input['starts_at_local'] ) && is_string( $input['starts_at_local'] ) ? trim( $input['starts_at_local'] ) : '';
 	$name       = isset( $input['customer_name'] ) && is_string( $input['customer_name'] ) ? sanitize_text_field( $input['customer_name'] ) : '';
 	$phone      = isset( $input['customer_phone'] ) && is_string( $input['customer_phone'] ) ? trim( $input['customer_phone'] ) : '';
-	$email      = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? sanitize_email( $input['customer_email'] ) : '';
+	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';\n\t$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
 	$actor_id   = isset( $input['actor_user_id'] ) ? absint( $input['actor_user_id'] ) : 0;
 
-	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $email && ! is_email( $email ) ) ) {
+	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) ) {
 		return new WP_Error( 'parisan_invalid_booking_input', __( 'اطلاعات مشتری یا زمان رزرو معتبر نیست.', 'parisan-core' ) );
 	}
 	$phone = preg_replace( '/[^+0-9]/', '', $phone );
@@ -95,8 +95,8 @@ function parisan_core_create_booking( $input ) {
 
 	$transaction_started = false;
 	try {
-		$wpdb->query( 'START TRANSACTION' );
-		if ( '0' === (string) $wpdb->last_error && false !== $wpdb->last_query ) {
+		$transaction_result = $wpdb->query( 'START TRANSACTION' );
+		if ( false !== $transaction_result ) {
 			$transaction_started = true;
 		} else {
 			return new WP_Error( 'parisan_booking_transaction_failed', __( 'ثبت رزرو در حال حاضر ممکن نیست.', 'parisan-core' ) );
@@ -149,7 +149,6 @@ function parisan_core_create_booking( $input ) {
 				'public_id' => $public_id,
 				'service_id' => $service_id,
 				'staff_id' => $staff_id,
-				'customer_user_id' => null,
 				'customer_name' => $name,
 				'customer_phone' => $phone,
 				'customer_email' => $email,
@@ -163,7 +162,7 @@ function parisan_core_create_booking( $input ) {
 				'created_at_utc' => $now,
 				'updated_at_utc' => $now,
 			),
-			array( '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
+			array( '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
 		);
 		if ( false === $inserted ) {
 			$wpdb->query( 'ROLLBACK' );
@@ -181,14 +180,13 @@ function parisan_core_create_booking( $input ) {
 			$events_table,
 			array(
 				'booking_id' => $booking_id,
-				'actor_user_id' => $actor_id ? $actor_id : null,
 				'event_type' => 'created',
 				'from_status' => '',
 				'to_status' => 'pending',
 				'event_note' => null,
 				'created_at_utc' => $now,
 			),
-			array( '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
+			array( '%d', '%s', '%s', '%s', '%s', '%s' )
 		);
 		if ( false === $event_inserted ) {
 			$wpdb->query( 'ROLLBACK' );
