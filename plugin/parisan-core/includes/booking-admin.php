@@ -270,7 +270,9 @@ function parisan_core_render_booking_detail( $booking_id ) {
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'جزئیات نوبت', 'parisan-core' ); ?></h1>
-		<?php if ( isset( $_GET['booking_updated'] ) ) : ?>
+		<?php if ( isset( $_GET['booking_rescheduled'] ) ) : ?>
+			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'زمان نوبت با موفقیت تغییر کرد.', 'parisan-core' ); ?></p></div>
+		<?php elseif ( isset( $_GET['booking_updated'] ) ) : ?>
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'وضعیت نوبت به‌روزرسانی شد.', 'parisan-core' ); ?></p></div>
 		<?php elseif ( isset( $_GET['booking_error'] ) ) : ?>
 			<div class="notice notice-error"><p><?php esc_html_e( 'تغییر وضعیت نوبت انجام نشد؛ وضعیت و دسترسی را بررسی کنید.', 'parisan-core' ); ?></p></div>
@@ -286,6 +288,20 @@ function parisan_core_render_booking_detail( $booking_id ) {
 			<tr><th><?php esc_html_e( 'مبلغ ثبت‌شده', 'parisan-core' ); ?></th><td><?php echo esc_html( number_format_i18n( $price_toman ) . ' تومان' ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'وضعیت', 'parisan-core' ); ?></th><td><?php echo esc_html( isset( $status_labels[ $booking['status'] ] ) ? $status_labels[ $booking['status'] ] : $booking['status'] ); ?></td></tr>
 		</tbody></table>
+
+		<?php if ( in_array( $booking['status'], array( 'pending', 'confirmed' ), true ) ) : ?>
+			<h2><?php esc_html_e( 'تغییر زمان نوبت', 'parisan-core' ); ?></h2>
+			<p><?php esc_html_e( 'مدت ثبت‌شده و مبلغ نوبت حفظ می‌شود؛ زمان جدید فقط در صورت آزاد بودن ظرفیت و خارج نبودن از برنامه متخصص ذخیره خواهد شد.', 'parisan-core' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="parisan_reschedule_booking">
+				<input type="hidden" name="booking_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
+				<?php wp_nonce_field( 'parisan_reschedule_booking_' . $booking['id'], 'parisan_reschedule_nonce' ); ?>
+				<label for="parisan-reschedule-start"><?php esc_html_e( 'تاریخ و ساعت جدید', 'parisan-core' ); ?></label>
+				<input required type="datetime-local" id="parisan-reschedule-start" name="new_start_local" value="<?php echo esc_attr( wp_date( 'Y-m-d\\TH:i', $start->getTimestamp(), wp_timezone() ) ); ?>" min="<?php echo esc_attr( wp_date( 'Y-m-d', time(), wp_timezone() ) ); ?>">
+				<p class="description"><?php echo esc_html( wp_timezone()->getName() ); ?></p>
+				<button type="submit" class="button button-secondary"><?php esc_html_e( 'بررسی و تغییر زمان', 'parisan-core' ); ?></button>
+			</form>
+		<?php endif; ?>
 
 		<?php if ( $actions ) : ?>
 			<h2><?php esc_html_e( 'عملیات مجاز', 'parisan-core' ); ?></h2>
