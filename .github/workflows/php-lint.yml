@@ -197,3 +197,59 @@ jobs:
           test -f "$WP_PATH/wp-content/themes/parisan/front-page.php"
           test -f "$WP_PATH/wp-content/themes/parisan/archive-parisan_service.php"
           test -f "$WP_PATH/wp-content/themes/parisan/single-parisan_service.php"
+
+      - name: Verify transactional booking service
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: |
+          set -euo pipefail
+          wp eval '
+            global $wpdb;
+            $service_id = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = \"parisan_service\" AND post_status = \"publish\" ORDER BY ID DESC LIMIT 1" );
+            $staff_id = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = \"parisan_staff\" AND post_status = \"publish\" ORDER BY ID DESC LIMIT 1" );
+            if ( ! $service_id || ! $staff_id || ! function_exists( "parisan_core_create_booking" ) ) {
+              fwrite( STDERR, "Booking service prerequisites are missing.\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $service_id, "_parisan_price", 1200 );
+            $payload = array(
+              "service_id" => $service_id,
+              "staff_id" => $staff_id,
+              "starts_at_local" => "2026-11-09 10:30",
+              "customer_name" => "Synthetic booking customer",
+              "customer_phone" => "09123456789",
+              "customer_email" => "booking@example.test",
+              "idempotency_token" => "ci-idempotency-token-0001",
+            );
+            $created = parisan_core_create_booking( $payload );
+            if ( is_wp_error( $created ) || empty( $created["booking_id"] ) || ! empty( $created["reused"] ) ) {
+              fwrite( STDERR, "Booking creation failed: " . ( is_wp_error( $created ) ? $created->get_error_code() : "unexpected result" ) . "\\n" );
+              exit( 1 );
+            }
+            $event_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"created\"", $created["booking_id"] ) );
+            $stored = $wpdb->get_row( $wpdb->prepare( "SELECT status, price_amount, currency_code FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ), ARRAY_A );
+            if ( 1 !== $event_count || ! is_array( $stored ) || "pending" !== $stored["status"] || 12000 !== (int) $stored["price_amount"] || "IRR" !== $stored["currency_code"] ) {
+              fwrite( STDERR, "Booking and audit event were not persisted with the expected snapshot.\\n" );
+              exit( 1 );
+            }
+            $replayed = parisan_core_create_booking( $payload );
+            if ( is_wp_error( $replayed ) || empty( $replayed["reused"] ) || (int) $replayed["booking_id"] !== (int) $created["booking_id"] ) {
+              fwrite( STDERR, "Same-payload idempotent replay did not return the original booking.\\n" );
+              exit( 1 );
+            }
+            $conflict_payload = $payload;
+            $conflict_payload["customer_name"] = "Different synthetic customer";
+            $conflict = parisan_core_create_booking( $conflict_payload );
+            if ( ! is_wp_error( $conflict ) || "parisan_idempotency_conflict" !== $conflict->get_error_code() ) {
+              fwrite( STDERR, "Reused idempotency token with a changed payload was not rejected.\\n" );
+              exit( 1 );
+            }
+            $overlap_payload = $payload;
+            $overlap_payload["idempotency_token"] = "ci-idempotency-token-0002";
+            $overlap = parisan_core_create_booking( $overlap_payload );
+            if ( ! is_wp_error( $overlap ) || "parisan_booking_slot_unavailable" !== $overlap->get_error_code() ) {
+              fwrite( STDERR, "Overlapping booking was not rejected after locked availability recheck.\\n" );
+              exit( 1 );
+            }
+            echo "Transactional booking creation, audit event, idempotent replay/conflict, and overlap rejection passed.\\n";
+          ' --path="$WP_PATH"
