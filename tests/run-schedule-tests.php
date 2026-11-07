@@ -76,5 +76,12 @@ parisan_test_expect( array() === $invalid_date, 'rejects impossible calendar dat
 $invalid_dst_time = parisan_core_local_datetime_to_utc( '2026-03-29', '02:30', new DateTimeZone( 'Europe/Berlin' ) );
 parisan_test_expect( false === $invalid_dst_time, 'rejects a nonexistent local wall-clock time during DST spring-forward' );
 
-echo "\nSchedule tests: {$passed} passed, {$failed} failed.\n";
+$partial = parisan_core_local_interval_to_utc( '2026-11-09', '11:00', '2026-11-09', '12:00', new DateTimeZone( 'Europe/Berlin' ) );
+parisan_test_expect( is_array( $partial ) && '2026-11-09 10:00:00' === $partial['start']->format( 'Y-m-d H:i:s' ) && '2026-11-09 11:00:00' === $partial['end']->format( 'Y-m-d H:i:s' ), 'converts a partial-day exception to UTC' );
+$all_day = parisan_core_local_interval_to_utc( '2026-11-09', '00:00', '2026-11-10', '00:00', new DateTimeZone( 'Europe/Berlin' ) );
+parisan_test_expect( is_array( $all_day ) && 86400 === $all_day['end']->getTimestamp() - $all_day['start']->getTimestamp(), 'converts a normal full-day exception to a 24-hour UTC interval' );
+parisan_test_expect( false === parisan_core_local_interval_to_utc( '2026-11-09', '13:00', '2026-11-09', '12:00', new DateTimeZone( 'Europe/Berlin' ) ), 'rejects an exception whose end precedes its start' );
+parisan_test_expect( false === parisan_core_local_interval_to_utc( '2026-03-29', '02:30', '2026-03-29', '03:30', new DateTimeZone( 'Europe/Berlin' ) ), 'rejects a date exception crossing a nonexistent DST local time' );
+
+echo "\\nSchedule tests: {$passed} passed, {$failed} failed.\\n";
 exit( 0 === $failed ? 0 : 1 );
