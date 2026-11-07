@@ -19,6 +19,6 @@ The booking list is useful for daily operations, but staff need a protected deta
 
 ## Verification and boundaries
 
-- CI coverage for rendering the detail page and seeded audit timeline is being added.
+- CI run 42377058236 passed all four jobs and rendered the booking detail page with a seeded customer and audit event timeline.
 - Browser/RTL/mobile visual review, accessibility, role-specific visibility, and manual browser action flow remain UNVERIFIED.
 - No export, customer portal, public API, or direct database mutation is introduced.
