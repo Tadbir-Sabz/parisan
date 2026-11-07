@@ -86,7 +86,6 @@ jobs:
           set -euo pipefail
           wp core download --path="$WP_PATH" --quiet
           wp config create --path="$WP_PATH" --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=127.0.0.1 --skip-check
-          wp db create --path="$WP_PATH"
           wp core install --path="$WP_PATH" --url=http://localhost --title="Parisan CI" --admin_user=parisan-ci --admin_password="ci-only-password" --admin_email=ci@example.test --skip-email
           mkdir -p "$WP_PATH/wp-content/themes" "$WP_PATH/wp-content/plugins"
           cp -R theme/parisan "$WP_PATH/wp-content/themes/parisan"
