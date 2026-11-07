@@ -637,8 +637,18 @@ function parisan_core_booking_shortcode() {
 					<select id="parisan-booking-service" name="service_id" required>
 						<option value=""><?php esc_html_e( 'انتخاب خدمت', 'parisan-core' ); ?></option>
 						<?php foreach ( $services as $service ) : ?>
-							<?php $price_type = get_post_meta( $service->ID, '_parisan_price_type', true ); ?>
-							<option value="<?php echo esc_attr( $service->ID ); ?>" <?php disabled( 'from', $price_type ); ?>><?php echo esc_html( get_the_title( $service ) . ( 'from' === $price_type ? ' — ' . __( 'نیازمند تعیین قیمت نهایی', 'parisan-core' ) : '' ) ); ?></option>
+							<?php
+							$price_type = get_post_meta( $service->ID, '_parisan_price_type', true );
+							$service_label = get_the_title( $service );
+							if ( 'from' === $price_type ) {
+								$service_label .= ' — ' . __( 'نیازمند تعیین قیمت نهایی', 'parisan-core' );
+							} else {
+								$service_price = absint( get_post_meta( $service->ID, '_parisan_price', true ) );
+								$service_duration = absint( get_post_meta( $service->ID, '_parisan_duration', true ) );
+								$service_label .= ' — ' . number_format_i18n( $service_price ) . ' ' . __( 'تومان', 'parisan-core' ) . ' · ' . number_format_i18n( $service_duration ) . ' ' . __( 'دقیقه', 'parisan-core' );
+							}
+							?>
+							<option value="<?php echo esc_attr( $service->ID ); ?>" <?php disabled( 'from', $price_type ); ?>><?php echo esc_html( $service_label ); ?></option>
 						<?php endforeach; ?>
 					</select>
 				</p>
