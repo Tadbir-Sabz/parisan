@@ -26,7 +26,7 @@ The availability foundation calculates candidate appointment starts for a salon-
 
 == Important availability boundary ==
 
-Availability results are advisory only and do not reserve a slot. Availability remains advisory until a booking is committed. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; it is not exposed through a public REST/AJAX endpoint. Break management, resource schedules, booking state transitions, customer portal, and notifications remain future work.
+Availability results are advisory only and do not reserve a slot. Availability remains advisory until a booking is committed. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; calendar exception writes use the same lock. Services with a starting-from price must have a final price confirmed before booking. The service is not exposed through a public REST/AJAX endpoint. Break management, resource schedules, booking state transitions, customer portal, and notifications remain future work.
 
 == Installation ==
 
