@@ -25,6 +25,7 @@ require_once PARISAN_CORE_DIR . 'includes/booking-lifecycle.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-reschedule.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-admin.php';
 require_once PARISAN_CORE_DIR . 'includes/privacy.php';
+require_once PARISAN_CORE_DIR . 'includes/public-booking.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule-exceptions-admin.php';
 require_once PARISAN_CORE_DIR . 'includes/staff.php';
 require_once PARISAN_CORE_DIR . 'includes/service-taxonomy.php';
