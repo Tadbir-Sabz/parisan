@@ -29,9 +29,12 @@ parisan_public_integration_assert( ! isset( $routes['/parisan/v1/customer-bookin
 $tokens_table = $wpdb->prefix . 'parisan_customer_tokens';
 $bookings_table = $wpdb->prefix . 'parisan_bookings';
 $events_table = $wpdb->prefix . 'parisan_booking_events';
+$wpdb->query( "DROP TABLE IF EXISTS {$tokens_table}" );
+update_option( 'parisan_core_db_version', 2, false );
+parisan_core_install_database();
 $schema = (int) get_option( 'parisan_core_db_version', 0 );
-parisan_public_integration_assert( 3 === $schema, 'database schema v3 is installed' );
-parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tokens_table ) ) === $tokens_table, 'customer token table exists' );
+parisan_public_integration_assert( 3 === $schema, 'schema v2 upgrades to schema v3' );
+parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tokens_table ) ) === $tokens_table, 'customer token table is created by the v2-to-v3 upgrade' );
 
 $now = current_time( 'mysql', true );
 $booking_inserted = $wpdb->insert(
