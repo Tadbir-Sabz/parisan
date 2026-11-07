@@ -172,13 +172,14 @@ function parisan_core_render_booking_admin_page() {
 						<td><?php echo esc_html( isset( $status_labels[ $row['status'] ] ) ? $status_labels[ $row['status'] ] : $row['status'] ); ?></td>
 						<td>
 							<?php foreach ( $actions as $target_status => $action_label ) : ?>
+								<?php $confirm_action = 'cancelled' === $target_status ? "return confirm('" . esc_js( __( 'از لغو این نوبت مطمئن هستید؟', 'parisan-core' ) ) . "');" : ''; ?>
 								<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;margin:0 0 4px 4px">
 									<input type="hidden" name="action" value="parisan_transition_booking">
 									<input type="hidden" name="booking_id" value="<?php echo esc_attr( $row['id'] ); ?>">
 									<input type="hidden" name="to_status" value="<?php echo esc_attr( $target_status ); ?>">
 									<input type="hidden" name="booking_status_filter" value="<?php echo esc_attr( $status_filter ); ?>">
 									<?php wp_nonce_field( 'parisan_transition_booking_' . $row['id'], 'parisan_booking_nonce' ); ?>
-									<button type="submit" class="button <?php echo 'cancelled' === $target_status ? 'button-link-delete' : 'button-secondary'; ?>"><?php echo esc_html( $action_label ); ?></button>
+									<button type="submit" class="button <?php echo 'cancelled' === $target_status ? 'button-link-delete' : 'button-secondary'; ?>" onclick="<?php echo esc_attr( $confirm_action ); ?>"><?php echo esc_html( $action_label ); ?></button>
 								</form>
 							<?php endforeach; ?>
 							<?php if ( ! $actions ) : ?><span aria-label="<?php esc_attr_e( 'عملیات دیگری در دسترس نیست', 'parisan-core' ); ?>">—</span><?php endif; ?>
