@@ -95,8 +95,12 @@ function parisan_core_create_booking( $input ) {
 
 	$duration = absint( get_post_meta( $service_id, '_parisan_duration', true ) );
 	$price_toman = absint( get_post_meta( $service_id, '_parisan_price', true ) );
+	$price_type = get_post_meta( $service_id, '_parisan_price_type', true );
 	if ( $duration < 1 || $duration > 1440 || $price_toman > intdiv( PHP_INT_MAX, 10 ) ) {
 		return new WP_Error( 'parisan_invalid_service_configuration', __( 'تنظیمات مدت یا قیمت خدمت معتبر نیست.', 'parisan-core' ) );
+	}
+	if ( 'from' === $price_type ) {
+		return new WP_Error( 'parisan_service_requires_price_confirmation', __( 'برای رزرو این خدمت ابتدا باید قیمت نهایی توسط سالن مشخص شود.', 'parisan-core' ) );
 	}
 	$price_irr = $price_toman * 10;
 
