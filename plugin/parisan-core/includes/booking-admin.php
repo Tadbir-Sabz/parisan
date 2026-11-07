@@ -132,7 +132,7 @@ function parisan_core_render_booking_admin_page() {
 					<option value="<?php echo esc_attr( $status ); ?>" <?php selected( $status_filter, $status ); ?>><?php echo esc_html( $label ); ?></option>
 				<?php endforeach; ?>
 			</select>
-			<?php submit_button( __( 'فیلتر', 'parisan-core' ), 'secondary', '', false ); ?>
+			<button type="submit" class="button button-secondary"><?php esc_html_e( 'فیلتر', 'parisan-core' ); ?></button>
 		</form>
 
 		<p><?php printf( esc_html__( 'تعداد نوبت‌ها: %d', 'parisan-core' ), $total ); ?></p>
