@@ -293,6 +293,15 @@ jobs:
               fwrite( STDERR, "Booking lifecycle service was not loaded.\\n" );
               exit( 1 );
             }
+            $_GET = array( "booking_id" => $created["booking_id"] );
+            ob_start();
+            parisan_core_render_booking_admin_page();
+            $active_booking_detail_html = ob_get_clean();
+            $_GET = array();
+            if ( false === strpos( $active_booking_detail_html, "parisan_reschedule_booking" ) || false === strpos( $active_booking_detail_html, "new_start_local" ) ) {
+              fwrite( STDERR, "Active booking detail page did not render the reschedule form.\\n" );
+              exit( 1 );
+            }
             $confirmed = parisan_core_transition_booking( $created["booking_id"], "confirmed", "CI confirmation" );
             if ( is_wp_error( $confirmed ) || "confirmed" !== $confirmed["to_status"] || ! empty( $confirmed["reused"] ) ) {
               fwrite( STDERR, "Pending-to-confirmed transition failed: " . ( is_wp_error( $confirmed ) ? $confirmed->get_error_code() : "unexpected result" ) . "\\n" );
@@ -343,7 +352,7 @@ jobs:
             parisan_core_render_booking_admin_page();
             $booking_detail_html = ob_get_clean();
             $_GET = array();
-            if ( false === strpos( $booking_detail_html, "جزئیات نوبت" ) || false === strpos( $booking_detail_html, "Synthetic booking customer" ) || false === strpos( $booking_detail_html, "سوابق و رویدادهای نوبت" ) || false === strpos( $booking_detail_html, "CI confirmation" ) || false === strpos( $booking_detail_html, "parisan_reschedule_booking" ) || false === strpos( $booking_detail_html, "new_start_local" ) || false === strpos( $booking_detail_html, "CI reschedule" ) ) {
+            if ( false === strpos( $booking_detail_html, "جزئیات نوبت" ) || false === strpos( $booking_detail_html, "Synthetic booking customer" ) || false === strpos( $booking_detail_html, "سوابق و رویدادهای نوبت" ) || false === strpos( $booking_detail_html, "CI confirmation" ) || false === strpos( $booking_detail_html, "CI reschedule" ) ) {
               fwrite( STDERR, "Booking detail view did not render customer details and audit timeline.\\n" );
               exit( 1 );
             }
