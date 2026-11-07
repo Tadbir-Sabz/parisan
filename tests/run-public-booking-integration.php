@@ -37,7 +37,7 @@ $booking_inserted = $wpdb->insert(
 	array(
 		'public_id' => wp_generate_uuid4(),
 		'service_id' => 0,
-		'staff_id' => 0,
+		'staff_id' => 1,
 		'customer_user_id' => null,
 		'customer_name' => 'Synthetic Token Customer',
 		'customer_phone' => '09123456789',
@@ -58,9 +58,9 @@ parisan_public_integration_assert( false !== $booking_inserted, 'synthetic booki
 $booking_id = (int) $wpdb->insert_id;
 
 $token_one = bin2hex( random_bytes( 32 ) );
-parisan_public_integration_assert( 1 === $wpdb->query( 'START TRANSACTION' ), 'token transaction started' );
+parisan_public_integration_assert( false !== $wpdb->query( 'START TRANSACTION' ), 'token transaction started' );
 parisan_public_integration_assert( true === parisan_core_store_customer_access_token( $booking_id, $token_one ), 'first scoped customer token stored' );
-parisan_public_integration_assert( 1 === $wpdb->query( 'COMMIT' ), 'first token transaction committed' );
+parisan_public_integration_assert( false !== $wpdb->query( 'COMMIT' ), 'first token transaction committed' );
 
 $stored_hash = $wpdb->get_var( $wpdb->prepare( "SELECT token_hash FROM {$tokens_table} WHERE booking_id = %d AND revoked_at_utc IS NULL", $booking_id ) );
 parisan_public_integration_assert( is_string( $stored_hash ) && hash_equals( parisan_core_customer_token_hash( $token_one ), $stored_hash ), 'only the keyed token digest is stored' );
@@ -89,6 +89,7 @@ parisan_public_integration_assert( true === parisan_core_cancel_booking_with_cus
 $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$bookings_table} WHERE id = %d", $booking_id ) );
 $cancel_event = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$events_table} WHERE booking_id = %d AND event_type = 'customer_cancelled' AND to_status = 'cancelled'", $booking_id ) );
 parisan_public_integration_assert( 'cancelled' === $cancelled_status && 1 === $cancel_event, 'cancellation and audit event persist together' );
-parisan_public_integration_assert( true === parisan_core_cancel_booking_with_customer_token( $booking_id ) ? false : true, 'already-cancelled booking cannot be cancelled again' );
+$second_cancel = parisan_core_cancel_booking_with_customer_token( $booking_id );
+parisan_public_integration_assert( is_wp_error( $second_cancel ), 'already-cancelled booking cannot be cancelled again' );
 
 echo "PASS: public booking gate, token hashing/rotation/expiry, scoped resolution, and customer cancellation integration.\n";
