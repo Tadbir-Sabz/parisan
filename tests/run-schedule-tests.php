@@ -83,5 +83,5 @@ parisan_test_expect( is_array( $all_day ) && 86400 === $all_day['end']->getTimes
 parisan_test_expect( false === parisan_core_local_interval_to_utc( '2026-11-09', '13:00', '2026-11-09', '12:00', new DateTimeZone( 'Europe/Berlin' ) ), 'rejects an exception whose end precedes its start' );
 parisan_test_expect( false === parisan_core_local_interval_to_utc( '2026-03-29', '02:30', '2026-03-29', '03:30', new DateTimeZone( 'Europe/Berlin' ) ), 'rejects a date exception crossing a nonexistent DST local time' );
 
-echo "\\nSchedule tests: {$passed} passed, {$failed} failed.\\n";
+echo "\nSchedule tests: {$passed} passed, {$failed} failed.\n";
 exit( 0 === $failed ? 0 : 1 );
