@@ -11,6 +11,41 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Acquire the shared per-staff advisory lock used by booking and calendar writes.
+ *
+ * @param int $staff_id Specialist post ID.
+ * @return string|WP_Error Lock name or safe error.
+ */
+function parisan_core_acquire_staff_schedule_lock( $staff_id ) {
+	global $wpdb;
+
+	$staff_id = absint( $staff_id );
+	if ( ! $staff_id ) {
+		return new WP_Error( 'parisan_invalid_staff_lock', __( 'متخصص معتبر نیست.', 'parisan-core' ) );
+	}
+	$lock_name = 'parisan:' . substr( hash( 'sha256', $wpdb->dbname . '|' . $wpdb->prefix . '|staff|' . $staff_id ), 0, 48 );
+	$acquired = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock_name ) );
+	if ( '1' !== (string) $acquired ) {
+		return new WP_Error( 'parisan_staff_lock_unavailable', __( 'تقویم متخصص در حال تغییر است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
+	}
+	return $lock_name;
+}
+
+/**
+ * Release a previously acquired staff schedule advisory lock.
+ *
+ * @param string $lock_name Exact lock name returned by acquire helper.
+ * @return void
+ */
+function parisan_core_release_staff_schedule_lock( $lock_name ) {
+	global $wpdb;
+
+	if ( is_string( $lock_name ) && '' !== $lock_name ) {
+		parisan_core_release_staff_schedule_lock( $lock_name );
+	}
+}
+
+/**
  * Create a pending booking after revalidating availability under a staff lock.
  *
  * Required input keys: staff_id, service_id, starts_at_local (Y-m-d H:i),
@@ -86,9 +121,8 @@ function parisan_core_create_booking( $input ) {
 		}
 	}
 
-	$lock_name = 'parisan:' . substr( hash( 'sha256', $wpdb->dbname . '|' . $wpdb->prefix . '|staff|' . $staff_id ), 0, 48 );
-	$lock_acquired = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock_name ) );
-	if ( 1 !== $lock_acquired ) {
+	$lock_name = parisan_core_acquire_staff_schedule_lock( $staff_id );
+	if ( is_wp_error( $lock_name ) ) {
 		return new WP_Error( 'parisan_booking_lock_unavailable', __( 'سامانه در حال پردازش رزرو دیگری است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
 
