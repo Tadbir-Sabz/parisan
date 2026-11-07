@@ -37,7 +37,7 @@ function parisan_core_transition_booking( $booking_id, $to_status, $note = '' ) 
 		'pending' => array( 'confirmed', 'cancelled', 'expired' ),
 		'confirmed' => array( 'cancelled', 'completed', 'no_show' ),
 	);
-	if ( ! $booking_id || ! isset( $transitions['pending'] ) || ! in_array( $to_status, array( 'confirmed', 'cancelled', 'expired', 'completed', 'no_show' ), true ) ) {
+	if ( ! $booking_id || ! in_array( $to_status, array( 'confirmed', 'cancelled', 'expired', 'completed', 'no_show' ), true ) ) {
 		return new WP_Error( 'parisan_invalid_booking_transition', __( 'درخواست تغییر وضعیت رزرو معتبر نیست.', 'parisan-core' ) );
 	}
 
