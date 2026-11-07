@@ -22,5 +22,5 @@ The booking operations list can manage existing bookings, but front-desk staff a
 
 - This is an internal front-desk form, not a customer-facing booking flow.
 - It does not yet offer live slot suggestions; the server validates the manually selected time at submit.
-- Browser/RTL/mobile visual review, form validation UX, real staff role review, and end-to-end manual browser submission remain UNVERIFIED.
+- CI run 42376730497 passed all four jobs and verifies manual form rendering, Persian phone digit normalization, and rejection of past appointment times. Browser/RTL/mobile visual review, form validation UX, real staff role review, and end-to-end manual browser submission remain UNVERIFIED.
 - No notification, SMS, payment, or external customer communication is triggered.
