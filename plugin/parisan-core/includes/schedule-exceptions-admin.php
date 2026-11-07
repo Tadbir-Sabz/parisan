@@ -67,32 +67,43 @@ function parisan_core_handle_schedule_exception_create() {
 
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_schedule_exceptions';
-	$now = current_time( 'mysql', true );
-	$inserted = $wpdb->insert(
-		$table,
-		array(
-			'staff_id' => $staff_id,
-			'starts_at_utc' => $interval['start']->format( 'Y-m-d H:i:s' ),
-			'ends_at_utc' => $interval['end']->format( 'Y-m-d H:i:s' ),
-			'exception_type' => 'unavailable',
-			'note' => $note,
-			'created_at_utc' => $now,
-		),
-		array( '%d', '%s', '%s', '%s', '%s', '%s' )
-	);
+	$lock_name = parisan_core_acquire_staff_schedule_lock( $staff_id );
+	if ( is_wp_error( $lock_name ) ) {
+		wp_die( esc_html__( 'تقویم متخصص در حال تغییر است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ), 409 );
+	}
+	$inserted = false;
+	$conflicts = 0;
+	try {
+		$now = current_time( 'mysql', true );
+		$inserted = $wpdb->insert(
+			$table,
+			array(
+				'staff_id' => $staff_id,
+				'starts_at_utc' => $interval['start']->format( 'Y-m-d H:i:s' ),
+				'ends_at_utc' => $interval['end']->format( 'Y-m-d H:i:s' ),
+				'exception_type' => 'unavailable',
+				'note' => $note,
+				'created_at_utc' => $now,
+			),
+			array( '%d', '%s', '%s', '%s', '%s', '%s' )
+		);
+		if ( false !== $inserted ) {
+			$bookings_table = $wpdb->prefix . 'parisan_bookings';
+			$conflicts = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM {$bookings_table} WHERE staff_id = %d AND status IN ('pending','confirmed') AND starts_at_utc < %s AND ends_at_utc > %s",
+					$staff_id,
+					$interval['end']->format( 'Y-m-d H:i:s' ),
+					$interval['start']->format( 'Y-m-d H:i:s' )
+				)
+			);
+		}
+	} finally {
+		parisan_core_release_staff_schedule_lock( $lock_name );
+	}
 	if ( false === $inserted ) {
 		wp_die( esc_html__( 'ذخیره استثنای تقویم انجام نشد.', 'parisan-core' ), 500 );
 	}
-
-	$bookings_table = $wpdb->prefix . 'parisan_bookings';
-	$conflicts = (int) $wpdb->get_var(
-		$wpdb->prepare(
-			"SELECT COUNT(*) FROM {$bookings_table} WHERE staff_id = %d AND status IN ('pending','confirmed') AND starts_at_utc < %s AND ends_at_utc > %s",
-			$staff_id,
-			$interval['end']->format( 'Y-m-d H:i:s' ),
-			$interval['start']->format( 'Y-m-d H:i:s' )
-		)
-	);
 	$redirect = add_query_arg( array( 'page' => 'parisan-schedule-exceptions', 'exception_saved' => 1, 'exception_conflicts' => $conflicts ), admin_url( 'edit.php?post_type=parisan_staff' ) );
 	wp_safe_redirect( $redirect );
 	exit;
@@ -118,7 +129,16 @@ function parisan_core_handle_schedule_exception_delete() {
 
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_schedule_exceptions';
-	$deleted = $wpdb->delete( $table, array( 'id' => $exception_id, 'staff_id' => $staff_id ), array( '%d', '%d' ) );
+	$lock_name = parisan_core_acquire_staff_schedule_lock( $staff_id );
+	if ( is_wp_error( $lock_name ) ) {
+		wp_die( esc_html__( 'تقویم متخصص در حال تغییر است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ), 409 );
+	}
+	$deleted = false;
+	try {
+		$deleted = $wpdb->delete( $table, array( 'id' => $exception_id, 'staff_id' => $staff_id ), array( '%d', '%d' ) );
+	} finally {
+		parisan_core_release_staff_schedule_lock( $lock_name );
+	}
 	if ( false === $deleted ) {
 		wp_die( esc_html__( 'حذف استثنا انجام نشد.', 'parisan-core' ), 500 );
 	}
