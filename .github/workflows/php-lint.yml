@@ -301,8 +301,8 @@ jobs:
             ob_start();
             parisan_core_render_booking_admin_page();
             $booking_admin_html = ob_get_clean();
-            if ( false === strpos( $booking_admin_html, "مدیریت نوبت‌ها" ) || false === strpos( $booking_admin_html, "Synthetic booking customer" ) ) {
-              fwrite( STDERR, "Booking operations admin page did not render the seeded booking.\\n" );
+            if ( false === strpos( $booking_admin_html, "مدیریت نوبت‌ها" ) || false === strpos( $booking_admin_html, "Synthetic booking customer" ) || false === strpos( $booking_admin_html, "parisan_create_manual_booking" ) || false === strpos( $booking_admin_html, "starts_at_local" ) ) {
+              fwrite( STDERR, "Booking operations admin page did not render the seeded booking and manual booking form.\\n" );
               exit( 1 );
             }
             update_post_meta( $service_id, "_parisan_price_type", "from" );
@@ -337,6 +337,28 @@ jobs:
             $rollback_error_code = is_wp_error( $rollback_result ) ? $rollback_result->get_error_code() : "not_wp_error";
             if ( "parisan_booking_audit_failed" !== $rollback_error_code || 0 !== $rollback_booking_count ) {
               fwrite( STDERR, "Audit rollback assertion failed; error=" . $rollback_error_code . ", persisted_booking_count=" . $rollback_booking_count . ", db_error=" . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $persian_phone_payload = $payload;
+            $persian_phone_payload["starts_at_local"] = "2026-11-09 11:15";
+            $persian_phone_payload["customer_phone"] = "۰۹۱۲۳۴۵۶۷۸۹";
+            $persian_phone_payload["idempotency_token"] = "ci-idempotency-token-0005";
+            $persian_phone_booking = parisan_core_create_booking( $persian_phone_payload );
+            if ( is_wp_error( $persian_phone_booking ) ) {
+              fwrite( STDERR, "Booking with Persian phone digits failed: " . $persian_phone_booking->get_error_code() . "\\n" );
+              exit( 1 );
+            }
+            $normalized_phone = $wpdb->get_var( $wpdb->prepare( "SELECT customer_phone FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $persian_phone_booking["booking_id"] ) );
+            if ( "09123456789" !== $normalized_phone ) {
+              fwrite( STDERR, "Persian phone digits were not normalized to ASCII.\\n" );
+              exit( 1 );
+            }
+            $past_payload = $payload;
+            $past_payload["starts_at_local"] = "2026-11-02 10:30";
+            $past_payload["idempotency_token"] = "ci-idempotency-token-0006";
+            $past_booking = parisan_core_create_booking( $past_payload );
+            if ( ! is_wp_error( $past_booking ) || "parisan_booking_time_in_past" !== $past_booking->get_error_code() ) {
+              fwrite( STDERR, "Past booking time was not rejected.\\n" );
               exit( 1 );
             }
             echo "Transactional booking creation, InnoDB, shared lock, audit event, idempotency, overlap rejection, fixed-price gate, and audit-failure rollback passed.\\n";
