@@ -245,8 +245,8 @@ jobs:
               exit( 1 );
             }
             $event_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"created\"", $created["booking_id"] ) );
-            $stored = $wpdb->get_row( $wpdb->prepare( "SELECT status, price_amount, currency_code FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ), ARRAY_A );
-            if ( 1 !== $event_count || ! is_array( $stored ) || "pending" !== $stored["status"] || 12000 !== (int) $stored["price_amount"] || "IRR" !== $stored["currency_code"] ) {
+            $stored = $wpdb->get_row( $wpdb->prepare( "SELECT status, price_amount, currency_code, duration_minutes FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ), ARRAY_A );
+            if ( 1 !== $event_count || ! is_array( $stored ) || "pending" !== $stored["status"] || 12000 !== (int) $stored["price_amount"] || "IRR" !== $stored["currency_code"] || 45 !== (int) $stored["duration_minutes"] ) {
               fwrite( STDERR, "Booking and audit event were not persisted with the expected snapshot.\\n" );
               exit( 1 );
             }
@@ -267,6 +267,25 @@ jobs:
             $overlap = parisan_core_create_booking( $overlap_payload );
             if ( ! is_wp_error( $overlap ) || "parisan_booking_slot_unavailable" !== $overlap->get_error_code() ) {
               fwrite( STDERR, "Overlapping booking was not rejected after locked availability recheck.\\n" );
+              exit( 1 );
+            }
+            if ( ! function_exists( "parisan_core_reschedule_booking" ) ) {
+              fwrite( STDERR, "Booking reschedule service was not loaded.\\n" );
+              exit( 1 );
+            }
+            $rescheduled = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 10:45", "CI reschedule" );
+            if ( is_wp_error( $rescheduled ) || ! empty( $rescheduled["reused"] ) || "2026-11-09 10:45:00" !== $rescheduled["starts_at_utc"] || "2026-11-09 11:30:00" !== $rescheduled["ends_at_utc"] || 45 !== (int) $rescheduled["duration_minutes"] ) {
+              fwrite( STDERR, "Booking reschedule failed or did not preserve its duration: " . ( is_wp_error( $rescheduled ) ? $rescheduled->get_error_code() : "unexpected result" ) . "\\n" );
+              exit( 1 );
+            }
+            $reschedule_replay = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 10:45" );
+            if ( is_wp_error( $reschedule_replay ) || empty( $reschedule_replay["reused"] ) ) {
+              fwrite( STDERR, "Idempotent booking reschedule replay failed.\\n" );
+              exit( 1 );
+            }
+            $blocked_reschedule = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 10:15" );
+            if ( ! is_wp_error( $blocked_reschedule ) || "parisan_booking_slot_unavailable" !== $blocked_reschedule->get_error_code() ) {
+              fwrite( STDERR, "Reschedule into an unavailable exception interval was not rejected.\\n" );
               exit( 1 );
             }
             wp_set_current_user( 1 );
