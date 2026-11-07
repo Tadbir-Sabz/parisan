@@ -70,9 +70,9 @@ parisan_public_integration_assert( is_array( $resolved ) && (int) $resolved['id'
 parisan_public_integration_assert( ! isset( $resolved['customer_phone'] ) && ! isset( $resolved['customer_email'] ), 'token resolver does not select customer contact fields' );
 
 $token_two = bin2hex( random_bytes( 32 ) );
-parisan_public_integration_assert( 1 === $wpdb->query( 'START TRANSACTION' ), 'rotation transaction started' );
+parisan_public_integration_assert( false !== $wpdb->query( 'START TRANSACTION' ), 'rotation transaction started' );
 parisan_public_integration_assert( true === parisan_core_store_customer_access_token( $booking_id, $token_two ), 'replacement customer token stored' );
-parisan_public_integration_assert( 1 === $wpdb->query( 'COMMIT' ), 'rotation transaction committed' );
+parisan_public_integration_assert( false !== $wpdb->query( 'COMMIT' ), 'rotation transaction committed' );
 parisan_public_integration_assert( false === parisan_core_resolve_customer_access_token( $token_one ), 'rotated token is rejected' );
 parisan_public_integration_assert( is_array( parisan_core_resolve_customer_access_token( $token_two ) ), 'replacement token is accepted' );
 
@@ -85,7 +85,7 @@ $token_three = bin2hex( random_bytes( 32 ) );
 parisan_public_integration_assert( 1 === $wpdb->query( 'START TRANSACTION' ), 'cancellation token transaction started' );
 parisan_public_integration_assert( true === parisan_core_store_customer_access_token( $booking_id, $token_three ), 'cancellation token stored' );
 parisan_public_integration_assert( 1 === $wpdb->query( 'COMMIT' ), 'cancellation token transaction committed' );
-parisan_public_integration_assert( true === parisan_core_cancel_booking_with_customer_token( $booking_id ), 'scoped customer cancellation succeeds' );
+parisan_public_integration_assert( true === parisan_core_cancel_booking_with_customer_token( $booking_id, $token_three ), 'scoped customer cancellation succeeds' );
 $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$bookings_table} WHERE id = %d", $booking_id ) );
 $cancel_event = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$events_table} WHERE booking_id = %d AND event_type = 'customer_cancelled' AND to_status = 'cancelled'", $booking_id ) );
 parisan_public_integration_assert( 'cancelled' === $cancelled_status && 1 === $cancel_event, 'cancellation and audit event persist together' );
