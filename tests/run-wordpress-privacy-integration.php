@@ -32,6 +32,8 @@ function parisan_privacy_integration_issue_customer_token( $booking_id ) {
 function parisan_privacy_integration_insert_booking( $email, $status, $token, $updated_at ) {
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_bookings';
+	$appointment_start = gmdate( 'Y-m-d H:i:s', time() + ( 7 * DAY_IN_SECONDS ) );
+	$appointment_end = gmdate( 'Y-m-d H:i:s', time() + ( 7 * DAY_IN_SECONDS ) + ( 45 * MINUTE_IN_SECONDS ) );
 	$inserted = $wpdb->insert(
 		$table,
 		array(
@@ -42,8 +44,8 @@ function parisan_privacy_integration_insert_booking( $email, $status, $token, $u
 			'customer_name'     => 'Synthetic Privacy Customer',
 			'customer_phone'    => '09123456789',
 			'customer_email'    => $email,
-			'starts_at_utc'     => '2026-11-09 09:00:00',
-			'ends_at_utc'       => '2026-11-09 09:45:00',
+			'starts_at_utc'     => $appointment_start,
+			'ends_at_utc'       => $appointment_end,
 			'duration_minutes'  => 45,
 			'salon_timezone'    => 'Asia/Tehran',
 			'status'            => $status,
