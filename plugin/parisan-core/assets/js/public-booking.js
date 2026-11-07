@@ -19,6 +19,10 @@
 	const summary = root.querySelector('[data-parisan-summary]');
 	const summaryText = root.querySelector('[data-parisan-summary-text]');
 	const cancelButton = root.querySelector('[data-parisan-cancel]');
+	const reschedulePanel = root.querySelector('[data-parisan-reschedule-panel]');
+	const rescheduleForm = root.querySelector('[data-parisan-reschedule-form]');
+	const rescheduleDate = root.querySelector('[data-parisan-reschedule-date]');
+	const rescheduleSlot = root.querySelector('[data-parisan-reschedule-slot]');
 	const copyButton = root.querySelector('[data-parisan-copy]');
 	let activeToken = '';
 	let pendingIdempotencyKey = '';
@@ -156,9 +160,64 @@
 		].join(' | ');
 		summary.hidden = false;
 		cancelButton.hidden = !data.can_cancel;
+		reschedulePanel.hidden = !data.can_reschedule;
 		setLive(message('bookingLoaded'));
 		return data;
 	}
+	async function loadCustomerSlots() {
+		rescheduleSlot.innerHTML = '';
+		const placeholder = document.createElement('option');
+		placeholder.value = '';
+		placeholder.textContent = message('loading');
+		rescheduleSlot.appendChild(placeholder);
+		rescheduleSlot.disabled = true;
+		if (!activeToken || !rescheduleDate.value) return;
+		try {
+			const query = new URLSearchParams({ date: rescheduleDate.value });
+			const data = await api('customer-booking/availability?' + query.toString(), {
+				method: 'GET',
+				headers: { 'X-Parisan-Booking-Token': activeToken }
+			});
+			placeholder.textContent = data.slots && data.slots.length ? 'انتخاب ساعت جدید' : message('noSlots');
+			(data.slots || []).forEach((slot) => {
+				if (!slot.starts_at_local) return;
+				const option = document.createElement('option');
+				option.value = slot.starts_at_local;
+				option.textContent = slot.starts_at_local.slice(-5);
+				rescheduleSlot.appendChild(option);
+			});
+			rescheduleSlot.disabled = !data.slots || !data.slots.length;
+		} catch (error) {
+			placeholder.textContent = error.message || message('genericError');
+			setLive(error.message || message('genericError'));
+		}
+	}
+
+	rescheduleDate.addEventListener('change', loadCustomerSlots);
+	rescheduleForm.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		if (!activeToken || !rescheduleSlot.value) return;
+		const submit = rescheduleForm.querySelector('[type="submit"]');
+		submit.disabled = true;
+		setLive(message('loading'));
+		try {
+			await api('customer-booking/reschedule', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', 'X-Parisan-Booking-Token': activeToken },
+				body: JSON.stringify({ starts_at_local: rescheduleSlot.value })
+			});
+			rescheduleDate.value = '';
+			rescheduleSlot.innerHTML = '';
+			rescheduleSlot.disabled = true;
+			await loadCustomerBooking(activeToken);
+			setLive('زمان نوبت با موفقیت تغییر کرد.');
+		} catch (error) {
+			setLive(error.message || message('genericError'));
+		} finally {
+			submit.disabled = false;
+		}
+	});
+
 	accessForm.addEventListener('submit', async (event) => {
 		event.preventDefault();
 		setLive(message('loading'));
