@@ -27,4 +27,4 @@ Staff need to move a pending or confirmed booking without losing its original pr
 - No customer self-service, notifications, SMS, or payment operation is triggered.
 
 
-Verification: the disposable WordPress/MariaDB booking integration checks that active customer-token expiry follows the rescheduled end time and is rolled back when the reschedule audit event fails. **PASS** — [PHP/WordPress smoke run 42405607604](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405607604), commit `b355471`.
+Verification: the disposable WordPress/MariaDB booking integration checks that active customer-token expiry follows the rescheduled end time and is rolled back when the reschedule audit event fails. **PASS** — [PHP/WordPress smoke run 42405661236](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405607604), commit `2231f0e`.
