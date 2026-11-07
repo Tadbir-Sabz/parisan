@@ -58,7 +58,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Implement plugin bootstrap, namespacing/autoloading, module boundaries, capability map, settings, logging, and diagnostics.
 - [ ] Add versioned database migrations and upgrade safety.
 - [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
-- [ ] Implement staff profiles, specialties, service eligibility, schedules, breaks, holidays, and leave.
+- [~] Implement specialist profiles, service eligibility, and a weekly recurring schedule editor. Breaks, date-specific exceptions, leave, holidays, and resource schedules remain pending.
 - [ ] Implement branches/resources data model with single-salon-first UX.
 - [ ] Build admin navigation and setup wizard.
 - [ ] Add seed/demo data that is clearly non-production.
@@ -177,10 +177,10 @@ These apply throughout all phases:
 As of the current implementation branch:
 - Product documentation and mandatory agent rules are present on main.
 - Initial theme bootstrap, homepage, service archive, and service detail source files exist on `feature/service-catalog-foundation`.
-- Parisan Core registers service and specialist content types; service duration and price metadata are editable with nonce, capability, sanitization, and value bounds.
+- Parisan Core registers service and specialist content types; service duration/price metadata, service categories, specialist-to-service eligibility, and weekly recurring availability fields have source implementations with nonce/capability checks and input validation.
 - A GitHub Actions PHP syntax workflow targets PHP 8.1, 8.2, and 8.3. Its run result is pending until GitHub executes it.
 - WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
-- Booking transactions, schedules, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters are NOT STARTED.
+- Date-specific schedule exceptions, leave/holiday handling, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters are NOT STARTED.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
