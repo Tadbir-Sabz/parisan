@@ -38,6 +38,7 @@ The internal booking engine is concurrency-safe but deliberately has no public e
 
 ## Verification
 
-- Disposable WordPress/MariaDB integration verifies default-off route registration, schema v3, digest-only storage, token resolution, token rotation/revocation, expiry, token-bound cancellation, privacy-erasure token revocation/rollback, and explicit enabled-route/shortcode rendering.
-- PHP 8.1/8.2/8.3 lint and JavaScript syntax validation are part of the active CI matrix; final exact-commit run evidence is pending.
+- **PASS — WordPress + MariaDB integration on commit `a7f7688`:** [run 42404975174](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975174). Verifies default-off route registration, schema v3, digest-only storage, token resolution/rotation/expiry, token-bound cancellation, privacy-erasure token revocation/rollback, explicitly enabled route registration, shortcode rendering/assets, transactional public booking creation, idempotency conflict protection, and 90-day horizon.
+- **PASS — PHP/JS and WordPress smoke matrix on commit `a7f7688`:** [run 42404975178](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975178). PHP 8.1/8.2/8.3 lint, both booking JS syntax checks, schedule/availability tests, and disposable WordPress schema-v3 activation smoke test.
+- **PASS — privacy and abuse-control matrix on commit `a7f7688`:** [run 42404975266](https://github.com/Tadbir-Sabz/parisan/actions/runs/42404975266).
 - Browser UX, real reverse-proxy behavior, multi-connection race stress, and production deployment remain UNVERIFIED.
