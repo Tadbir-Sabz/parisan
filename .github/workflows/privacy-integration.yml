@@ -71,3 +71,11 @@ jobs:
         run: |
           set -euo pipefail
           wp eval-file tests/run-public-booking-integration.php --path="$WP_PATH"
+
+      - name: Verify explicitly enabled API routes and booking shortcode
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-privacy-wordpress
+        run: |
+          set -euo pipefail
+          wp config set PARISAN_PUBLIC_BOOKING_ENABLED true --raw --path="$WP_PATH"
+          wp eval-file tests/run-public-booking-enabled-integration.php --path="$WP_PATH"
