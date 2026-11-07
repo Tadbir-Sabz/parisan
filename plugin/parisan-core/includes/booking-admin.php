@@ -71,7 +71,7 @@ function parisan_core_handle_manual_booking_create() {
 	$local_start = isset( $_POST['starts_at_local'] ) && is_string( $_POST['starts_at_local'] ) ? sanitize_text_field( wp_unslash( $_POST['starts_at_local'] ) ) : '';
 	$name = isset( $_POST['customer_name'] ) && is_string( $_POST['customer_name'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_name'] ) ) : '';
 	$phone = isset( $_POST['customer_phone'] ) && is_string( $_POST['customer_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_phone'] ) ) : '';
-	$email = isset( $_POST['customer_email'] ) && is_string( $_POST['customer_email'] ) ? sanitize_email( wp_unslash( $_POST['customer_email'] ) ) : '';
+	$email = isset( $_POST['customer_email'] ) && is_string( $_POST['customer_email'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['customer_email'] ) ) ) : '';
 	$token = isset( $_POST['idempotency_token'] ) && is_string( $_POST['idempotency_token'] ) ? sanitize_text_field( wp_unslash( $_POST['idempotency_token'] ) ) : '';
 
 	if ( ! $staff_id || ! $service_id || 'parisan_staff' !== get_post_type( $staff_id ) || 'parisan_service' !== get_post_type( $service_id ) || ! current_user_can( 'edit_post', $staff_id ) || ! current_user_can( 'edit_post', $service_id ) ) {
@@ -167,6 +167,7 @@ function parisan_core_render_booking_admin_page() {
 		'parisan_booking_lock_unavailable' => __( 'تقویم متخصص در حال پردازش است؛ دوباره تلاش کنید.', 'parisan-core' ),
 		'parisan_invalid_booking_input' => __( 'اطلاعات نوبت کامل یا معتبر نیست.', 'parisan-core' ),
 		'parisan_invalid_local_booking_time' => __( 'زمان محلی واردشده معتبر نیست.', 'parisan-core' ),
+		'parisan_booking_time_in_past' => __( 'زمان رزرو باید در آینده باشد.', 'parisan-core' ),
 		'parisan_booking_slot_unavailable' => __( 'این زمان در تقویم متخصص آزاد نیست.', 'parisan-core' ),
 		'parisan_service_not_available_for_staff' => __( 'این خدمت برای متخصص انتخاب‌شده تعریف نشده است.', 'parisan-core' ),
 		'parisan_service_requires_price_confirmation' => __( 'برای این خدمت ابتدا باید قیمت نهایی مشخص شود.', 'parisan-core' ),
@@ -195,7 +196,7 @@ function parisan_core_render_booking_admin_page() {
 				<table class="form-table" role="presentation"><tbody>
 					<tr><th scope="row"><label for="parisan-manual-staff"><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></label></th><td><select required id="parisan-manual-staff" name="staff_id"><option value=""><?php esc_html_e( 'انتخاب متخصص', 'parisan-core' ); ?></option><?php foreach ( $staff_options as $person ) : ?><option value="<?php echo esc_attr( $person->ID ); ?>"><?php echo esc_html( get_the_title( $person ) ); ?></option><?php endforeach; ?></select></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-service"><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></label></th><td><select required id="parisan-manual-service" name="service_id"><option value=""><?php esc_html_e( 'انتخاب خدمت', 'parisan-core' ); ?></option><?php foreach ( $service_options as $service ) : ?><option value="<?php echo esc_attr( $service->ID ); ?>"><?php echo esc_html( get_the_title( $service ) ); ?></option><?php endforeach; ?></select></td></tr>
-					<tr><th scope="row"><label for="parisan-manual-start"><?php esc_html_e( 'تاریخ و ساعت شروع', 'parisan-core' ); ?></label></th><td><input required type="datetime-local" id="parisan-manual-start" name="starts_at_local"></td></tr>
+					<tr><th scope="row"><label for="parisan-manual-start"><?php esc_html_e( 'تاریخ و ساعت شروع', 'parisan-core' ); ?></label></th><td><input required type="datetime-local" id="parisan-manual-start" name="starts_at_local"><p class="description"><?php echo esc_html( wp_timezone()->getName() ); ?></p></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-customer"><?php esc_html_e( 'نام مشتری', 'parisan-core' ); ?></label></th><td><input required type="text" maxlength="190" class="regular-text" id="parisan-manual-customer" name="customer_name"></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-phone"><?php esc_html_e( 'شماره تماس', 'parisan-core' ); ?></label></th><td><input required type="tel" inputmode="tel" maxlength="24" class="regular-text" id="parisan-manual-phone" name="customer_phone" dir="ltr"></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-email"><?php esc_html_e( 'ایمیل (اختیاری)', 'parisan-core' ); ?></label></th><td><input type="email" maxlength="190" class="regular-text" id="parisan-manual-email" name="customer_email" dir="ltr"></td></tr>
