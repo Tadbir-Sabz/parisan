@@ -311,7 +311,8 @@ jobs:
             $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
             $transition_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"status_changed\"", $created["booking_id"] ) );
             $invalid_transition = parisan_core_transition_booking( $created["booking_id"], "confirmed" );
-            if ( "cancelled" !== $cancelled_status || 2 !== $transition_events || ! is_wp_error( $invalid_transition ) || "parisan_invalid_booking_transition" !== $invalid_transition->get_error_code() ) {
+            $terminal_reschedule = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 11:15" );
+            if ( "cancelled" !== $cancelled_status || 2 !== $transition_events || ! is_wp_error( $invalid_transition ) || "parisan_invalid_booking_transition" !== $invalid_transition->get_error_code() || ! is_wp_error( $terminal_reschedule ) || "parisan_booking_reschedule_not_allowed" !== $terminal_reschedule->get_error_code() ) {
               fwrite( STDERR, "Booking lifecycle state machine or audit history assertion failed.\\n" );
               exit( 1 );
             }
