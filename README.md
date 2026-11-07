@@ -59,7 +59,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
 - [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
-- [~] Availability, date-exception administration, and internal booking-write foundation implemented; break management, resource schedules, lock stress/forced rollback tests, and public booking lifecycle remain pending.
+- [~] Availability, date-exception administration, and internal booking-write foundation implemented; booking accepts only fixed service prices and calendar exception writes share the staff lock. Break management, resource schedules, lock stress/forced rollback tests, and public booking lifecycle remain pending.
 - [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
 - [ ] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md) for the internal booking transaction boundary.
 
