@@ -274,6 +274,7 @@ jobs:
               fwrite( STDERR, "Overlapping booking was not rejected after locked availability recheck.\\n" );
               exit( 1 );
             }
+            wp_set_current_user( 1 );
             if ( ! function_exists( "parisan_core_reschedule_booking" ) ) {
               fwrite( STDERR, "Booking reschedule service was not loaded.\\n" );
               exit( 1 );
