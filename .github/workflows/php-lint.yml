@@ -40,7 +40,7 @@ jobs:
             php -l "$file"
           done
 
-      - name: Run pure schedule validation tests
+      - name: Run schedule and availability tests
         run: php tests/run-schedule-tests.php
 
   wordpress-smoke:
