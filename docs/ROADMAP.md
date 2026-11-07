@@ -1,7 +1,8 @@
 # Parisan Delivery Roadmap
 
 **Canonical branch:** main  
-**Roadmap status:** Initial baseline — no product implementation has been verified yet.  
+**Active implementation branch:** `feature/service-catalog-foundation`  
+**Roadmap status:** Initial theme and service-catalogue source implementation committed on a feature branch; runtime validation pending.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -41,7 +42,8 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Define brand concept, naming/wordmark direction, color tokens, Persian/Latin type system, iconography, spacing, motion, and responsive breakpoints.
 - [ ] Produce desktop/tablet/mobile design references and high-fidelity homepage/service/booking/account/admin prototypes.
 - [ ] Define complete RTL/LTR interaction rules and dark/light tokens.
-- [ ] Implement theme scaffold, semantic template hierarchy, navigation, footer, global components, and theme settings.
+- [x] Add initial theme scaffold, semantic header/footer, navigation, homepage starter, and responsive RTL-aware base styles.
+- [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
 - [ ] Build public templates: home, service archive/detail, team, gallery, blog, contact, FAQ, policies, search, 404.
 - [ ] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action.
 - [ ] Validate content editing and Elementor coexistence/fallback.
@@ -55,7 +57,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 - [ ] Implement plugin bootstrap, namespacing/autoloading, module boundaries, capability map, settings, logging, and diagnostics.
 - [ ] Add versioned database migrations and upgrade safety.
-- [ ] Implement service categories, services, duration, pricing, add-ons, packages, and booking rules.
+- [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
 - [ ] Implement staff profiles, specialties, service eligibility, schedules, breaks, holidays, and leave.
 - [ ] Implement branches/resources data model with single-salon-first UX.
 - [ ] Build admin navigation and setup wizard.
@@ -172,10 +174,13 @@ These apply throughout all phases:
 
 ## Current verified progress
 
-As of this initial roadmap commit:
-- Repository metadata confirms the canonical default branch is main.
-- The repository was empty before the documentation bootstrap.
-- Product documentation has been initialized.
-- No theme, plugin, booking, SEO, caching, SMS, WooCommerce, or Elementor implementation has been verified.
+As of the current implementation branch:
+- Product documentation and mandatory agent rules are present on main.
+- Initial theme bootstrap, homepage, service archive, and service detail source files exist on `feature/service-catalog-foundation`.
+- Parisan Core registers service and specialist content types; service duration and price metadata are editable with nonce, capability, sanitization, and value bounds.
+- A GitHub Actions PHP syntax workflow targets PHP 8.1, 8.2, and 8.3. Its run result is pending until GitHub executes it.
+- WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
+- Booking transactions, schedules, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters are NOT STARTED.
+- No production site, customer database, live SMS, or payment system has been accessed.
 
-Do not infer implementation progress from roadmap planning. Replace this section with evidence-backed updates as work proceeds.
+Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
