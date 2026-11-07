@@ -2,7 +2,7 @@
 
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, and reusable request throttling are implemented and CI-verified on the feature branch. Public booking and customer self-service remain incomplete.  
+**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, reusable request throttling, and a gated public booking/customer-token API foundation are implemented on the feature branch. Public activation remains disabled by default; end-to-end customer UX and deployment-specific security validation remain incomplete.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -69,7 +69,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 ## Phase 3 — Booking engine and customer portal (first business-ready release)
 
-**Status:** [~] IN PROGRESS — schema, availability, calendar exceptions, and internal booking-write service; public lifecycle incomplete
+**Status:** [~] IN PROGRESS — schema, availability, internal booking-write service, and gated API/token foundation; customer UX and deployment validation incomplete
 
 - [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration; disposable WordPress/MariaDB smoke test confirms all three tables and schema version.
 - [x] Implement timezone-aware availability calculation using staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Pure tests and a seeded WordPress database integration test are required for this milestone.
@@ -78,12 +78,12 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Implement and CI-verify internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, and atomic pending booking + audit event transaction (run 42376217290). Multi-connection stress and lock-timeout behavior remain UNVERIFIED. No public endpoint is exposed.
 - [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
-- [ ] Implement public booking wizard with accessible mobile UX and server-side validation.
-- [ ] Implement customer registration/login integration with WordPress accounts and secure booking ownership.
-- [ ] Implement customer portal: upcoming/past bookings, details, cancellation/reschedule, profile, preferences.
+- [~] Implement a gated public API foundation for availability, pending booking creation, token-scoped customer view, and cancellation (ADR-0012). Routes are absent unless the owner explicitly defines `PARISAN_PUBLIC_BOOKING_ENABLED=true`; browser booking wizard and mobile UX remain pending.
+- [~] Implement non-account customer ownership using 256-bit random, HMAC-digested, expiring, revocable access tokens (ADR-0012). Customer registration/login and account-based ownership remain future options.
+- [~] Add a minimal token-scoped booking view and cancellation API. Customer rescheduling, profile/preferences, full portal UI, and browser workflows remain pending.
 - [~] Implement admin booking list, status filters/actions, detail/audit timeline, manual booking, and reschedule form; calendar-style operations view, search, and daily dashboard remain pending.
 - [ ] Add email notifications and testable notification queue.
-- [~] Test timezone boundaries, concurrent requests, authorization/IDOR, lifecycle transitions, privacy export/erasure, retention, and abuse controls; browser, multi-connection, proxy, and multi-node evidence remains pending.
+- [~] Test timezone boundaries, concurrent requests, token scoping/rotation/expiry, lifecycle transitions, privacy export/erasure, retention, and abuse controls; updated WordPress/MariaDB CI is pending. Browser, multi-connection stress, proxy, and multi-node evidence remains pending.
 
 **Gate P3:** a complete customer can book and manage an appointment; staff can operate the schedule; no double booking under tested concurrency.
 
@@ -166,7 +166,8 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Add and test a reusable HMAC-keyed, MySQL-lock-serialized fixed-window request limiter; raw IPs are not stored and forwarded-IP headers are ignored [runs 42398990545 and 42398990422](https://github.com/Tadbir-Sabz/parisan/actions).
 - [x] Dedicated PHP 8.1/8.2/8.3 matrix assertions PASS [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545).
 - [x] Disposable WordPress/MariaDB erasure and forced transaction rollback PASS (run 42398990422). Browser privacy workflow, reverse-proxy IP topology, multi-node rate-limit behavior, and owner-approved retention period remain UNVERIFIED.
-- [ ] Before public booking: implement scoped, expiring, non-guessable customer access tokens; object-level authorization; rate limiting on every public route; abuse monitoring; privacy-safe responses; and end-to-end IDOR/concurrency tests.
+- [~] Implemented gated public availability/create/customer-view/cancel routes, HMAC-digested 256-bit expiring customer tokens, rotation/revocation, same-origin mutation checks, endpoint rate limiting, no-store responses, and transactional customer cancellation (ADR-0012). Updated disposable WordPress/MariaDB integration CI is pending.
+- [ ] Before enabling the feature constant: complete end-to-end IDOR/replay/brute-force/concurrency tests, browser booking UX and accessibility, reverse-proxy/multi-node verification, security review, and explicit site-owner approval. The routes remain disabled by default.
 
 ## Cross-cutting workstreams
 
