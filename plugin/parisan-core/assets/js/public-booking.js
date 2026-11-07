@@ -123,9 +123,9 @@
 				headers: { 'Content-Type': 'application/json', 'Idempotency-Key': (pendingIdempotencyKey || (pendingIdempotencyKey = makeIdempotencyKey())) },
 				body: JSON.stringify(payload)
 			});
-			pendingIdempotencyKey = '';
 			activeToken = response.customer_access_token || '';
 			if (!activeToken) throw new Error(message('genericError'));
+			pendingIdempotencyKey = '';
 			tokenOutput.value = activeToken;
 			existingToken.value = activeToken;
 			tokenPanel.hidden = false;
