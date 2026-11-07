@@ -100,10 +100,10 @@ function parisan_core_calculate_available_slots( $date, $weekly_schedule, $timez
 
 	$day = (int) $day_date->format( 'w' );
 	$hours = isset( $weekly_schedule[ $day ] ) && is_array( $weekly_schedule[ $day ] ) ? $weekly_schedule[ $day ] : array();
-	$duration_minutes = absint( $duration_minutes );
-	$slot_interval_minutes = absint( $slot_interval_minutes );
-	$buffer_before_minutes = absint( $buffer_before_minutes );
-	$buffer_after_minutes = absint( $buffer_after_minutes );
+	$duration_minutes = max( 0, (int) $duration_minutes );
+	$slot_interval_minutes = max( 0, (int) $slot_interval_minutes );
+	$buffer_before_minutes = max( 0, (int) $buffer_before_minutes );
+	$buffer_after_minutes = max( 0, (int) $buffer_after_minutes );
 
 	if ( ! empty( $hours['off'] ) || empty( $hours['start'] ) || empty( $hours['end'] ) || 0 === $duration_minutes || 0 === $slot_interval_minutes ) {
 		return array();
