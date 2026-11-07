@@ -115,6 +115,11 @@ function parisan_core_render_booking_admin_page() {
 		wp_die( esc_html__( 'اجازه مشاهده این صفحه را ندارید.', 'parisan-core' ), 403 );
 	}
 
+	$staff_options = get_posts( array( 'post_type' => 'parisan_staff', 'post_status' => 'publish', 'posts_per_page' => 200, 'orderby' => 'title', 'order' => 'ASC' ) );
+	$staff_options = array_values( array_filter( $staff_options, static function ( $person ) { return current_user_can( 'edit_post', $person->ID ); } ) );
+	$service_options = get_posts( array( 'post_type' => 'parisan_service', 'post_status' => 'publish', 'posts_per_page' => 200, 'orderby' => 'title', 'order' => 'ASC' ) );
+	$service_options = array_values( array_filter( $service_options, static function ( $service ) { return current_user_can( 'edit_post', $service->ID ); } ) );
+
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_bookings';
 	$valid_statuses = array( 'pending', 'confirmed', 'cancelled', 'expired', 'completed', 'no_show' );
@@ -160,18 +165,49 @@ function parisan_core_render_booking_admin_page() {
 		'parisan_invalid_booking_transition' => __( 'این تغییر وضعیت در چرخه رزرو مجاز نیست.', 'parisan-core' ),
 		'parisan_booking_confirmation_conflict' => __( 'رزرو با نوبت یا عدم دسترسی دیگری تداخل دارد.', 'parisan-core' ),
 		'parisan_booking_lock_unavailable' => __( 'تقویم متخصص در حال پردازش است؛ دوباره تلاش کنید.', 'parisan-core' ),
+		'parisan_invalid_booking_input' => __( 'اطلاعات نوبت کامل یا معتبر نیست.', 'parisan-core' ),
+		'parisan_invalid_local_booking_time' => __( 'زمان محلی واردشده معتبر نیست.', 'parisan-core' ),
+		'parisan_booking_slot_unavailable' => __( 'این زمان در تقویم متخصص آزاد نیست.', 'parisan-core' ),
+		'parisan_service_not_available_for_staff' => __( 'این خدمت برای متخصص انتخاب‌شده تعریف نشده است.', 'parisan-core' ),
+		'parisan_service_requires_price_confirmation' => __( 'برای این خدمت ابتدا باید قیمت نهایی مشخص شود.', 'parisan-core' ),
+		'parisan_transaction_storage_unavailable' => __( 'ذخیره‌ساز امن رزرو آماده نیست.', 'parisan-core' ),
 	);
 	?>
 	<div class="wrap">
 		<h1><?php esc_html_e( 'مدیریت نوبت‌ها', 'parisan-core' ); ?></h1>
 		<p><?php esc_html_e( 'نوبت‌های ثبت‌شده را بررسی کنید و وضعیت آن‌ها را از مسیر مجاز چرخه رزرو تغییر دهید. زمان‌ها بر اساس منطقه زمانی تنظیم‌شده در وردپرس نمایش داده می‌شوند.', 'parisan-core' ); ?></p>
-		<?php if ( isset( $_GET['booking_updated'] ) ) : ?>
+		<?php if ( isset( $_GET['booking_created'] ) ) : ?>
+			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'نوبت با موفقیت ثبت شد و در وضعیت «در انتظار تأیید» قرار گرفت.', 'parisan-core' ); ?></p></div>
+		<?php elseif ( isset( $_GET['booking_updated'] ) ) : ?>
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'وضعیت نوبت به‌روزرسانی شد.', 'parisan-core' ); ?></p></div>
 		<?php elseif ( isset( $_GET['booking_error'] ) ) : ?>
 			<?php $error_code = sanitize_key( wp_unslash( $_GET['booking_error'] ) ); ?>
 			<div class="notice notice-error"><p><?php echo esc_html( isset( $error_messages[ $error_code ] ) ? $error_messages[ $error_code ] : __( 'تغییر وضعیت نوبت انجام نشد.', 'parisan-core' ) ); ?></p></div>
 		<?php endif; ?>
 
+		<h2><?php esc_html_e( 'ثبت نوبت دستی', 'parisan-core' ); ?></h2>
+		<p><?php esc_html_e( 'ثبت نوبت از طرف مشتری توسط پذیرش. ظرفیت و زمان انتخاب‌شده هنگام ذخیره دوباره بررسی می‌شود و نوبت جدید ابتدا در وضعیت انتظار تأیید قرار می‌گیرد.', 'parisan-core' ); ?></p>
+		<?php if ( $staff_options && $service_options ) : ?>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="parisan_create_manual_booking">
+				<?php wp_nonce_field( 'parisan_create_manual_booking', 'parisan_manual_booking_nonce' ); ?>
+				<input type="hidden" name="idempotency_token" value="<?php echo esc_attr( wp_generate_uuid4() ); ?>">
+				<table class="form-table" role="presentation"><tbody>
+					<tr><th scope="row"><label for="parisan-manual-staff"><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></label></th><td><select required id="parisan-manual-staff" name="staff_id"><option value=""><?php esc_html_e( 'انتخاب متخصص', 'parisan-core' ); ?></option><?php foreach ( $staff_options as $person ) : ?><option value="<?php echo esc_attr( $person->ID ); ?>"><?php echo esc_html( get_the_title( $person ) ); ?></option><?php endforeach; ?></select></td></tr>
+					<tr><th scope="row"><label for="parisan-manual-service"><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></label></th><td><select required id="parisan-manual-service" name="service_id"><option value=""><?php esc_html_e( 'انتخاب خدمت', 'parisan-core' ); ?></option><?php foreach ( $service_options as $service ) : ?><option value="<?php echo esc_attr( $service->ID ); ?>"><?php echo esc_html( get_the_title( $service ) ); ?></option><?php endforeach; ?></select></td></tr>
+					<tr><th scope="row"><label for="parisan-manual-start"><?php esc_html_e( 'تاریخ و ساعت شروع', 'parisan-core' ); ?></label></th><td><input required type="datetime-local" id="parisan-manual-start" name="starts_at_local"></td></tr>
+					<tr><th scope="row"><label for="parisan-manual-customer"><?php esc_html_e( 'نام مشتری', 'parisan-core' ); ?></label></th><td><input required type="text" maxlength="190" class="regular-text" id="parisan-manual-customer" name="customer_name"></td></tr>
+					<tr><th scope="row"><label for="parisan-manual-phone"><?php esc_html_e( 'شماره تماس', 'parisan-core' ); ?></label></th><td><input required type="tel" inputmode="tel" maxlength="24" class="regular-text" id="parisan-manual-phone" name="customer_phone" dir="ltr"></td></tr>
+					<tr><th scope="row"><label for="parisan-manual-email"><?php esc_html_e( 'ایمیل (اختیاری)', 'parisan-core' ); ?></label></th><td><input type="email" maxlength="190" class="regular-text" id="parisan-manual-email" name="customer_email" dir="ltr"></td></tr>
+				</tbody></table>
+				<button type="submit" class="button button-primary"><?php esc_html_e( 'ثبت نوبت در انتظار تأیید', 'parisan-core' ); ?></button>
+			</form>
+		<?php else : ?>
+			<p><?php esc_html_e( 'برای ثبت نوبت، حداقل یک متخصص و یک خدمت قابل ویرایش لازم است.', 'parisan-core' ); ?></p>
+		<?php endif; ?>
+
+		<hr>
+		<h2><?php esc_html_e( 'فهرست نوبت‌ها', 'parisan-core' ); ?></h2>
 		<form method="get" action="<?php echo esc_url( admin_url( 'edit.php' ) ); ?>">
 			<input type="hidden" name="post_type" value="parisan_staff">
 			<input type="hidden" name="page" value="parisan-bookings">
