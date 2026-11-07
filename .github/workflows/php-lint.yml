@@ -138,7 +138,61 @@ jobs:
               fwrite( STDERR, "Service metadata did not persist.\n" );
               exit( 1 );
             }
-            echo "WordPress activation and Parisan registration smoke test passed.\n";
+            $staff_id = wp_insert_post( array(
+              "post_type"   => "parisan_staff",
+              "post_status" => "publish",
+              "post_title"  => "Synthetic CI specialist",
+            ), true );
+            if ( is_wp_error( $staff_id ) ) {
+              fwrite( STDERR, $staff_id->get_error_message() . "\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $staff_id, "_parisan_staff_services", array( $service_id ) );
+            update_post_meta( $staff_id, "_parisan_staff_weekly_schedule", parisan_core_normalize_weekly_schedule( array(
+              1 => array( "start" => "09:00", "end" => "12:00" ),
+            ) ) );
+            update_option( "timezone_string", "UTC" );
+            $booking_table = $wpdb->prefix . "parisan_bookings";
+            $booking_inserted = $wpdb->insert( $booking_table, array(
+              "public_id" => wp_generate_uuid4(),
+              "service_id" => $service_id,
+              "staff_id" => $staff_id,
+              "customer_name" => "Synthetic CI customer",
+              "customer_phone" => "0000000000",
+              "customer_email" => "",
+              "starts_at_utc" => "2026-11-09 09:00:00",
+              "ends_at_utc" => "2026-11-09 09:45:00",
+              "salon_timezone" => "UTC",
+              "status" => "confirmed",
+              "price_amount" => 0,
+              "currency_code" => "IRR",
+              "idempotency_key" => hash( "sha256", "parisan-ci-booking" ),
+              "created_at_utc" => "2026-11-01 00:00:00",
+              "updated_at_utc" => "2026-11-01 00:00:00",
+            ) );
+            if ( false === $booking_inserted ) {
+              fwrite( STDERR, "Synthetic booking insert failed: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $exception_table = $wpdb->prefix . "parisan_schedule_exceptions";
+            $exception_inserted = $wpdb->insert( $exception_table, array(
+              "staff_id" => $staff_id,
+              "starts_at_utc" => "2026-11-09 10:00:00",
+              "ends_at_utc" => "2026-11-09 10:30:00",
+              "exception_type" => "unavailable",
+              "note" => "Synthetic CI leave",
+              "created_at_utc" => "2026-11-01 00:00:00",
+            ) );
+            if ( false === $exception_inserted ) {
+              fwrite( STDERR, "Synthetic exception insert failed: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $slots = parisan_core_get_available_slots( $staff_id, $service_id, "2026-11-09" );
+            if ( is_wp_error( $slots ) || ! is_array( $slots ) || empty( $slots ) || "2026-11-09 10:30" !== $slots[0]["starts_at_local"] ) {
+              fwrite( STDERR, "Availability adapter did not exclude seeded booking/exception intervals.\\n" );
+              exit( 1 );
+            }
+            echo "WordPress activation, schema, and seeded availability integration test passed.\\n";
           ' --path="$WP_PATH"
           test -f "$WP_PATH/wp-content/themes/parisan/front-page.php"
           test -f "$WP_PATH/wp-content/themes/parisan/archive-parisan_service.php"
