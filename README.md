@@ -65,6 +65,6 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
 - [~] Availability, date-exception administration, internal booking creation, and controlled status lifecycle implemented and CI-verified. Booking accepts only fixed service prices; booking and calendar exception writes share the staff lock. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, browser booking/admin UX, break management, and resource schedules remain pending.
 - [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
-- [x] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md) [ADR-0006](docs/decisions/ADR-0006-controlled-booking-lifecycle.md), and [ADR-0007](docs/decisions/ADR-0007-staff-booking-operations-screen.md) for booking persistence, lifecycle, and staff operations boundaries.
+- [x] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md) and [ADR-0006](docs/decisions/ADR-0006-controlled-booking-lifecycle.md), and [ADR-0007](docs/decisions/ADR-0007-staff-booking-operations-screen.md) for booking persistence, lifecycle, and staff operations boundaries.
 
 **Do not infer runtime readiness from source files.** This is an implementation foundation, not a production release. Each feature requires evidence from automated tests and relevant manual flows.
