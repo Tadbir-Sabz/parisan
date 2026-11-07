@@ -87,4 +87,25 @@ parisan_public_enabled_assert( ! is_wp_error( $retry_booking ) && ! empty( $retr
 parisan_public_enabled_assert( false === parisan_core_resolve_customer_access_token( $first_customer_token ), 'valid idempotent retry rotates and revokes the previous token' );
 parisan_public_enabled_assert( is_array( parisan_core_resolve_customer_access_token( $replacement_customer_token ) ), 'valid idempotent retry stores the replacement customer token' );
 
+$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+$invalid_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
+$invalid_request->set_header( 'Origin', home_url( '/' ) );
+$invalid_request->set_header( 'Idempotency-Key', str_repeat( 'a', 32 ) );
+$invalid_key_response = parisan_core_rest_public_create_booking( $invalid_request );
+parisan_public_enabled_assert( 400 === $invalid_key_response->get_status(), 'public route rejects idempotency keys below 256 bits' );
+
+$public_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
+$public_request->set_header( 'Origin', home_url( '/' ) );
+$public_request->set_header( 'Idempotency-Key', bin2hex( random_bytes( 32 ) ) );
+$public_request->set_param( 'staff_id', (int) $staff_id );
+$public_request->set_param( 'service_id', (int) $service_id );
+$public_request->set_param( 'starts_at_local', '2026-11-09 11:00' );
+$public_request->set_param( 'customer_name', 'Synthetic REST Customer' );
+$public_request->set_param( 'customer_phone', '09123456780' );
+$public_response = parisan_core_rest_public_create_booking( $public_request );
+parisan_public_enabled_assert( 201 === $public_response->get_status(), 'same-origin public booking route returns a created pending booking' );
+$public_response_data = $public_response->get_data();
+parisan_public_enabled_assert( isset( $public_response_data['customer_access_token'] ) && 64 === strlen( $public_response_data['customer_access_token'] ), 'public create response returns one 256-bit customer token' );
+parisan_public_enabled_assert( is_array( parisan_core_resolve_customer_access_token( $public_response_data['customer_access_token'] ) ), 'public create response token is stored as a resolvable digest' );
+
 echo "PASS: explicit public API enablement, route registration, and Persian booking shortcode rendering.\n";
