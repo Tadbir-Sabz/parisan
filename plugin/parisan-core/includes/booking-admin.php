@@ -56,6 +56,56 @@ function parisan_core_handle_booking_admin_transition() {
 add_action( 'admin_post_parisan_transition_booking', 'parisan_core_handle_booking_admin_transition' );
 
 /**
+ * Handle a staff-created booking from the admin screen.
+ *
+ * @return void
+ */
+function parisan_core_handle_manual_booking_create() {
+	if ( ! current_user_can( 'edit_others_posts' ) ) {
+		wp_die( esc_html__( 'اجازه انجام این عملیات را ندارید.', 'parisan-core' ), 403 );
+	}
+	check_admin_referer( 'parisan_create_manual_booking', 'parisan_manual_booking_nonce' );
+
+	$staff_id = isset( $_POST['staff_id'] ) && is_scalar( $_POST['staff_id'] ) ? absint( wp_unslash( $_POST['staff_id'] ) ) : 0;
+	$service_id = isset( $_POST['service_id'] ) && is_scalar( $_POST['service_id'] ) ? absint( wp_unslash( $_POST['service_id'] ) ) : 0;
+	$local_start = isset( $_POST['starts_at_local'] ) && is_string( $_POST['starts_at_local'] ) ? sanitize_text_field( wp_unslash( $_POST['starts_at_local'] ) ) : '';
+	$name = isset( $_POST['customer_name'] ) && is_string( $_POST['customer_name'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_name'] ) ) : '';
+	$phone = isset( $_POST['customer_phone'] ) && is_string( $_POST['customer_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_phone'] ) ) : '';
+	$email = isset( $_POST['customer_email'] ) && is_string( $_POST['customer_email'] ) ? sanitize_email( wp_unslash( $_POST['customer_email'] ) ) : '';
+	$token = isset( $_POST['idempotency_token'] ) && is_string( $_POST['idempotency_token'] ) ? sanitize_text_field( wp_unslash( $_POST['idempotency_token'] ) ) : '';
+
+	if ( ! $staff_id || ! $service_id || 'parisan_staff' !== get_post_type( $staff_id ) || 'parisan_service' !== get_post_type( $service_id ) || ! current_user_can( 'edit_post', $staff_id ) || ! current_user_can( 'edit_post', $service_id ) ) {
+		wp_die( esc_html__( 'خدمت یا متخصص انتخاب‌شده معتبر نیست یا اجازه ویرایش آن را ندارید.', 'parisan-core' ), 403 );
+	}
+	if ( ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}T(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $local_start ) ) {
+		$redirect_args = array( 'page' => 'parisan-bookings', 'booking_error' => 'parisan_invalid_booking_input' );
+		wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'edit.php?post_type=parisan_staff' ) ) );
+		exit;
+	}
+
+	$result = parisan_core_create_booking(
+		array(
+			'staff_id' => $staff_id,
+			'service_id' => $service_id,
+			'starts_at_local' => str_replace( 'T', ' ', $local_start ),
+			'customer_name' => $name,
+			'customer_phone' => $phone,
+			'customer_email' => $email,
+			'idempotency_token' => $token,
+		)
+	);
+	$redirect_args = array( 'page' => 'parisan-bookings' );
+	if ( is_wp_error( $result ) ) {
+		$redirect_args['booking_error'] = $result->get_error_code();
+	} else {
+		$redirect_args['booking_created'] = 1;
+	}
+	wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'edit.php?post_type=parisan_staff' ) ) );
+	exit;
+}
+add_action( 'admin_post_parisan_create_manual_booking', 'parisan_core_handle_manual_booking_create' );
+
+/**
  * Render the paginated booking operations list.
  *
  * @return void
