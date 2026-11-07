@@ -16,7 +16,7 @@ Recurring weekly hours cannot represent a specialist's one-off leave, a public h
 4. Represent a full-day exception as local midnight on the selected date through local midnight on the following date. Its UTC duration may therefore be 23, 24, or 25 hours depending on timezone transitions.
 5. The initial admin UI supports full-day and same-day partial-day unavailability, a staff member, and a short internal note. Cross-midnight partial exceptions and exception types that add availability are out of scope.
 6. Require an authenticated user with the staff-editing capability, verify a nonce, and verify edit permission for the selected staff record on both create and delete.
-7. Availability calculation treats exception intervals as half-open UTC ranges and excludes overlapping candidate slots. Existing bookings are not modified or cancelled when an exception is added.
+7. Availability calculation treats exception intervals as half-open UTC ranges and excludes overlapping candidate slots. When an exception is added, the admin receives a warning with the count of overlapping pending/confirmed bookings. Existing bookings are not modified or cancelled automatically.
 8. Availability is advisory. Booking creation must independently re-check conflicts under a database transaction/lock.
 
 ## Consequences
