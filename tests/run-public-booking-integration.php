@@ -76,6 +76,25 @@ parisan_public_integration_assert( false !== $wpdb->query( 'COMMIT' ), 'rotation
 parisan_public_integration_assert( false === parisan_core_resolve_customer_access_token( $token_one ), 'rotated token is rejected' );
 parisan_public_integration_assert( is_array( parisan_core_resolve_customer_access_token( $token_two ) ), 'replacement token is accepted' );
 
+$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+$customer_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booking' );
+$customer_request->set_header( 'X-Parisan-Booking-Token', $token_two );
+$customer_response = parisan_core_rest_customer_booking( $customer_request );
+parisan_public_integration_assert( $customer_response instanceof WP_REST_Response && 200 === $customer_response->get_status(), 'customer view accepts the scoped token' );
+$customer_view = $customer_response->get_data();
+parisan_public_integration_assert( ! isset( $customer_view['customer_name'] ) && ! isset( $customer_view['customer_phone'] ) && ! isset( $customer_view['customer_email'] ) && ! isset( $customer_view['public_id'] ), 'customer view omits direct identifiers and public references' );
+
+$reference_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booking' );
+$reference_request->set_param( 'public_id', 'not-an-authorization-token' );
+$reference_response = parisan_core_rest_customer_booking( $reference_request );
+parisan_public_integration_assert( 404 === $reference_response->get_status(), 'public reference/query parameters do not authorize customer access' );
+
+$origin_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
+$origin_request->set_header( 'Origin', home_url( '/' ) );
+parisan_public_integration_assert( true === parisan_core_public_booking_same_origin( $origin_request ), 'configured same-origin requests are accepted' );
+$origin_request->set_header( 'Origin', 'https://attacker.invalid' );
+parisan_public_integration_assert( false === parisan_core_public_booking_same_origin( $origin_request ), 'cross-origin state-changing requests are rejected' );
+
 $token_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$tokens_table} WHERE token_hash = %s", parisan_core_customer_token_hash( $token_two ) ) );
 $expired = gmdate( 'Y-m-d H:i:s', time() - 60 );
 $wpdb->update( $tokens_table, array( 'expires_at_utc' => $expired ), array( 'id' => $token_id ), array( '%s' ), array( '%d' ) );
@@ -89,7 +108,7 @@ parisan_public_integration_assert( true === parisan_core_cancel_booking_with_cus
 $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$bookings_table} WHERE id = %d", $booking_id ) );
 $cancel_event = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$events_table} WHERE booking_id = %d AND event_type = 'customer_cancelled' AND to_status = 'cancelled'", $booking_id ) );
 parisan_public_integration_assert( 'cancelled' === $cancelled_status && 1 === $cancel_event, 'cancellation and audit event persist together' );
-$second_cancel = parisan_core_cancel_booking_with_customer_token( $booking_id );
+$second_cancel = parisan_core_cancel_booking_with_customer_token( $booking_id, $token_three );
 parisan_public_integration_assert( is_wp_error( $second_cancel ), 'already-cancelled booking cannot be cancelled again' );
 
 echo "PASS: public booking gate, token hashing/rotation/expiry, scoped resolution, and customer cancellation integration.\n";
