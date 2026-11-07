@@ -2,7 +2,7 @@
 
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Initial theme/catalogue and timezone-aware availability calculation source implemented on a feature branch; availability CI validation pending.  
+**Roadmap status:** Theme/catalogue, availability, date-specific calendar exceptions, and an internal transactional booking service are implemented on the feature branch; booking-service CI validation is pending.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -27,7 +27,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Define product vision, target users, scope, and architecture boundary.
 - [x] Define phased roadmap and status rules.
 - [ ] Inspect repository branch protections, CI, permissions, and initial commit state; document verified baseline.
-- [ ] Add architecture decision records for theme/core separation, booking data model, timezone/calendar, and integration strategy.
+- [~] Add architecture decision records for theme/core separation, booking data model, timezone/calendar, transactional booking creation, and integration strategy; ADR-0001 through ADR-0005 are present on the implementation branch.
 - [ ] Define supported WordPress/PHP matrix based on current stable releases and available test environments.
 - [~] Establish CI and focused automated validation; PHP lint and standalone weekly schedule tests PASS on PHP 8.1, 8.2, and 8.3. Disposable WordPress/MariaDB activation, plugin/theme activation, post type/taxonomy registration, and template asset smoke test PASS. Broader static analysis and end-to-end tests remain pending.
 - [ ] Define local development environment and synthetic seed data.
@@ -69,13 +69,13 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 ## Phase 3 — Booking engine and customer portal (first business-ready release)
 
-**Status:** [~] IN PROGRESS — schema foundation only
+**Status:** [~] IN PROGRESS — schema, availability, calendar exceptions, and internal booking-write service; public lifecycle incomplete
 
 - [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration; disposable WordPress/MariaDB smoke test confirms all three tables and schema version.
 - [x] Implement timezone-aware availability calculation using staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Pure tests and a seeded WordPress database integration test are required for this milestone.
 - [x] Add Persian admin management for date-specific full-day leave/closures and partial-day unavailability; all submitted local intervals are validated and stored in UTC.
 - [ ] Add break management, resource schedules, capacity, lead time, and booking horizon.
-- [ ] Implement concurrency-safe booking creation and double-book prevention.
+- [~] Implement internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, pending booking + audit event transaction. CI coverage is added but not yet evidenced; lock stress/forced rollback remain unverified. No public endpoint is exposed.
 - [ ] Implement booking state machine, audit trail, manual receptionist booking, reschedule/cancel policies, and walk-ins.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
 - [ ] Implement public booking wizard with accessible mobile UX and server-side validation.
