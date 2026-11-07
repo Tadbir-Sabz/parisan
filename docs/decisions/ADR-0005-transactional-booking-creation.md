@@ -26,4 +26,4 @@ Availability calculation is advisory. Two requests can observe the same free slo
 - No live SMS, payment, or production deployment is enabled.
 - Advisory locks serialize callers using this service and the same database connection/lock namespace. Every future booking writer must use this service or the same lock protocol; direct table writes would bypass the concurrency guarantee.
 - The service uses the WordPress site timezone as the salon timezone until a dedicated salon timezone setting is introduced.
-- Automated CI coverage exercises successful creation, audit-event persistence, idempotent replay/conflict, and overlap rejection. Lock-timeout behavior, forced audit-insert rollback, parallel multi-connection stress, and browser workflows remain unverified.
+- Automated CI coverage exercises successful creation, audit-event persistence, idempotent replay/conflict, overlap rejection, the InnoDB requirement, shared lock acquisition/release, and rejection of non-final “price from” services. Lock-timeout behavior, forced audit-insert rollback, parallel multi-connection stress, and browser workflows remain unverified.
