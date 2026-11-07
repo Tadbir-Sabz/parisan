@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 2 );
+define( 'PARISAN_CORE_DB_VERSION', 3 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -26,6 +26,7 @@ function parisan_core_install_database() {
 	$bookings_table  = $wpdb->prefix . 'parisan_bookings';
 	$events_table    = $wpdb->prefix . 'parisan_booking_events';
 	$exceptions_table = $wpdb->prefix . 'parisan_schedule_exceptions';
+	$customer_tokens_table = $wpdb->prefix . 'parisan_customer_tokens';
 
 	$bookings_sql = "CREATE TABLE {$bookings_table} (
 		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -86,6 +87,21 @@ function parisan_core_install_database() {
 	dbDelta( $bookings_sql );
 	dbDelta( $events_sql );
 	dbDelta( $exceptions_sql );
+
+	$customer_tokens_sql = "CREATE TABLE {$customer_tokens_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		booking_id bigint(20) unsigned NOT NULL,
+		token_hash char(64) NOT NULL,
+		expires_at_utc datetime NOT NULL,
+		revoked_at_utc datetime NULL DEFAULT NULL,
+		created_at_utc datetime NOT NULL,
+		last_used_at_utc datetime NULL DEFAULT NULL,
+		PRIMARY KEY  (id),
+		UNIQUE KEY token_hash (token_hash),
+		KEY booking_id (booking_id),
+		KEY expires_at_utc (expires_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $customer_tokens_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
