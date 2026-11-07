@@ -187,6 +187,7 @@
 				rescheduleSlot.appendChild(option);
 			});
 			rescheduleSlot.disabled = !data.slots || !data.slots.length;
+			setLive(data.slots && data.slots.length ? message('customerSlotsLoaded') : message('noSlots'));
 		} catch (error) {
 			placeholder.textContent = error.message || message('genericError');
 			setLive(error.message || message('genericError'));
@@ -210,7 +211,7 @@
 			rescheduleSlot.innerHTML = '';
 			rescheduleSlot.disabled = true;
 			await loadCustomerBooking(activeToken);
-			setLive('زمان نوبت با موفقیت تغییر کرد.');
+			setLive(message('rescheduled'));
 		} catch (error) {
 			setLive(error.message || message('genericError'));
 		} finally {
