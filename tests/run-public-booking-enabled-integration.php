@@ -56,10 +56,11 @@ parisan_public_enabled_assert( wp_script_is( 'parisan-public-booking', 'enqueued
 parisan_public_enabled_assert( wp_style_is( 'parisan-public-booking', 'enqueued' ), 'public booking CSS is enqueued' );
 
 update_post_meta( $staff_id, '_parisan_staff_weekly_schedule', array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) ) );
+$booking_date = current_datetime()->modify( 'next monday' )->format( 'Y-m-d' );
 $base_input = array(
 	'staff_id' => (int) $staff_id,
 	'service_id' => (int) $service_id,
-	'starts_at_local' => '2026-11-09 10:00',
+	'starts_at_local' => $booking_date . ' 10:00',
 	'customer_name' => 'Synthetic Booking Customer',
 	'customer_phone' => '09123456789',
 	'customer_email' => 'public-booking@example.test',
@@ -106,7 +107,7 @@ $public_request->set_header( 'Origin', home_url( '/' ) );
 $public_request->set_header( 'Idempotency-Key', bin2hex( random_bytes( 32 ) ) );
 $public_request->set_param( 'staff_id', (int) $staff_id );
 $public_request->set_param( 'service_id', (int) $service_id );
-$public_request->set_param( 'starts_at_local', '2026-11-09 11:00' );
+$public_request->set_param( 'starts_at_local', $booking_date . ' 11:00' );
 $public_request->set_param( 'customer_name', 'Synthetic REST Customer' );
 $public_request->set_param( 'customer_phone', '09123456780' );
 $public_response = parisan_core_rest_public_create_booking( $public_request );
