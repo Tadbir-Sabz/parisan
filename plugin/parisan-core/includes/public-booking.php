@@ -533,3 +533,165 @@ function parisan_core_register_public_booking_routes() {
 	);
 }
 add_action( 'rest_api_init', 'parisan_core_register_public_booking_routes' );
+
+
+/**
+ * Render the Persian-first public booking wizard shortcode.
+ *
+ * The UI is deliberately unavailable while the public API feature flag is off.
+ *
+ * @return string
+ */
+function parisan_core_booking_shortcode() {
+	if ( ! parisan_core_public_booking_enabled() ) {
+		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'رزرو آنلاین در حال حاضر فعال نیست.', 'parisan-core' ) . '</p></section>';
+	}
+
+	$services = get_posts(
+		array(
+			'post_type' => 'parisan_service',
+			'post_status' => 'publish',
+			'numberposts' => 200,
+			'orderby' => 'title',
+			'order' => 'ASC',
+		)
+	);
+	$staff_members = get_posts(
+		array(
+			'post_type' => 'parisan_staff',
+			'post_status' => 'publish',
+			'numberposts' => 200,
+			'orderby' => 'title',
+			'order' => 'ASC',
+		)
+	);
+	if ( ! $services || ! $staff_members ) {
+		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'برای فعال‌شدن رزرو آنلاین، ابتدا خدمات و متخصصان را در مدیریت تعریف کنید.', 'parisan-core' ) . '</p></section>';
+	}
+
+	$service_ids = array_map( 'absint', wp_list_pluck( $services, 'ID' ) );
+	$eligible_staff = array();
+	foreach ( $staff_members as $staff_member ) {
+		$eligible = get_post_meta( $staff_member->ID, '_parisan_staff_services', true );
+		$eligible = is_array( $eligible ) ? array_values( array_intersect( array_map( 'absint', $eligible ), $service_ids ) ) : array();
+		if ( $eligible ) {
+			$eligible_staff[] = array( 'post' => $staff_member, 'services' => $eligible );
+		}
+	}
+	if ( ! $eligible_staff ) {
+		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'هنوز متخصصی برای خدمات منتشرشده تعیین نشده است.', 'parisan-core' ) . '</p></section>';
+	}
+
+	wp_enqueue_style( 'parisan-public-booking', PARISAN_CORE_URL . 'assets/css/public-booking.css', array(), PARISAN_CORE_VERSION );
+	wp_enqueue_script( 'parisan-public-booking', PARISAN_CORE_URL . 'assets/js/public-booking.js', array(), PARISAN_CORE_VERSION, true );
+	wp_localize_script(
+		'parisan-public-booking',
+		'ParisanPublicBooking',
+		array(
+			'restUrl' => esc_url_raw( rest_url( 'parisan/v1/' ) ),
+			'strings' => array(
+				'loading' => __( 'در حال بررسی…', 'parisan-core' ),
+				'noSlots' => __( 'برای این تاریخ زمان آزادی پیدا نشد.', 'parisan-core' ),
+				'selectTargets' => __( 'ابتدا خدمت، متخصص و تاریخ را انتخاب کنید.', 'parisan-core' ),
+				'bookingCreated' => __( 'درخواست نوبت ثبت شد. توکن دسترسی را در جای امن نگه دارید.', 'parisan-core' ),
+				'bookingLoaded' => __( 'اطلاعات رزرو دریافت شد.', 'parisan-core' ),
+				'bookingCancelled' => __( 'رزرو لغو شد.', 'parisan-core' ),
+				'genericError' => __( 'انجام درخواست ممکن نشد؛ دوباره تلاش کنید.', 'parisan-core' ),
+				'copySuccess' => __( 'توکن کپی شد.', 'parisan-core' ),
+				'copyFailure' => __( 'کپی خودکار ممکن نشد؛ توکن را دستی کپی کنید.', 'parisan-core' ),
+			),
+		)
+	);
+
+	$today = current_datetime();
+	$minimum_date = $today->format( 'Y-m-d' );
+	$maximum_date = $today->modify( '+90 days' )->format( 'Y-m-d' );
+
+	ob_start();
+	?>
+	<section class="parisan-booking-shell" dir="rtl" data-parisan-booking>
+		<header class="parisan-booking-heading">
+			<p class="parisan-booking-eyebrow"><?php esc_html_e( 'PARISAN APPOINTMENTS', 'parisan-core' ); ?></p>
+			<h2><?php esc_html_e( 'رزرو نوبت', 'parisan-core' ); ?></h2>
+			<p><?php esc_html_e( 'خدمت و متخصص را انتخاب کنید، زمان آزاد را ببینید و درخواست نوبت خود را ثبت کنید.', 'parisan-core' ); ?></p>
+		</header>
+
+		<form class="parisan-booking-form" data-parisan-create-form>
+			<div class="parisan-booking-grid">
+				<p class="parisan-booking-field">
+					<label for="parisan-booking-service"><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></label>
+					<select id="parisan-booking-service" name="service_id" required>
+						<option value=""><?php esc_html_e( 'انتخاب خدمت', 'parisan-core' ); ?></option>
+						<?php foreach ( $services as $service ) : ?>
+							<option value="<?php echo esc_attr( $service->ID ); ?>"><?php echo esc_html( get_the_title( $service ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p class="parisan-booking-field">
+					<label for="parisan-booking-staff"><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></label>
+					<select id="parisan-booking-staff" name="staff_id" required disabled>
+						<option value=""><?php esc_html_e( 'ابتدا خدمت را انتخاب کنید', 'parisan-core' ); ?></option>
+						<?php foreach ( $eligible_staff as $entry ) : ?>
+							<option value="<?php echo esc_attr( $entry['post']->ID ); ?>" data-services="<?php echo esc_attr( implode( ',', $entry['services'] ) ); ?>"><?php echo esc_html( get_the_title( $entry['post'] ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</p>
+				<p class="parisan-booking-field">
+					<label for="parisan-booking-date"><?php esc_html_e( 'تاریخ', 'parisan-core' ); ?></label>
+					<input id="parisan-booking-date" name="date" type="date" min="<?php echo esc_attr( $minimum_date ); ?>" max="<?php echo esc_attr( $maximum_date ); ?>" required>
+				</p>
+				<p class="parisan-booking-field">
+					<label for="parisan-booking-slot"><?php esc_html_e( 'ساعت‌های آزاد', 'parisan-core' ); ?></label>
+					<select id="parisan-booking-slot" name="starts_at_local" required disabled>
+						<option value=""><?php esc_html_e( 'ابتدا خدمت، متخصص و تاریخ را انتخاب کنید', 'parisan-core' ); ?></option>
+					</select>
+				</p>
+				<p class="parisan-booking-field">
+					<label for="parisan-booking-name"><?php esc_html_e( 'نام و نام خانوادگی', 'parisan-core' ); ?></label>
+					<input id="parisan-booking-name" name="customer_name" type="text" maxlength="190" autocomplete="name" required>
+				</p>
+				<p class="parisan-booking-field">
+					<label for="parisan-booking-phone"><?php esc_html_e( 'شماره تماس', 'parisan-core' ); ?></label>
+					<input id="parisan-booking-phone" name="customer_phone" type="tel" maxlength="24" inputmode="tel" autocomplete="tel" required>
+				</p>
+				<p class="parisan-booking-field parisan-booking-field-wide">
+					<label for="parisan-booking-email"><?php esc_html_e( 'ایمیل (اختیاری)', 'parisan-core' ); ?></label>
+					<input id="parisan-booking-email" name="customer_email" type="email" maxlength="190" autocomplete="email">
+				</p>
+			</div>
+			<button class="parisan-booking-button" type="submit"><?php esc_html_e( 'ثبت درخواست نوبت', 'parisan-core' ); ?></button>
+		</form>
+
+		<div class="parisan-booking-result" data-parisan-result hidden>
+			<p class="parisan-booking-status" data-parisan-status role="status" aria-live="polite"></p>
+			<div class="parisan-booking-token" data-parisan-token-panel hidden>
+				<label for="parisan-customer-token"><?php esc_html_e( 'توکن محرمانهٔ دسترسی به رزرو', 'parisan-core' ); ?></label>
+				<div class="parisan-booking-token-row">
+					<input id="parisan-customer-token" type="text" data-parisan-token autocomplete="off" spellcheck="false" readonly>
+					<button type="button" class="parisan-booking-button parisan-booking-button-secondary" data-parisan-copy><?php esc_html_e( 'کپی توکن', 'parisan-core' ); ?></button>
+				</div>
+				<p><?php esc_html_e( 'این توکن فقط یک‌بار صادر می‌شود. آن را در جای امن نگه دارید؛ هرگز آن را برای دیگران نفرستید.', 'parisan-core' ); ?></p>
+			</div>
+		</div>
+
+		<section class="parisan-customer-access" aria-labelledby="parisan-customer-access-title">
+			<h3 id="parisan-customer-access-title"><?php esc_html_e( 'پیگیری یا لغو رزرو', 'parisan-core' ); ?></h3>
+			<p><?php esc_html_e( 'برای مشاهدهٔ رزرو، توکن محرمانه‌ای را که هنگام ثبت دریافت کردید وارد کنید.', 'parisan-core' ); ?></p>
+			<form data-parisan-access-form>
+				<label for="parisan-existing-token"><?php esc_html_e( 'توکن دسترسی', 'parisan-core' ); ?></label>
+				<div class="parisan-booking-token-row">
+					<input id="parisan-existing-token" type="password" inputmode="text" autocomplete="off" spellcheck="false" required data-parisan-existing-token>
+					<button type="submit" class="parisan-booking-button parisan-booking-button-secondary"><?php esc_html_e( 'مشاهده رزرو', 'parisan-core' ); ?></button>
+				</div>
+			</form>
+			<div class="parisan-customer-summary" data-parisan-summary hidden>
+				<p data-parisan-summary-text></p>
+				<button type="button" class="parisan-booking-button parisan-booking-button-danger" data-parisan-cancel hidden><?php esc_html_e( 'لغو رزرو', 'parisan-core' ); ?></button>
+			</div>
+		</section>
+		<p class="parisan-booking-status" data-parisan-live role="status" aria-live="polite"></p>
+	</section>
+	<?php
+	return ob_get_clean();
+}
+add_shortcode( 'parisan_booking', 'parisan_core_booking_shortcode' );
