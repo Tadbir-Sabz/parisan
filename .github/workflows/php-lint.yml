@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t files < <(find theme plugin -type f -name '*.php' -print)
+          mapfile -t files < <(find theme plugin tests -type f -name '*.php' -print)
           if [ "${#files[@]}" -eq 0 ]; then
             echo "No PHP files found." >&2
             exit 1
@@ -39,3 +39,6 @@ jobs:
           for file in "${files[@]}"; do
             php -l "$file"
           done
+
+      - name: Run pure schedule validation tests
+        run: php tests/run-schedule-tests.php
