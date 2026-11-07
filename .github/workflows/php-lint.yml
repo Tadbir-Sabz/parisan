@@ -274,5 +274,28 @@ jobs:
               fwrite( STDERR, "A starting-from service price was incorrectly accepted as a final booking price.\\n" );
               exit( 1 );
             }
-            echo "Transactional booking creation, InnoDB, shared lock, audit event, idempotent replay/conflict, overlap rejection, and fixed-price gate passed.\\n";
+            $trigger_name = "parisan_ci_fail_booking_event";
+            $events_table = $wpdb->prefix . "parisan_booking_events";
+            $quoted_events_table = "`" . str_replace( "`", "``", $events_table ) . "`";
+            $trigger_created = $wpdb->query( "CREATE TRIGGER " . $trigger_name . " BEFORE INSERT ON " . $quoted_events_table . " FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced audit failure'" );
+            if ( false === $trigger_created ) {
+              fwrite( STDERR, "Could not create the disposable audit-failure trigger: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $rollback_payload = $payload;
+            $rollback_payload["starts_at_local"] = "2026-11-09 11:00";
+            $rollback_payload["idempotency_token"] = "ci-idempotency-token-0004";
+            $rollback_result = null;
+            try {
+              $rollback_result = parisan_core_create_booking( $rollback_payload );
+            } finally {
+              $wpdb->query( "DROP TRIGGER IF EXISTS " . $trigger_name );
+            }
+            $rollback_key = hash( "sha256", $rollback_payload["idempotency_token"] );
+            $rollback_booking_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_bookings WHERE idempotency_key = %s", $rollback_key ) );
+            if ( ! is_wp_error( $rollback_result ) || "parisan_booking_audit_failed" !== $rollback_result->get_error_code() || 0 !== $rollback_booking_count ) {
+              fwrite( STDERR, "Audit-event failure did not roll back the booking atomically.\\n" );
+              exit( 1 );
+            }
+            echo "Transactional booking creation, InnoDB, shared lock, audit event, idempotency, overlap rejection, fixed-price gate, and audit-failure rollback passed.\\n";
           ' --path="$WP_PATH"
