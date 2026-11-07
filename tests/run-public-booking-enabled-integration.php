@@ -19,7 +19,7 @@ function parisan_public_enabled_assert( $condition, $message ) {
 parisan_public_enabled_assert( true === parisan_core_public_booking_enabled(), 'explicit feature flag enables the public booking module' );
 do_action( 'rest_api_init', rest_get_server() );
 $routes = rest_get_server()->get_routes();
-foreach ( array( '/parisan/v1/availability', '/parisan/v1/bookings', '/parisan/v1/customer-booking', '/parisan/v1/customer-booking/cancel' ) as $route ) {
+foreach ( array( '/parisan/v1/availability', '/parisan/v1/bookings', '/parisan/v1/customer-booking', '/parisan/v1/customer-booking/cancel', '/parisan/v1/customer-booking/availability', '/parisan/v1/customer-booking/reschedule' ) as $route ) {
 	parisan_public_enabled_assert( isset( $routes[ $route ] ), 'expected gated route is registered: ' . $route );
 }
 
@@ -133,5 +133,30 @@ parisan_public_enabled_assert( 201 === $public_response->get_status(), 'same-ori
 $public_response_data = $public_response->get_data();
 parisan_public_enabled_assert( isset( $public_response_data['customer_access_token'] ) && 64 === strlen( $public_response_data['customer_access_token'] ), 'public create response returns one 256-bit customer token' );
 parisan_public_enabled_assert( is_array( parisan_core_resolve_customer_access_token( $public_response_data['customer_access_token'] ) ), 'public create response token is stored as a resolvable digest' );
+
+$customer_token = $public_response_data['customer_access_token'];
+$customer_availability_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booking/availability' );
+$customer_availability_request->set_header( 'X-Parisan-Booking-Token', $customer_token );
+$customer_availability_request->set_param( 'date', $booking_date );
+$customer_availability_response = parisan_core_rest_customer_availability( $customer_availability_request );
+parisan_public_enabled_assert( 200 === $customer_availability_response->get_status(), 'customer-token availability route returns reschedule candidates' );
+$customer_available_times = wp_list_pluck( $customer_availability_response->get_data()['slots'], 'starts_at_local' );
+parisan_public_enabled_assert( ! in_array( $booking_date . ' 11:00', $customer_available_times, true ) && in_array( $booking_date . ' 12:00', $customer_available_times, true ), 'customer availability excludes the current booking while preserving free times' );
+
+$customer_reschedule_request = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
+$customer_reschedule_request->set_header( 'Origin', home_url( '/' ) );
+$customer_reschedule_request->set_header( 'X-Parisan-Booking-Token', $customer_token );
+$customer_reschedule_request->set_param( 'starts_at_local', $booking_date . ' 12:00' );
+$customer_reschedule_response = parisan_core_rest_customer_reschedule_booking( $customer_reschedule_request );
+parisan_public_enabled_assert( 200 === $customer_reschedule_response->get_status(), 'customer can reschedule a token-owned pending booking' );
+
+$customer_view_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booking' );
+$customer_view_request->set_header( 'X-Parisan-Booking-Token', $customer_token );
+$customer_view_response = parisan_core_rest_customer_booking( $customer_view_request );
+$customer_view_data = $customer_view_response->get_data();
+parisan_public_enabled_assert( 200 === $customer_view_response->get_status() && $booking_date . ' 12:00' === $customer_view_data['starts_at_local_display'] && true === $customer_view_data['can_reschedule'], 'customer view reflects the new local appointment time and reschedule capability' );
+
+$customer_token_row = $wpdb->get_row( $wpdb->prepare( "SELECT expires_at_utc FROM {$wpdb->prefix}parisan_customer_tokens WHERE booking_id = %d AND revoked_at_utc IS NULL", (int) $public_response_data['booking_id'] ), ARRAY_A );
+
 
 echo "PASS: explicit public API enablement, route registration, and Persian booking shortcode rendering.\n";
