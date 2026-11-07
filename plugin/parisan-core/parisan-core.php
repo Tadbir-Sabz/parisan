@@ -124,7 +124,7 @@ function parisan_core_render_service_meta_box( $post ) {
  * @return void
  */
 function parisan_core_save_service_meta( $post_id ) {
-	if ( ! isset( $_POST['parisan_service_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['parisan_service_nonce'] ) ), 'parisan_save_service_details' ) ) {
+	if ( ! isset( $_POST['parisan_service_nonce'] ) || ! is_string( $_POST['parisan_service_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['parisan_service_nonce'] ) ), 'parisan_save_service_details' ) ) {
 		return;
 	}
 
@@ -136,11 +136,11 @@ function parisan_core_save_service_meta( $post_id ) {
 		return;
 	}
 
-	$duration = isset( $_POST['parisan_duration'] ) ? absint( wp_unslash( $_POST['parisan_duration'] ) ) : 0;
+	$duration = isset( $_POST['parisan_duration'] ) && is_scalar( $_POST['parisan_duration'] ) ? absint( wp_unslash( $_POST['parisan_duration'] ) ) : 0;
 	$duration = min( 1440, $duration );
-	$price    = isset( $_POST['parisan_price'] ) ? absint( wp_unslash( $_POST['parisan_price'] ) ) : 0;
+	$price    = isset( $_POST['parisan_price'] ) && is_scalar( $_POST['parisan_price'] ) ? absint( wp_unslash( $_POST['parisan_price'] ) ) : 0;
 	$price    = min( 999999999, $price );
-	$type     = isset( $_POST['parisan_price_type'] ) ? sanitize_key( wp_unslash( $_POST['parisan_price_type'] ) ) : 'fixed';
+	$type     = isset( $_POST['parisan_price_type'] ) && is_string( $_POST['parisan_price_type'] ) ? sanitize_key( wp_unslash( $_POST['parisan_price_type'] ) ) : 'fixed';
 	$type     = in_array( $type, array( 'fixed', 'from' ), true ) ? $type : 'fixed';
 
 	update_post_meta( $post_id, '_parisan_duration', $duration );
