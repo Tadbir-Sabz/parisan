@@ -420,7 +420,7 @@ jobs:
               exit( 1 );
             }
             $rollback_payload = $payload;
-            $rollback_payload["starts_at_local"] = "2026-11-09 11:15";
+            $rollback_payload["starts_at_local"] = $ci_date . " 11:15";
             $rollback_payload["idempotency_token"] = "ci-idempotency-token-0004";
             $rollback_result = null;
             try {
@@ -436,7 +436,7 @@ jobs:
               exit( 1 );
             }
             $persian_phone_payload = $payload;
-            $persian_phone_payload["starts_at_local"] = "2026-11-09 11:15";
+            $persian_phone_payload["starts_at_local"] = $ci_date . " 11:15";
             $persian_phone_payload["customer_phone"] = "۰۹۱۲۳۴۵۶۷۸۹";
             $persian_phone_payload["idempotency_token"] = "ci-idempotency-token-0005";
             $persian_phone_booking = parisan_core_create_booking( $persian_phone_payload );
@@ -450,7 +450,7 @@ jobs:
               exit( 1 );
             }
             $past_payload = $payload;
-            $past_payload["starts_at_local"] = "2026-11-02 10:30";
+            $past_payload["starts_at_local"] = current_datetime()->modify( "-2 days" )->format( "Y-m-d" ) . " 10:30";
             $past_payload["idempotency_token"] = "ci-idempotency-token-0006";
             $past_booking = parisan_core_create_booking( $past_payload );
             if ( ! is_wp_error( $past_booking ) || "parisan_booking_time_in_past" !== $past_booking->get_error_code() ) {
