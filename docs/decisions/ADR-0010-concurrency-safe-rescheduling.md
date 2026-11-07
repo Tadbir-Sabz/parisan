@@ -22,6 +22,6 @@ Staff need to move a pending or confirmed booking without losing its original pr
 ## Boundaries and verification
 
 - The staff detail page offers a nonce-protected reschedule form. The selected time is checked again server-side; the form does not treat browser-side availability as a reservation.
-- CI coverage for duration snapshots, successful reschedule, idempotent replay, exception conflict rejection, terminal-state rejection, and audit timeline is pending.
+- CI run 42377543595 passed all four jobs and verified the schema v2 duration snapshot, successful reschedule preserving 45 minutes, idempotent replay, rejection of a time inside an unavailable exception, terminal-state rejection, and reschedule audit event.
 - Multi-connection stress, lock-timeout behavior, forced reschedule audit rollback, and browser-based rescheduling remain UNVERIFIED.
 - No customer self-service, notifications, SMS, or payment operation is triggered.
