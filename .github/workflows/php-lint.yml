@@ -278,7 +278,8 @@ jobs:
             $trigger_name = "parisan_ci_fail_booking_event";
             $events_table = $wpdb->prefix . "parisan_booking_events";
             $quoted_events_table = "`" . str_replace( "`", "``", $events_table ) . "`";
-            $trigger_created = $wpdb->query( "CREATE TRIGGER " . $trigger_name . " BEFORE INSERT ON " . $quoted_events_table . " FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced audit failure'" );
+            $trigger_sql = "CREATE TRIGGER " . $trigger_name . " BEFORE INSERT ON " . $quoted_events_table . " FOR EACH ROW SIGNAL SQLSTATE " . chr( 39 ) . "45000" . chr( 39 ) . " SET MESSAGE_TEXT = " . chr( 39 ) . "forced_audit_failure" . chr( 39 );
+            $trigger_created = $wpdb->query( $trigger_sql );
             if ( false === $trigger_created ) {
               fwrite( STDERR, "Could not create the disposable audit-failure trigger: " . $wpdb->last_error . "\\n" );
               exit( 1 );
