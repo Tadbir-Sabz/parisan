@@ -13,7 +13,7 @@ Parisan Core is the companion plugin for durable salon functionality. The initia
 
 == Installation ==
 
-1. Upload the paris an-core folder to the /wp-content/plugins/ directory (or install the packaged ZIP).
+1. Upload the parisan-core folder to the /wp-content/plugins/ directory (or install the packaged ZIP).
 2. Activate Parisan Core from the WordPress Plugins screen.
 3. Activate the Parisan Beauty theme.
 
