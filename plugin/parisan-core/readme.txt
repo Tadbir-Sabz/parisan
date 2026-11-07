@@ -64,10 +64,11 @@ The plugin creates or upgrades its additive schema on activation/plugin load. De
 * Added expiring HMAC-digested customer access tokens with rotation and revocation; routes remain disabled by default.
 * Added schema v3 for customer access token storage and disposable WordPress/MariaDB integration checks.
 * Revoke customer tokens atomically when terminal bookings are anonymized.
+* Added Persian RTL `[parisan_booking]` shortcode with availability selection, booking submission, one-time token copy, and customer lookup/cancellation.
 * Added WordPress personal-data export and erasure integration for booking records.
 * Added terminal-booking anonymization while preserving booking and event audit structure.
 * Added an administrator-controlled retention policy, disabled by default, with bounded daily cleanup.
-* Added a MySQL-lock-serialized fixed-window request limiter for future public endpoints.
+* Applied the MySQL-lock-serialized fixed-window request limiter to the gated public API.
 
 = 0.13.0 =
 * Added a versioned booking duration snapshot and migration.
