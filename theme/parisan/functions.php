@@ -1,0 +1,76 @@
+<?php
+/**
+ * Parisan Beauty theme bootstrap.
+ *
+ * @package Parisan
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+define( 'PARISAN_THEME_VERSION', '0.1.0' );
+define( 'PARISAN_THEME_DIR', get_template_directory() );
+define( 'PARISAN_THEME_URI', get_template_directory_uri() );
+
+/**
+ * Configure theme supports and navigation.
+ *
+ * @return void
+ */
+function parisan_theme_setup() {
+	load_theme_textdomain( 'parisan', PARISAN_THEME_DIR . '/languages' );
+
+	add_theme_support( 'title-tag' );
+	add_theme_support( 'post-thumbnails' );
+	add_theme_support( 'responsive-embeds' );
+	add_theme_support( 'align-wide' );
+	add_theme_support( 'wp-block-styles' );
+	add_theme_support( 'automatic-feed-links' );
+	add_theme_support(
+		'html5',
+		array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' )
+	);
+	add_theme_support(
+		'custom-logo',
+		array(
+			'height'      => 96,
+			'width'       => 280,
+			'flex-height' => true,
+			'flex-width'  => true,
+		)
+	);
+
+	register_nav_menus(
+		array(
+			'primary' => esc_html__( 'منوی اصلی', 'parisan' ),
+			'footer'  => esc_html__( 'منوی پابرگ', 'parisan' ),
+		)
+	);
+}
+add_action( 'after_setup_theme', 'parisan_theme_setup' );
+
+/**
+ * Load only the theme's small, local stylesheet.
+ *
+ * @return void
+ */
+function parisan_enqueue_assets() {
+	wp_enqueue_style(
+		'parisan-main',
+		PARISAN_THEME_URI . '/assets/css/main.css',
+		array(),
+		PARISAN_THEME_VERSION
+	);
+}
+add_action( 'wp_enqueue_scripts', 'parisan_enqueue_assets' );
+
+/**
+ * Add a body class for the theme's RTL-aware design system.
+ *
+ * @param array $classes Existing body classes.
+ * @return array
+ */
+function parisan_body_classes( $classes ) {
+	$classes[] = is_rtl() ? 'parisan-is-rtl' : 'parisan-is-ltr';
+	return $classes;
+}
+add_filter( 'body_class', 'parisan_body_classes' );
