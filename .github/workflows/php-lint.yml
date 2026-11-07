@@ -274,6 +274,7 @@ jobs:
               fwrite( STDERR, "A starting-from service price was incorrectly accepted as a final booking price.\\n" );
               exit( 1 );
             }
+            update_post_meta( $service_id, "_parisan_price_type", "fixed" );
             $trigger_name = "parisan_ci_fail_booking_event";
             $events_table = $wpdb->prefix . "parisan_booking_events";
             $quoted_events_table = "`" . str_replace( "`", "``", $events_table ) . "`";
