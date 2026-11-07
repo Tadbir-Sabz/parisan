@@ -187,3 +187,8 @@ As of the current implementation branch:
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
+
+
+== Availability boundary ==
+
+Availability results are advisory and do not reserve a slot. A public booking endpoint and concurrency-safe booking creation are not implemented. Date-specific exception administration, breaks, leave/holiday UI, customer portal, and notifications remain future work.
