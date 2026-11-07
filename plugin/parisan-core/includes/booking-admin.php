@@ -190,7 +190,8 @@ function parisan_core_render_booking_admin_page() {
 			<?php if ( $total_pages > 1 ) : ?>
 				<div class="tablenav"><div class="tablenav-pages">
 					<?php
-					$base_url = add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'status' => $status_filter, 'paged' => '%#%' ), admin_url( 'edit.php' ) );
+					$base_url = add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'status' => $status_filter, 'paged' => 999999999 ), admin_url( 'edit.php' ) );
+					$base_url = str_replace( '999999999', '%#%', esc_url( $base_url ) );
 					echo wp_kses_post( paginate_links( array( 'base' => $base_url, 'format' => '', 'current' => $paged, 'total' => $total_pages ) ) );
 					?>
 				</div></div>
