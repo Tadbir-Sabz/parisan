@@ -17,9 +17,12 @@ define( 'PARISAN_CORE_VERSION', '0.3.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 
+require_once PARISAN_CORE_DIR . 'includes/database.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule.php';
 require_once PARISAN_CORE_DIR . 'includes/staff.php';
 require_once PARISAN_CORE_DIR . 'includes/service-taxonomy.php';
+
+register_activation_hook( PARISAN_CORE_FILE, 'parisan_core_install_database' );
 
 /**
  * Register the plugin's initial content types.
