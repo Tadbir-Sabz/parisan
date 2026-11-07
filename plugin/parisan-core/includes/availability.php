@@ -17,9 +17,11 @@ defined( 'ABSPATH' ) || exit;
  * @param int    $staff_id Staff post ID.
  * @param int    $service_id Service post ID.
  * @param string $date Salon-local date (Y-m-d).
+ * @param int    $exclude_booking_id Optional booking row excluded for its own reschedule check.
+ * @param int    $duration_override Optional duration snapshot in minutes.
  * @return array|WP_Error
  */
-function parisan_core_get_available_slots( $staff_id, $service_id, $date ) {
+function parisan_core_get_available_slots( $staff_id, $service_id, $date, $exclude_booking_id = 0, $duration_override = 0 ) {
 	global $wpdb;
 
 	$staff_id   = absint( $staff_id );
@@ -35,7 +37,7 @@ function parisan_core_get_available_slots( $staff_id, $service_id, $date ) {
 		return new WP_Error( 'parisan_service_not_available_for_staff', __( 'این خدمت توسط متخصص انتخاب‌شده ارائه نمی‌شود.', 'parisan-core' ) );
 	}
 
-	$duration = absint( get_post_meta( $service_id, '_parisan_duration', true ) );
+	$duration = absint( $duration_override ) ? absint( $duration_override ) : absint( get_post_meta( $service_id, '_parisan_duration', true ) );
 	if ( $duration < 1 || $duration > 1440 ) {
 		return new WP_Error( 'parisan_invalid_service_duration', __( 'مدت زمان خدمت باید ابتدا در مدیریت تعریف شود.', 'parisan-core' ) );
 	}
@@ -53,17 +55,16 @@ function parisan_core_get_available_slots( $staff_id, $service_id, $date ) {
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$exceptions_table = $wpdb->prefix . 'parisan_schedule_exceptions';
-	$busy_rows = $wpdb->get_results(
-		$wpdb->prepare(
-			"SELECT starts_at_utc, ends_at_utc FROM {$bookings_table}
-			WHERE staff_id = %d AND status IN ('pending','confirmed')
-			AND starts_at_utc < %s AND ends_at_utc > %s",
-			$staff_id,
-			$range_end,
-			$range_start
-		),
-		ARRAY_A
-	);
+	$busy_sql = "SELECT starts_at_utc, ends_at_utc FROM {$bookings_table}
+		WHERE staff_id = %d AND status IN ('pending','confirmed')
+		AND starts_at_utc < %s AND ends_at_utc > %s";
+	$busy_args = array( $staff_id, $range_end, $range_start );
+	$exclude_booking_id = absint( $exclude_booking_id );
+	if ( $exclude_booking_id ) {
+		$busy_sql .= ' AND id <> %d';
+		$busy_args[] = $exclude_booking_id;
+	}
+	$busy_rows = $wpdb->get_results( $wpdb->prepare( $busy_sql, $busy_args ), ARRAY_A );
 	$exception_rows = $wpdb->get_results(
 		$wpdb->prepare(
 			"SELECT starts_at_utc, ends_at_utc FROM {$exceptions_table}
