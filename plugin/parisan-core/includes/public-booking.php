@@ -378,11 +378,15 @@ function parisan_core_rest_customer_booking( $request ) {
  * @param int $booking_id Booking ID.
  * @return true|WP_Error
  */
-function parisan_core_cancel_booking_with_customer_token( $booking_id ) {
+function parisan_core_cancel_booking_with_customer_token( $booking_id, $token ) {
 	global $wpdb;
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
+	$tokens_table = $wpdb->prefix . 'parisan_customer_tokens';
+	if ( ! is_string( $token ) || ! preg_match( '/^[a-f0-9]{64}$/D', $token ) ) {
+		return new WP_Error( 'parisan_customer_booking_unavailable' );
+	}
 	$staff_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT staff_id FROM {$bookings_table} WHERE id = %d", absint( $booking_id ) ) );
 	if ( ! $staff_id ) {
 		return new WP_Error( 'parisan_customer_booking_unavailable' );
@@ -399,6 +403,18 @@ function parisan_core_cancel_booking_with_customer_token( $booking_id ) {
 			return new WP_Error( 'parisan_customer_booking_unavailable' );
 		}
 		$transaction_started = true;
+		$token_row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT id FROM {$tokens_table} WHERE booking_id = %d AND token_hash = %s AND revoked_at_utc IS NULL AND expires_at_utc > %s LIMIT 1 FOR UPDATE",
+				absint( $booking_id ),
+				parisan_core_customer_token_hash( $token ),
+				current_time( 'mysql', true )
+			),
+			ARRAY_A
+		);
+		if ( ! is_array( $token_row ) ) {
+			return new WP_Error( 'parisan_customer_booking_unavailable' );
+		}
 		$booking = $wpdb->get_row(
 			$wpdb->prepare( "SELECT id, staff_id, status FROM {$bookings_table} WHERE id = %d FOR UPDATE", absint( $booking_id ) ),
 			ARRAY_A
@@ -462,7 +478,7 @@ function parisan_core_rest_customer_cancel_booking( $request ) {
 	if ( $booking instanceof WP_REST_Response ) {
 		return $booking;
 	}
-	$result = parisan_core_cancel_booking_with_customer_token( (int) $booking['id'] );
+	$result = parisan_core_cancel_booking_with_customer_token( (int) $booking['id'], parisan_core_public_booking_request_token( $request ) );
 	if ( is_wp_error( $result ) ) {
 		return parisan_core_public_booking_error( __( 'این رزرو در حال حاضر قابل لغو نیست.', 'parisan-core' ), 409 );
 	}
