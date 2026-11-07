@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * Required input keys: staff_id, service_id, starts_at_local (Y-m-d H:i),
  * customer_name, customer_phone, idempotency_token.
- * Optional: customer_email, actor_user_id.
+ * Optional: customer_email.
  *
  * The client token is never stored. Only its SHA-256 digest is persisted.
  * Service prices are entered in toman by the current admin UI; this service
@@ -39,7 +39,7 @@ function parisan_core_create_booking( $input ) {
 	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';
 	$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
-	$actor_id   = isset( $input['actor_user_id'] ) ? absint( $input['actor_user_id'] ) : 0;
+	$actor_id   = get_current_user_id();
 
 	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) ) {
 		return new WP_Error( 'parisan_invalid_booking_input', __( 'اطلاعات مشتری یا زمان رزرو معتبر نیست.', 'parisan-core' ) );
@@ -79,13 +79,11 @@ function parisan_core_create_booking( $input ) {
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
-	$engines = array();
 	foreach ( array( $bookings_table, $events_table ) as $table ) {
 		$status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $status ) || empty( $status['Engine'] ) || 'innodb' !== strtolower( $status['Engine'] ) ) {
 			return new WP_Error( 'parisan_transaction_storage_unavailable', __( 'ذخیره‌ساز تراکنشی امن برای رزرو آماده نیست.', 'parisan-core' ) );
 		}
-		$engines[] = strtolower( $status['Engine'] );
 	}
 
 	$lock_name = 'parisan:' . substr( hash( 'sha256', $wpdb->dbname . '|' . $wpdb->prefix . '|staff|' . $staff_id ), 0, 48 );
