@@ -8,8 +8,6 @@
  * @package ParisanCore
  */
 
-defined( 'ABSPATH' ) || true;
-
 /**
  * Normalize a weekly schedule into safe salon-local wall-clock windows.
  *
