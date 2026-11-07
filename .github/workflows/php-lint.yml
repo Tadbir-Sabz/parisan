@@ -297,11 +297,20 @@ jobs:
               fwrite( STDERR, "Booking operations admin page or transition handler was not registered.\\n" );
               exit( 1 );
             }
+            if ( ! function_exists( "parisan_core_handle_admin_available_slots" ) || false === has_action( "wp_ajax_parisan_admin_available_slots", "parisan_core_handle_admin_available_slots" ) || false !== has_action( "wp_ajax_nopriv_parisan_admin_available_slots" ) || ! file_exists( PARISAN_CORE_DIR . "assets/js/booking-admin.js" ) ) {
+              fwrite( STDERR, "Authorized booking availability AJAX handler or script asset is missing or exposed to unauthenticated users.\\n" );
+              exit( 1 );
+            }
+            do_action( "admin_enqueue_scripts", "parisan_staff_page_parisan-bookings" );
+            if ( ! wp_script_is( "parisan-booking-admin", "enqueued" ) ) {
+              fwrite( STDERR, "Booking slot picker script was not enqueued on the booking operations screen.\\n" );
+              exit( 1 );
+            }
             $_GET = array();
             ob_start();
             parisan_core_render_booking_admin_page();
             $booking_admin_html = ob_get_clean();
-            if ( false === strpos( $booking_admin_html, "مدیریت نوبت‌ها" ) || false === strpos( $booking_admin_html, "Synthetic booking customer" ) || false === strpos( $booking_admin_html, "parisan_create_manual_booking" ) || false === strpos( $booking_admin_html, "starts_at_local" ) ) {
+            if ( false === strpos( $booking_admin_html, "مدیریت نوبت‌ها" ) || false === strpos( $booking_admin_html, "Synthetic booking customer" ) || false === strpos( $booking_admin_html, "parisan_create_manual_booking" ) || false === strpos( $booking_admin_html, "booking_date" ) || false === strpos( $booking_admin_html, "booking_time" ) ) {
               fwrite( STDERR, "Booking operations admin page did not render the seeded booking and manual booking form.\\n" );
               exit( 1 );
             }
