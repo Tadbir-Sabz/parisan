@@ -69,8 +69,9 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 ## Phase 3 — Booking engine and customer portal (first business-ready release)
 
-**Status:** [ ] NOT STARTED
+**Status:** [~] IN PROGRESS — schema foundation only
 
+- [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration (disposable DB smoke validation pending).
 - [ ] Implement availability calculation with staff, service duration, buffers, breaks, leave, holidays, resources, capacity, lead time, and booking horizon.
 - [ ] Implement concurrency-safe booking creation and double-book prevention.
 - [ ] Implement booking state machine, audit trail, manual receptionist booking, reschedule/cancel policies, and walk-ins.
@@ -181,7 +182,8 @@ As of the current implementation branch:
 - Parisan Core registers service and specialist content types; service duration/price metadata, hierarchical service categories, specialist-to-service eligibility, and weekly recurring availability fields have source implementations with nonce/capability checks and input validation.
 - A GitHub Actions PHP syntax workflow targets PHP 8.1, 8.2, and 8.3. Its run result is pending until GitHub executes it.
 - WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
-- Date-specific schedule exceptions, breaks, leave/holiday handling, timezone-aware availability calculation, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters are NOT STARTED.
+- Versioned booking/event/schedule-exception schema source is implemented; disposable WordPress/MariaDB migration verification is pending.
+- Date-specific exception management UI, breaks, leave/holiday rules, timezone-aware availability calculation, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters are NOT STARTED.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
