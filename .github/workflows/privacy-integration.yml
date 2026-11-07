@@ -1,0 +1,66 @@
+name: WordPress privacy integration
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  privacy-integration:
+    name: WordPress and MariaDB privacy lifecycle
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_DATABASE: wordpress
+          MARIADB_USER: wordpress
+          MARIADB_PASSWORD: wordpress
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mysqli, curl, mbstring, zip
+          coverage: none
+
+      - name: Install WP-CLI
+        run: |
+          curl -fsSLo wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          php wp-cli.phar --info
+          chmod +x wp-cli.phar
+          sudo mv wp-cli.phar /usr/local/bin/wp
+
+      - name: Install disposable WordPress
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-privacy-wordpress
+        run: |
+          set -euo pipefail
+          wp core download --path="$WP_PATH" --quiet
+          wp config create --path="$WP_PATH" --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=127.0.0.1 --skip-check
+          wp core install --path="$WP_PATH" --url=http://localhost --title="Parisan Privacy CI" --admin_user=parisan-ci --admin_password="ci-only-password" --admin_email=ci@example.test --skip-email
+          mkdir -p "$WP_PATH/wp-content/plugins"
+          cp -R plugin/parisan-core "$WP_PATH/wp-content/plugins/parisan-core"
+          wp plugin activate parisan-core --path="$WP_PATH"
+
+      - name: Verify privacy export, erasure, rollback, retention, and request throttling
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-privacy-wordpress
+        run: |
+          set -euo pipefail
+          wp eval-file tests/run-wordpress-privacy-integration.php --path="$WP_PATH"
