@@ -22,5 +22,5 @@ The booking operations list can manage existing bookings, but front-desk staff a
 
 - This is an internal front-desk form, not a customer-facing booking flow.
 - The slot picker is advisory only; the server validates the manually selected time again at submit.
-- CI run 42376730497 passed all four jobs and verifies manual form rendering, Persian phone digit normalization, and rejection of past appointment times. The authenticated slot-picker AJAX action, enqueued script, and Node syntax check were added afterward and await the current CI run. Browser/RTL/mobile visual review, form validation UX, real staff role review, and end-to-end manual browser submission remain UNVERIFIED.
+- CI run 42376730497 passed all four jobs and verifies manual form rendering, Persian phone digit normalization, and rejection of past appointment times. CI run 42376924602 passed all four jobs and verifies the authenticated AJAX action is registered without a `nopriv` handler, the script is enqueued on the admin booking page, and the JavaScript passes Node syntax validation. Browser/RTL/mobile visual review, form validation UX, real staff role review, and end-to-end manual browser submission remain UNVERIFIED.
 - No notification, SMS, payment, or external customer communication is triggered.
