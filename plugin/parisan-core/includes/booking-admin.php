@@ -257,6 +257,7 @@ function parisan_core_render_booking_detail( $booking_id ) {
 	$event_labels = array(
 		'created' => __( 'ثبت نوبت', 'parisan-core' ),
 		'status_changed' => __( 'تغییر وضعیت', 'parisan-core' ),
+		'rescheduled' => __( 'تغییر زمان', 'parisan-core' ),
 	);
 	$start = ( new DateTimeImmutable( $booking['starts_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
 	$end = ( new DateTimeImmutable( $booking['ends_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
