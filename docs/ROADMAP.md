@@ -2,7 +2,7 @@
 
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Theme/catalogue, availability, date-specific calendar exceptions, and an internal transactional booking service are implemented on the feature branch; booking-service CI validation is pending.  
+**Roadmap status:** Theme/catalogue, availability, date-specific calendar exceptions, internal transactional booking lifecycle, staff booking operations, and concurrency-safe rescheduling are implemented on the feature branch. Booking privacy export/erasure, opt-in terminal-record retention, and reusable request throttling are now in implementation; their dedicated CI evidence is pending.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -31,7 +31,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Define supported WordPress/PHP matrix based on current stable releases and available test environments.
 - [~] Establish CI and focused automated validation; PHP lint and standalone weekly schedule tests PASS on PHP 8.1, 8.2, and 8.3. Disposable WordPress/MariaDB activation, plugin/theme activation, post type/taxonomy registration, and template asset smoke test PASS. Broader static analysis and end-to-end tests remain pending.
 - [ ] Define local development environment and synthetic seed data.
-- [ ] Add security/privacy threat model and data classification.
+- [~] Add security/privacy threat model and data classification; ADR-0011 defines the first booking PII lifecycle, active-record retention boundary, opt-in anonymization, and future public-route abuse-control requirements. Broader threat modeling remains pending.
 
 **Gate P0:** clean reproducible setup, CI baseline, approved architecture, no production credentials/data.
 
@@ -76,14 +76,14 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Add Persian admin management for date-specific full-day leave/closures and partial-day unavailability; all submitted local intervals are validated and stored in UTC.
 - [ ] Add break management, resource schedules, capacity, lead time, and booking horizon.
 - [~] Implement internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, pending booking + audit event transaction. CI coverage is added but not yet evidenced; lock stress/forced rollback remain unverified. No public endpoint is exposed.
-- [ ] Implement booking state machine, audit trail, manual receptionist booking, reschedule/cancel policies, and walk-ins.
+- [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
 - [ ] Implement public booking wizard with accessible mobile UX and server-side validation.
 - [ ] Implement customer registration/login integration with WordPress accounts and secure booking ownership.
 - [ ] Implement customer portal: upcoming/past bookings, details, cancellation/reschedule, profile, preferences.
-- [ ] Implement admin calendar/list, filters, search, status actions, and daily dashboard.
+- [~] Implement admin booking list, status filters/actions, detail/audit timeline, manual booking, and reschedule form; calendar-style operations view, search, and daily dashboard remain pending.
 - [ ] Add email notifications and testable notification queue.
-- [ ] Test timezone boundaries, concurrent requests, authorization/IDOR, and lifecycle transitions.
+- [~] Test timezone boundaries, concurrent requests, authorization/IDOR, lifecycle transitions, privacy export/erasure, retention, and abuse controls; browser and multi-connection evidence remains pending.
 
 **Gate P3:** a complete customer can book and manage an appointment; staff can operate the schedule; no double booking under tested concurrency.
 
@@ -94,7 +94,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Verify current official Melipayamak API docs and supported authentication/send/status methods.
 - [ ] Implement provider adapter, secure credential storage, masked settings, and explicit connection test.
 - [ ] Implement Persian SMS templates, variable preview, event mapping, and staff/customer routing.
-- [ ] Implement queue, bounded retry, idempotency, quiet hours, consent, rate limits, and redacted logs.
+- [ ] Implement queue, bounded retry, idempotency, quiet hours, consent, endpoint-specific rate limits, and redacted logs. The current reusable rate-limit primitive does not enable or secure a public route by itself.
 - [ ] Implement reminders with duplicate prevention and real-cron guidance.
 - [ ] Implement contact/consultation/custom forms, validation, spam controls, privacy consent, retention, export/delete.
 - [ ] Add mock-provider and test-recipient modes; prove automated tests never send live SMS.
@@ -156,6 +156,18 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 **Gate P8:** reproducible release artifacts and documented support/upgrade process.
 
+## Booking privacy and public endpoint readiness
+
+**Status:** [~] IN PROGRESS — see [ADR-0011](docs/decisions/ADR-0011-booking-personal-data-lifecycle.md).
+
+- [x] Register booking records with WordPress personal-data export/erasure hooks in source.
+- [x] Define terminal-booking anonymization while preserving operational/event structure; active pending/confirmed bookings are reported as retained.
+- [x] Add administrator-controlled automatic retention, disabled by default, with bounded daily anonymization batches.
+- [x] Add a reusable HMAC-keyed, MySQL-lock-serialized fixed-window request limiter; raw IPs are not stored and forwarded-IP headers are ignored.
+- [?] Dedicated PHP matrix assertions are committed; CI result is pending.
+- [?] Real MariaDB erasure/rollback, browser privacy workflow, reverse-proxy IP topology, multi-node rate-limit behavior, and owner-approved retention period remain UNVERIFIED.
+- [ ] Before public booking: implement scoped, expiring, non-guessable customer access tokens; object-level authorization; rate limiting on every public route; abuse monitoring; privacy-safe responses; and end-to-end IDOR/concurrency tests.
+
 ## Cross-cutting workstreams
 
 These apply throughout all phases:
@@ -185,7 +197,7 @@ As of the current implementation branch:
 - GitHub Actions PHP syntax and pure schedule/availability tests pass on PHP 8.1, 8.2, and 8.3.
 - WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
 - Versioned booking/event/schedule-exception schema is implemented and verified by the disposable WordPress/MariaDB CI smoke test.
-- Timezone-aware availability calculation source is implemented; the preceding CI run passed on PHP 8.1/8.2/8.3 with 22 assertions and WordPress/MariaDB smoke test. Date-specific exception admin UI is implemented; CI PASS: 26 pure assertions on PHP 8.1/8.2/8.3 and seeded WordPress/MariaDB integration confirms stored booking and exception rows exclude conflicting slots (run 42374197402). Internal booking creation and controlled lifecycle are implemented and verified by CI run 42376217290 (all 4 jobs PASS): InnoDB table checks, per-staff shared lock, atomic pending booking + audit event, idempotency replay/conflict, overlap rejection, fixed-price requirement, forced audit-insert rollback, confirmation/cancellation, status replay, and invalid transition rejection. CI run 42377819791 passed all 4 jobs for schema v2 duration snapshots and concurrency-safe rescheduling, including idempotent replay, exception conflict rejection, terminal-state rejection, and audit history. A Persian staff booking operations screen, authorized manual booking form, admin-only advisory slot picker, protected booking detail/audit timeline, and reschedule form are implemented. CI run 42376730497 passed all 4 jobs and verified manual form rendering, Persian phone digit normalization, and past-time rejection. CI run 42376924602 passed all 4 jobs and verified the authenticated nonce-protected slot lookup, absence of an unauthenticated AJAX handler, admin script enqueue, and Node syntax. CI run 42377058236 passed all 4 jobs and rendered the booking detail page with its audit history. Browser visual/accessibility review remains UNVERIFIED. Break management, resource schedules, public booking endpoint, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, and lifecycle audit-failure rollback remain UNVERIFIED.
+- Timezone-aware availability calculation source is implemented; the preceding CI run passed on PHP 8.1/8.2/8.3 with 22 assertions and WordPress/MariaDB smoke test. Date-specific exception admin UI is implemented; CI PASS: 26 pure assertions on PHP 8.1/8.2/8.3 and seeded WordPress/MariaDB integration confirms stored booking and exception rows exclude conflicting slots (run 42374197402). Internal booking creation and controlled lifecycle are implemented and verified by CI run 42376217290 (all 4 jobs PASS): InnoDB table checks, per-staff shared lock, atomic pending booking + audit event, idempotency replay/conflict, overlap rejection, fixed-price requirement, forced audit-insert rollback, confirmation/cancellation, status replay, and invalid transition rejection. CI run 42377819791 passed all 4 jobs for schema v2 duration snapshots and concurrency-safe rescheduling, including idempotent replay, exception conflict rejection, terminal-state rejection, and audit history. A Persian staff booking operations screen, authorized manual booking form, admin-only advisory slot picker, protected booking detail/audit timeline, and reschedule form are implemented. CI run 42376730497 passed all 4 jobs and verified manual form rendering, Persian phone digit normalization, and past-time rejection. CI run 42376924602 passed all 4 jobs and verified the authenticated nonce-protected slot lookup, absence of an unauthenticated AJAX handler, admin script enqueue, and Node syntax. CI run 42377058236 passed all 4 jobs and rendered the booking detail page with its audit history. Browser visual/accessibility review remains UNVERIFIED. Break management, resource schedules, public booking endpoint, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, browser visual/accessibility review, and real WordPress/MariaDB privacy-erasure integration remain UNVERIFIED.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
