@@ -26,4 +26,4 @@ Persisting a pending booking is not a complete booking workflow. Confirmation, c
 
 - No public customer cancellation, customer self-service, automatic expiry worker, notifications, payment settlement, or production operation is enabled.
 - Browser/admin booking management UX and accessibility remain separate work.
-- Multi-connection concurrency stress, lock-timeout tests, confirmation-conflict tests, and forced lifecycle audit rollback remain unverified until CI coverage is extended.
+- CI run 42376217290 passes the internal confirmation, cancellation, idempotent replay, and invalid-transition checks. Multi-connection concurrency stress, lock-timeout tests, confirmation-conflict tests, and forced lifecycle audit rollback remain unverified.
