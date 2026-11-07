@@ -111,7 +111,7 @@ jobs:
               exit( 1 );
             }
             global $wpdb;
-            foreach ( array( "parisan_bookings", "parisan_booking_events", "parisan_schedule_exceptions" ) as $suffix ) {
+            foreach ( array( "parisan_bookings", "parisan_booking_events", "parisan_schedule_exceptions", "parisan_customer_tokens" ) as $suffix ) {
               $table = $wpdb->prefix . $suffix;
               $found = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
               if ( $table !== $found ) {
@@ -124,7 +124,7 @@ jobs:
                 exit( 1 );
               }
             }
-            if ( 2 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
+            if ( 3 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
               fwrite( STDERR, "Parisan schema version was not recorded.\\n" );
               exit( 1 );
             }
