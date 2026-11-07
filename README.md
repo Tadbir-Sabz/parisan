@@ -57,7 +57,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Standalone schedule-normalization test suite passes in CI on PHP 8.1, 8.2, and 8.3.
 - [x] Disposable WordPress + MariaDB activation/registration smoke test passes.
 - [x] Latest baseline CI run passed PHP 8.1/8.2/8.3 and disposable WordPress/MariaDB activation smoke test.
-- [x] Booking service + lifecycle CI run 42376094978 passed all 4 jobs: PHP 8.1/8.2/8.3 lint and schedule tests; disposable WordPress/MariaDB verifies InnoDB engines, staff lock acquisition/release, pending booking + audit event, idempotency replay/conflict, overlap rejection, fixed-price gate, atomic rollback on audit failure, confirmation/cancellation, idempotent status replay, invalid transition rejection.
+- [x] Booking service + lifecycle CI run 42376217290 passed all 4 jobs: PHP 8.1/8.2/8.3 lint and schedule tests; disposable WordPress/MariaDB verifies InnoDB engines, staff lock acquisition/release, pending booking + audit event, idempotency replay/conflict, overlap rejection, fixed-price gate, atomic rollback on audit failure, confirmation/cancellation, idempotent status replay, invalid transition rejection.
 - [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
 - [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
