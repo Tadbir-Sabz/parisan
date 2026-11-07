@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.14.0
+Stable tag: 0.15.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -31,17 +31,18 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Concurrency-safe rescheduling for pending and confirmed bookings, preserving duration/price snapshots and recording an audit event.
 * WordPress personal-data exporter and eraser for booking records.
 * Administrator-controlled, opt-in anonymization of old terminal bookings; disabled by default.
-* Reusable MySQL-lock-serialized fixed-window request limiter for future public endpoints.
+* Public API foundation for date-bounded availability, pending booking creation, and token-scoped customer view/cancellation; routes are registered only with an explicit owner feature flag.
+* 256-bit customer access tokens stored as HMAC digests, with expiry, rotation, and transactional cancellation/audit.
 
 == Important privacy and availability boundaries ==
 
 Availability results are advisory only and do not reserve a slot. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; calendar exception writes use the same lock. Services with a starting-from price must have a final price confirmed before booking.
 
-The booking service is not exposed through a public REST/AJAX endpoint. The rate limiter is a reusable control, not an authorization mechanism; any future public endpoint must also validate ownership, capabilities, nonce/token scope, input, and abuse controls. No public booking endpoint is enabled in this release.
+The public REST API is disabled by default. The owner must explicitly define `PARISAN_PUBLIC_BOOKING_ENABLED` as boolean `true` in `wp-config.php` before routes are registered. The API includes read-only availability, pending booking creation, and token-scoped customer view/cancellation. Customer tokens are 256-bit random values; only HMAC digests are stored, and tokens expire 30 days after the scheduled appointment end. State-changing anonymous requests require a matching Origin and are rate-limited. The customer view does not expose name, phone, email, or event history. Do not enable the feature until HTTPS, reverse-proxy source-IP behavior, same-origin deployment, logging/header redaction, browser UX, and concurrency/security testing have been reviewed.
 
 WordPress privacy export includes booking details and associated event notes. Erasure anonymizes terminal bookings and removes their free-form event notes while preserving operational history. Pending and confirmed bookings are retained while needed to fulfil the appointment. Automatic anonymization is disabled by default and requires an administrator to choose a retention period. The site owner remains responsible for selecting a period appropriate to applicable legal and accounting duties, and for backup/processor retention.
 
-Break management, resource schedules, customer self-service, SMS, payment, forms, SEO, and public booking remain future work. No live SMS or payment operations are performed.
+Break management, resource schedules, full customer portal/rescheduling, email/SMS, payment, forms, SEO, and browser booking UX remain future work. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
 
 == Installation ==
 
@@ -56,7 +57,11 @@ The plugin creates or upgrades its additive schema on activation/plugin load. De
 
 == Changelog ==
 
-= 0.14.0 =
+= 0.15.0 =
+* Added a gated public booking API foundation with availability, pending booking creation, scoped customer view, and transactional cancellation.
+* Added expiring HMAC-digested customer access tokens with rotation and revocation; routes remain disabled by default.
+* Added schema v3 for customer access token storage and disposable WordPress/MariaDB integration checks.
+* Revoke customer tokens atomically when terminal bookings are anonymized.
 * Added WordPress personal-data export and erasure integration for booking records.
 * Added terminal-booking anonymization while preserving booking and event audit structure.
 * Added an administrator-controlled retention policy, disabled by default, with bounded daily cleanup.
