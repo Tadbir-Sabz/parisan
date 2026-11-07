@@ -19,6 +19,8 @@ function parisan_public_integration_assert( $condition, $message ) {
 }
 
 parisan_public_integration_assert( false === parisan_core_public_booking_enabled(), 'public routes remain disabled unless the owner explicitly defines the feature constant' );
+$disabled_shortcode = parisan_core_booking_shortcode();
+parisan_public_integration_assert( false !== strpos( $disabled_shortcode, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false === strpos( $disabled_shortcode, 'data-parisan-create-form' ), 'booking shortcode does not render a public form while disabled' );
 do_action( 'rest_api_init', rest_get_server() );
 $routes = rest_get_server()->get_routes();
 parisan_public_integration_assert( ! isset( $routes['/parisan/v1/bookings'] ), 'public booking route is not registered by default' );
