@@ -63,7 +63,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Build admin navigation and setup wizard.
 - [ ] Add seed/demo data that is clearly non-production.
 - [ ] Test deactivation/theme-switch data persistence.
-- [x] Add pure weekly schedule normalization tests to the PHP CI matrix; latest run PASS on PHP 8.1/8.2/8.3; 22 assertions.
+- [x] Add pure weekly schedule normalization tests to the PHP CI matrix; previous run PASS on PHP 8.1/8.2/8.3; 22 assertions.
 
 **Gate P2:** salon catalogue and staff/schedule administration usable; migrations tested; permissions enforced.
 
@@ -185,7 +185,7 @@ As of the current implementation branch:
 - A GitHub Actions PHP syntax workflow targets PHP 8.1, 8.2, and 8.3. Its run result is pending until GitHub executes it.
 - WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
 - Versioned booking/event/schedule-exception schema is implemented and verified by the disposable WordPress/MariaDB CI smoke test.
-- Timezone-aware availability calculation source is implemented; the preceding CI run passed on PHP 8.1/8.2/8.3 with 22 assertions and WordPress/MariaDB smoke test. Date-specific exception admin UI is now implemented; validation for the current change is pending. Break management, resource schedules, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED.
+- Timezone-aware availability calculation source is implemented; the preceding CI run passed on PHP 8.1/8.2/8.3 with 22 assertions and WordPress/MariaDB smoke test. Date-specific exception admin UI is implemented; current CI validation and seeded WordPress availability integration are pending. Break management, resource schedules, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
