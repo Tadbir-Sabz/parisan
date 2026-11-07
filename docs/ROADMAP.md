@@ -58,7 +58,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Implement plugin bootstrap, namespacing/autoloading, module boundaries, capability map, settings, logging, and diagnostics.
 - [ ] Add versioned database migrations and upgrade safety.
 - [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
-- [~] Implement specialist profiles, service eligibility, and a weekly recurring schedule editor. Breaks, date-specific exceptions, leave, holidays, and resource schedules remain pending.
+- [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor, and date-specific full-day/partial-day unavailability administration. Breaks, resource schedules, and expanded calendar UX remain pending.
 - [ ] Implement branches/resources data model with single-salon-first UX.
 - [ ] Build admin navigation and setup wizard.
 - [ ] Add seed/demo data that is clearly non-production.
@@ -72,7 +72,9 @@ Build the product in usable vertical slices. Establish architecture and quality 
 **Status:** [~] IN PROGRESS — schema foundation only
 
 - [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration; disposable WordPress/MariaDB smoke test confirms all three tables and schema version.
-- [~] Implement availability calculation: core supports staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Date-exception admin UI, breaks, leave/holiday management, resources, capacity, lead time, and booking horizon remain pending.
+- [x] Implement timezone-aware availability calculation using staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Pure tests and a seeded WordPress database integration test are required for this milestone.
+- [x] Add Persian admin management for date-specific full-day leave/closures and partial-day unavailability; all submitted local intervals are validated and stored in UTC.
+- [ ] Add break management, resource schedules, capacity, lead time, and booking horizon.
 - [ ] Implement concurrency-safe booking creation and double-book prevention.
 - [ ] Implement booking state machine, audit trail, manual receptionist booking, reschedule/cancel policies, and walk-ins.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
@@ -183,7 +185,7 @@ As of the current implementation branch:
 - A GitHub Actions PHP syntax workflow targets PHP 8.1, 8.2, and 8.3. Its run result is pending until GitHub executes it.
 - WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
 - Versioned booking/event/schedule-exception schema is implemented and verified by the disposable WordPress/MariaDB CI smoke test.
-- Timezone-aware availability calculation source is implemented; CI PASS on PHP 8.1/8.2/8.3 with 22 assertions and WordPress/MariaDB smoke test. Date-specific exception management UI, breaks, leave/holiday rules, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED.
+- Timezone-aware availability calculation source is implemented; the preceding CI run passed on PHP 8.1/8.2/8.3 with 22 assertions and WordPress/MariaDB smoke test. Date-specific exception admin UI is now implemented; validation for the current change is pending. Break management, resource schedules, booking transactions, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
