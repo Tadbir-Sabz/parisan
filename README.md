@@ -54,7 +54,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Standalone schedule-normalization test suite passes in CI on PHP 8.1, 8.2, and 8.3.
 - [x] Disposable WordPress + MariaDB activation/registration smoke test passes.
 - [x] Latest baseline CI run passed PHP 8.1/8.2/8.3 and disposable WordPress/MariaDB activation smoke test.
-- [ ] CI validation of the new availability engine.
+- [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
 - [~] Availability calculation foundation implemented; date-exception admin management, breaks, leave/holiday UI, and concurrency-safe booking creation remain pending.
 - [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
