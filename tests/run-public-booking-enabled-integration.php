@@ -89,6 +89,15 @@ parisan_public_enabled_assert( false === parisan_core_resolve_customer_access_to
 parisan_public_enabled_assert( is_array( parisan_core_resolve_customer_access_token( $replacement_customer_token ) ), 'valid idempotent retry stores the replacement customer token' );
 
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+$availability_request = new WP_REST_Request( 'GET', '/parisan/v1/availability' );
+$availability_request->set_param( 'staff_id', (int) $staff_id );
+$availability_request->set_param( 'service_id', (int) $service_id );
+$availability_request->set_param( 'date', $booking_date );
+$availability_response = parisan_core_rest_public_availability( $availability_request );
+parisan_public_enabled_assert( 200 === $availability_response->get_status(), 'public availability route returns candidate slots for a valid date' );
+$available_times = wp_list_pluck( $availability_response->get_data()['slots'], 'starts_at_local' );
+parisan_public_enabled_assert( ! in_array( $booking_date . ' 10:00', $available_times, true ) && in_array( $booking_date . ' 11:00', $available_times, true ), 'public availability omits the occupied slot and retains a free slot' );
+
 $invalid_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
 $invalid_request->set_header( 'Origin', home_url( '/' ) );
 $invalid_request->set_header( 'Idempotency-Key', str_repeat( 'a', 32 ) );
