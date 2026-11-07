@@ -75,8 +75,13 @@ function parisan_core_handle_admin_available_slots() {
 		wp_send_json_error( array( 'message' => $slots->get_error_message() ), 400 );
 	}
 	$starts = array();
+	$now_utc = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 	foreach ( $slots as $slot ) {
-		if ( isset( $slot['starts_at_local'] ) ) {
+		if ( ! isset( $slot['starts_at_local'], $slot['starts_at_utc'] ) ) {
+			continue;
+		}
+		$slot_utc = new DateTimeImmutable( $slot['starts_at_utc'], new DateTimeZone( 'UTC' ) );
+		if ( $slot_utc > $now_utc ) {
 			$starts[] = $slot['starts_at_local'];
 		}
 	}
@@ -258,7 +263,7 @@ function parisan_core_render_booking_admin_page() {
 				<table class="form-table" role="presentation"><tbody>
 					<tr><th scope="row"><label for="parisan-manual-staff"><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></label></th><td><select required id="parisan-manual-staff" name="staff_id"><option value=""><?php esc_html_e( 'انتخاب متخصص', 'parisan-core' ); ?></option><?php foreach ( $staff_options as $person ) : ?><option value="<?php echo esc_attr( $person->ID ); ?>"><?php echo esc_html( get_the_title( $person ) ); ?></option><?php endforeach; ?></select></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-service"><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></label></th><td><select required id="parisan-manual-service" name="service_id"><option value=""><?php esc_html_e( 'انتخاب خدمت', 'parisan-core' ); ?></option><?php foreach ( $service_options as $service ) : ?><option value="<?php echo esc_attr( $service->ID ); ?>"><?php echo esc_html( get_the_title( $service ) ); ?></option><?php endforeach; ?></select></td></tr>
-					<tr><th scope="row"><label for="parisan-manual-date"><?php esc_html_e( 'تاریخ', 'parisan-core' ); ?></label></th><td><input required type="date" id="parisan-manual-date" name="booking_date"><p class="description"><?php echo esc_html( wp_timezone()->getName() ); ?></p></td></tr>
+					<tr><th scope="row"><label for="parisan-manual-date"><?php esc_html_e( 'تاریخ', 'parisan-core' ); ?></label></th><td><input required type="date" id="parisan-manual-date" name="booking_date" min="<?php echo esc_attr( wp_date( 'Y-m-d', time(), wp_timezone() ) ); ?>"><p class="description"><?php echo esc_html( wp_timezone()->getName() ); ?></p></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-time"><?php esc_html_e( 'ساعت آزاد', 'parisan-core' ); ?></label></th><td><select required disabled id="parisan-manual-time" name="booking_time"><option value=""><?php esc_html_e( 'ابتدا تاریخ، متخصص و خدمت را انتخاب کنید', 'parisan-core' ); ?></option></select><p id="parisan-manual-slot-status" class="description" aria-live="polite"></p></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-customer"><?php esc_html_e( 'نام مشتری', 'parisan-core' ); ?></label></th><td><input required type="text" maxlength="190" class="regular-text" id="parisan-manual-customer" name="customer_name"></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-phone"><?php esc_html_e( 'شماره تماس', 'parisan-core' ); ?></label></th><td><input required type="tel" inputmode="tel" maxlength="24" class="regular-text" id="parisan-manual-phone" name="customer_phone" dir="ltr"></td></tr>
