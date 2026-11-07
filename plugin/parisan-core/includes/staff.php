@@ -105,7 +105,7 @@ function parisan_core_render_staff_meta_box( $post ) {
  * @return void
  */
 function parisan_core_save_staff_meta( $post_id ) {
-	if ( ! isset( $_POST['parisan_staff_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['parisan_staff_nonce'] ) ), 'parisan_save_staff_details' ) ) {
+	if ( ! isset( $_POST['parisan_staff_nonce'] ) || ! is_string( $_POST['parisan_staff_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['parisan_staff_nonce'] ) ), 'parisan_save_staff_details' ) ) {
 		return;
 	}
 
@@ -117,10 +117,10 @@ function parisan_core_save_staff_meta( $post_id ) {
 		return;
 	}
 
-	$role = isset( $_POST['parisan_staff_role'] ) ? sanitize_text_field( wp_unslash( $_POST['parisan_staff_role'] ) ) : '';
+	$role = isset( $_POST['parisan_staff_role'] ) && is_string( $_POST['parisan_staff_role'] ) ? sanitize_text_field( wp_unslash( $_POST['parisan_staff_role'] ) ) : '';
 	update_post_meta( $post_id, '_parisan_staff_role', function_exists( 'mb_substr' ) ? mb_substr( $role, 0, 120 ) : substr( $role, 0, 120 ) );
 
-	$selected_services = isset( $_POST['parisan_staff_services'] ) && is_array( $_POST['parisan_staff_services'] ) ? array_map( 'absint', wp_unslash( $_POST['parisan_staff_services'] ) ) : array();
+	$selected_services = isset( $_POST['parisan_staff_services'] ) && is_array( $_POST['parisan_staff_services'] ) ? array_map( 'absint', array_filter( wp_unslash( $_POST['parisan_staff_services'] ), 'is_scalar' ) ) : array();
 	$valid_services    = array();
 	foreach ( array_unique( $selected_services ) as $service_id ) {
 		if ( 'parisan_service' === get_post_type( $service_id ) ) {
@@ -134,8 +134,8 @@ function parisan_core_save_staff_meta( $post_id ) {
 	for ( $day = 0; $day <= 6; $day++ ) {
 		$row   = isset( $input_schedule[ $day ] ) && is_array( $input_schedule[ $day ] ) ? $input_schedule[ $day ] : array();
 		$off   = ! empty( $row['off'] );
-		$start = isset( $row['start'] ) ? sanitize_text_field( $row['start'] ) : '';
-		$end   = isset( $row['end'] ) ? sanitize_text_field( $row['end'] ) : '';
+		$start = isset( $row['start'] ) && is_string( $row['start'] ) ? sanitize_text_field( $row['start'] ) : '';
+		$end   = isset( $row['end'] ) && is_string( $row['end'] ) ? sanitize_text_field( $row['end'] ) : '';
 		$valid_time = static function ( $time ) {
 			return is_string( $time ) && 1 === preg_match( '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $time );
 		};
