@@ -115,7 +115,11 @@ function parisan_core_create_booking( $input ) {
 				&& hash_equals( (string) $existing['customer_email'], $email )
 				&& hash_equals( (string) $existing['starts_at_utc'], $starts_sql )
 				&& hash_equals( (string) $existing['ends_at_utc'], $ends_sql );
-			$wpdb->query( 'COMMIT' );
+			if ( false === $wpdb->query( 'COMMIT' ) ) {
+				$wpdb->query( 'ROLLBACK' );
+				$transaction_started = false;
+				return new WP_Error( 'parisan_booking_commit_failed', __( 'تأیید نهایی رزرو انجام نشد.', 'parisan-core' ) );
+			}
 			$transaction_started = false;
 			if ( ! $same_payload ) {
 				return new WP_Error( 'parisan_idempotency_conflict', __( 'کلید ثبت تکراری قبلاً برای اطلاعات دیگری استفاده شده است.', 'parisan-core' ) );
@@ -177,18 +181,18 @@ function parisan_core_create_booking( $input ) {
 		}
 
 		$booking_id = (int) $wpdb->insert_id;
-		$event_inserted = $wpdb->insert(
-			$events_table,
-			array(
-				'booking_id' => $booking_id,
-				'event_type' => 'created',
-				'from_status' => '',
-				'to_status' => 'pending',
-				'event_note' => null,
-				'created_at_utc' => $now,
-			),
-			array( '%d', '%s', '%s', '%s', '%s', '%s' )
+		$event_data = array(
+			'booking_id' => $booking_id,
+			'event_type' => 'created',
+			'from_status' => '',
+			'to_status' => 'pending',
+			'event_note' => null,
+			'created_at_utc' => $now,
 		);
+		if ( $actor_id ) {
+			$event_data['actor_user_id'] = $actor_id;
+		}
+		$event_inserted = $wpdb->insert( $events_table, $event_data );
 		if ( false === $event_inserted ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
