@@ -36,7 +36,8 @@ function parisan_core_create_booking( $input ) {
 	$local_start = isset( $input['starts_at_local'] ) && is_string( $input['starts_at_local'] ) ? trim( $input['starts_at_local'] ) : '';
 	$name       = isset( $input['customer_name'] ) && is_string( $input['customer_name'] ) ? sanitize_text_field( $input['customer_name'] ) : '';
 	$phone      = isset( $input['customer_phone'] ) && is_string( $input['customer_phone'] ) ? trim( $input['customer_phone'] ) : '';
-	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';\n\t$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
+	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';
+	$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
 	$actor_id   = isset( $input['actor_user_id'] ) ? absint( $input['actor_user_id'] ) : 0;
 
