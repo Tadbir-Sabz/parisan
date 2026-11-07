@@ -317,6 +317,15 @@ jobs:
               fwrite( STDERR, "Booking operations admin page did not render the seeded booking and manual booking form.\\n" );
               exit( 1 );
             }
+            $_GET = array( "booking_id" => $created["booking_id"] );
+            ob_start();
+            parisan_core_render_booking_admin_page();
+            $booking_detail_html = ob_get_clean();
+            $_GET = array();
+            if ( false === strpos( $booking_detail_html, "جزئیات نوبت" ) || false === strpos( $booking_detail_html, "Synthetic booking customer" ) || false === strpos( $booking_detail_html, "سوابق و رویدادهای نوبت" ) || false === strpos( $booking_detail_html, "CI confirmation" ) ) {
+              fwrite( STDERR, "Booking detail view did not render customer details and audit timeline.\\n" );
+              exit( 1 );
+            }
             update_post_meta( $service_id, "_parisan_price_type", "from" );
             $from_price_payload = $payload;
             $from_price_payload["idempotency_token"] = "ci-idempotency-token-0003";
