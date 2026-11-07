@@ -164,7 +164,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			return new WP_Error( 'parisan_booking_reschedule_update_failed', __( 'ذخیره زمان جدید انجام نشد.', 'parisan-core' ) );
 		}
 
-		$event_note = 'Rescheduled from ' . $booking['starts_at_utc'] . ' UTC to ' . $new_start_sql . ' UTC';
+		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql;
 		if ( '' !== $note ) {
 			$event_note .= ' — ' . $note;
 		}
