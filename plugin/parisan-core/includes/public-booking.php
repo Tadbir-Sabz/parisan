@@ -859,6 +859,24 @@ function parisan_core_booking_shortcode() {
 				<p data-parisan-summary-text></p>
 				<button type="button" class="parisan-booking-button parisan-booking-button-danger" data-parisan-cancel hidden><?php esc_html_e( 'لغو رزرو', 'parisan-core' ); ?></button>
 			</div>
+			<div class="parisan-customer-reschedule" data-parisan-reschedule-panel hidden>
+				<h4><?php esc_html_e( 'تغییر زمان نوبت', 'parisan-core' ); ?></h4>
+				<form data-parisan-reschedule-form>
+					<div class="parisan-booking-grid">
+						<p class="parisan-booking-field">
+							<label for="parisan-customer-reschedule-date"><?php esc_html_e( 'تاریخ جدید', 'parisan-core' ); ?></label>
+							<input id="parisan-customer-reschedule-date" type="date" min="<?php echo esc_attr( $minimum_date ); ?>" max="<?php echo esc_attr( $maximum_date ); ?>" required data-parisan-reschedule-date>
+						</p>
+						<p class="parisan-booking-field">
+							<label for="parisan-customer-reschedule-slot"><?php esc_html_e( 'ساعت جدید', 'parisan-core' ); ?></label>
+							<select id="parisan-customer-reschedule-slot" required disabled data-parisan-reschedule-slot>
+								<option value=""><?php esc_html_e( 'ابتدا تاریخ را انتخاب کنید', 'parisan-core' ); ?></option>
+							</select>
+						</p>
+					</div>
+					<button type="submit" class="parisan-booking-button parisan-booking-button-secondary"><?php esc_html_e( 'ثبت زمان جدید', 'parisan-core' ); ?></button>
+				</form>
+			</div>
 		</section>
 		<p class="parisan-booking-status" data-parisan-live role="status" aria-live="polite"></p>
 	</section>
