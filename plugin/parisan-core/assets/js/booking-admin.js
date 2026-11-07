@@ -71,7 +71,7 @@
         const slots = Array.isArray(result.data.slots) ? result.data.slots : [];
         slots.forEach(function (slot) {
           const option = document.createElement("option");
-          option.value = slot;
+          option.value = slot.slice(11, 16);
           option.textContent = slot.slice(11, 16);
           time.appendChild(option);
         });
