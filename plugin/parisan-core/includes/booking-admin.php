@@ -153,6 +153,7 @@ function parisan_core_render_booking_admin_page() {
 					<?php
 					$start_utc = new DateTimeImmutable( $row['starts_at_utc'], new DateTimeZone( 'UTC' ) );
 					$local_start = $start_utc->setTimezone( wp_timezone() );
+					$local_end = ( new DateTimeImmutable( $row['ends_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
 					$price_toman = intdiv( (int) $row['price_amount'], 10 );
 					$actions = array();
 					if ( 'pending' === $row['status'] ) {
@@ -162,7 +163,7 @@ function parisan_core_render_booking_admin_page() {
 					}
 					?>
 					<tr>
-						<td><?php echo esc_html( wp_date( 'Y/m/d H:i', $local_start->getTimestamp(), wp_timezone() ) ); ?></td>
+						<td><?php echo esc_html( wp_date( 'Y/m/d', $local_start->getTimestamp(), wp_timezone() ) . ' ' . wp_date( 'H:i', $local_start->getTimestamp(), wp_timezone() ) . ' تا ' . wp_date( 'H:i', $local_end->getTimestamp(), wp_timezone() ) ); ?></td>
 						<td><?php echo esc_html( $row['customer_name'] ); ?></td>
 						<td dir="ltr"><?php echo esc_html( $row['customer_phone'] ); ?></td>
 						<td><?php echo esc_html( $row['service_title'] ? $row['service_title'] : '—' ); ?></td>
