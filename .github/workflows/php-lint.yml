@@ -312,7 +312,7 @@ jobs:
               exit( 1 );
             }
             $rollback_payload = $payload;
-            $rollback_payload["starts_at_local"] = "2026-11-09 11:00";
+            $rollback_payload["starts_at_local"] = "2026-11-09 11:15";
             $rollback_payload["idempotency_token"] = "ci-idempotency-token-0004";
             $rollback_result = null;
             try {
