@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.13.0
+Stable tag: 0.14.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,10 +29,19 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Authenticated admin-only availability slot picker with nonce and capability checks.
 * Protected booking detail page with customer information and an ordered audit timeline.
 * Concurrency-safe rescheduling for pending and confirmed bookings, preserving duration/price snapshots and recording an audit event.
+* WordPress personal-data exporter and eraser for booking records.
+* Administrator-controlled, opt-in anonymization of old terminal bookings; disabled by default.
+* Reusable MySQL-lock-serialized fixed-window request limiter for future public endpoints.
 
-== Important availability boundary ==
+== Important privacy and availability boundaries ==
 
-Availability results are advisory only and do not reserve a slot. Availability remains advisory until a booking is committed. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; calendar exception writes use the same lock. Services with a starting-from price must have a final price confirmed before booking. The service is not exposed through a public REST/AJAX endpoint. Break management, resource schedules, customer portal, and notifications remain future work. Public booking endpoints are not exposed.
+Availability results are advisory only and do not reserve a slot. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; calendar exception writes use the same lock. Services with a starting-from price must have a final price confirmed before booking.
+
+The booking service is not exposed through a public REST/AJAX endpoint. The rate limiter is a reusable control, not an authorization mechanism; any future public endpoint must also validate ownership, capabilities, nonce/token scope, input, and abuse controls. No public booking endpoint is enabled in this release.
+
+WordPress privacy export includes booking details and associated event notes. Erasure anonymizes terminal bookings and removes their free-form event notes while preserving operational history. Pending and confirmed bookings are retained while needed to fulfil the appointment. Automatic anonymization is disabled by default and requires an administrator to choose a retention period. The site owner remains responsible for selecting a period appropriate to applicable legal and accounting duties, and for backup/processor retention.
+
+Break management, resource schedules, customer self-service, SMS, payment, forms, SEO, and public booking remain future work. No live SMS or payment operations are performed.
 
 == Installation ==
 
@@ -41,39 +50,41 @@ Availability results are advisory only and do not reserve a slot. Availability r
 3. Activate the Parisan theme separately.
 4. Add specialists and configure their weekly hours.
 5. Open Specialists -> Calendar and Holidays to record date-specific unavailability.
+6. Administrators can review privacy controls under Specialists -> Privacy and Data Retention.
 
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.14.0 =
+* Added WordPress personal-data export and erasure integration for booking records.
+* Added terminal-booking anonymization while preserving booking and event audit structure.
+* Added an administrator-controlled retention policy, disabled by default, with bounded daily cleanup.
+* Added a MySQL-lock-serialized fixed-window request limiter for future public endpoints.
 
 = 0.13.0 =
 * Added a versioned booking duration snapshot and migration.
 * Added internal rescheduling with the shared staff lock, InnoDB transaction, availability recheck, and atomic audit event.
 * Preserved original duration and price when moving an existing booking.
 
-
 = 0.12.0 =
 * Added a protected booking detail view with status actions and audit event history.
 * Added authorized display of customer contact details on the individual booking page.
-
 
 = 0.11.0 =
 * Added an authenticated admin-only availability slot lookup and time selector for manual bookings.
 * Added capability and nonce checks; no unauthenticated AJAX handler is registered.
 * Added Node syntax validation for the booking admin script.
 
-
 = 0.10.0 =
 * Added authorized manual booking creation for salon staff.
 * Added salon timezone indication, future-time validation, and Persian/Arabic phone digit normalization.
 * Added CI coverage for the manual booking form, phone normalization, and past-time rejection.
 
-
 = 0.9.0 =
 * Added a Persian WordPress admin screen for viewing and filtering bookings.
 * Added paginated booking operations with confirmation, cancellation, expiry, completion, and no-show actions.
 * Added capability, nonce, and lifecycle-service checks to all status-change actions.
-
 
 = 0.8.0 =
 * Added controlled internal booking status transitions and audit history.
@@ -85,14 +96,6 @@ The plugin creates or upgrades its additive schema on activation/plugin load. De
 * Serialized calendar exception writes with booking creation using the same staff lock.
 * Required InnoDB for booking, booking-event, and schedule-exception tables.
 * Rejected “price from” services until the final price is confirmed.
-
-
-= 0.7.1 =
-* Added internal transactional booking creation with staff-level advisory locking and idempotency.
-* Serialized calendar exception writes with booking creation using the same staff lock.
-* Required InnoDB for booking, booking-event, and schedule-exception tables.
-* Rejected “price from” services until the final price is confirmed.
-
 
 = 0.6.0 =
 * Added Persian admin calendar for full-day and partial-day staff unavailability.
