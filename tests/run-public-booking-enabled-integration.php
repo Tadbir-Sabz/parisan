@@ -98,6 +98,13 @@ parisan_public_enabled_assert( 200 === $availability_response->get_status(), 'pu
 $available_times = wp_list_pluck( $availability_response->get_data()['slots'], 'starts_at_local' );
 parisan_public_enabled_assert( ! in_array( $booking_date . ' 10:00', $available_times, true ) && in_array( $booking_date . ' 11:00', $available_times, true ), 'public availability omits the occupied slot and retains a free slot' );
 
+$availability_horizon_request = new WP_REST_Request( 'GET', '/parisan/v1/availability' );
+$availability_horizon_request->set_param( 'staff_id', (int) $staff_id );
+$availability_horizon_request->set_param( 'service_id', (int) $service_id );
+$availability_horizon_request->set_param( 'date', current_datetime()->modify( '+91 days' )->format( 'Y-m-d' ) );
+$availability_horizon_response = parisan_core_rest_public_availability( $availability_horizon_request );
+parisan_public_enabled_assert( 400 === $availability_horizon_response->get_status(), 'public availability route enforces the 90-day horizon' );
+
 $invalid_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
 $invalid_request->set_header( 'Origin', home_url( '/' ) );
 $invalid_request->set_header( 'Idempotency-Key', str_repeat( 'a', 32 ) );
