@@ -423,6 +423,14 @@ function parisan_core_cancel_booking_with_customer_token( $booking_id, $token ) 
 			return new WP_Error( 'parisan_customer_booking_unavailable' );
 		}
 		$transaction_started = true;
+		$booking = $wpdb->get_row(
+			$wpdb->prepare( "SELECT id, staff_id, status FROM {$bookings_table} WHERE id = %d FOR UPDATE", absint( $booking_id ) ),
+			ARRAY_A
+		);
+		if ( ! is_array( $booking ) || ! in_array( $booking['status'], array( 'pending', 'confirmed' ), true ) ) {
+			return new WP_Error( 'parisan_customer_booking_unavailable' );
+		}
+
 		$token_row = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT id FROM {$tokens_table} WHERE booking_id = %d AND token_hash = %s AND revoked_at_utc IS NULL AND expires_at_utc > %s LIMIT 1 FOR UPDATE",
@@ -433,13 +441,6 @@ function parisan_core_cancel_booking_with_customer_token( $booking_id, $token ) 
 			ARRAY_A
 		);
 		if ( ! is_array( $token_row ) ) {
-			return new WP_Error( 'parisan_customer_booking_unavailable' );
-		}
-		$booking = $wpdb->get_row(
-			$wpdb->prepare( "SELECT id, staff_id, status FROM {$bookings_table} WHERE id = %d FOR UPDATE", absint( $booking_id ) ),
-			ARRAY_A
-		);
-		if ( ! is_array( $booking ) || ! in_array( $booking['status'], array( 'pending', 'confirmed' ), true ) ) {
 			return new WP_Error( 'parisan_customer_booking_unavailable' );
 		}
 
