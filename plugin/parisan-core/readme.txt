@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.12.0
+Stable tag: 0.13.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -28,6 +28,7 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Authorized manual booking creation from the staff operations screen, with salon-timezone input and server-side availability recheck.
 * Authenticated admin-only availability slot picker with nonce and capability checks.
 * Protected booking detail page with customer information and an ordered audit timeline.
+* Concurrency-safe rescheduling for pending and confirmed bookings, preserving duration/price snapshots and recording an audit event.
 
 == Important availability boundary ==
 
@@ -44,6 +45,12 @@ Availability results are advisory only and do not reserve a slot. Availability r
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.13.0 =
+* Added a versioned booking duration snapshot and migration.
+* Added internal rescheduling with the shared staff lock, InnoDB transaction, availability recheck, and atomic audit event.
+* Preserved original duration and price when moving an existing booking.
+
 
 = 0.12.0 =
 * Added a protected booking detail view with status actions and audit event history.
