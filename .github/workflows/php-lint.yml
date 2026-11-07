@@ -295,8 +295,9 @@ jobs:
             }
             $rollback_key = hash( "sha256", $rollback_payload["idempotency_token"] );
             $rollback_booking_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_bookings WHERE idempotency_key = %s", $rollback_key ) );
-            if ( ! is_wp_error( $rollback_result ) || "parisan_booking_audit_failed" !== $rollback_result->get_error_code() || 0 !== $rollback_booking_count ) {
-              fwrite( STDERR, "Audit-event failure did not roll back the booking atomically.\\n" );
+            $rollback_error_code = is_wp_error( $rollback_result ) ? $rollback_result->get_error_code() : "not_wp_error";
+            if ( "parisan_booking_audit_failed" !== $rollback_error_code || 0 !== $rollback_booking_count ) {
+              fwrite( STDERR, "Audit rollback assertion failed; error=" . $rollback_error_code . ", persisted_booking_count=" . $rollback_booking_count . ", db_error=" . $wpdb->last_error . "\\n" );
               exit( 1 );
             }
             echo "Transactional booking creation, InnoDB, shared lock, audit event, idempotency, overlap rejection, fixed-price gate, and audit-failure rollback passed.\\n";
