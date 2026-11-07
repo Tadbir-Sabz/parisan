@@ -20,6 +20,7 @@ define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 require_once PARISAN_CORE_DIR . 'includes/database.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule.php';
 require_once PARISAN_CORE_DIR . 'includes/availability.php';
+require_once PARISAN_CORE_DIR . 'includes/booking-service.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule-exceptions-admin.php';
 require_once PARISAN_CORE_DIR . 'includes/staff.php';
 require_once PARISAN_CORE_DIR . 'includes/service-taxonomy.php';
