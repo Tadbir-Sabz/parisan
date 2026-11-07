@@ -16,6 +16,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'PARISAN_CORE_VERSION', '0.15.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
+define( 'PARISAN_CORE_URL', plugin_dir_url( __FILE__ ) );
 
 require_once PARISAN_CORE_DIR . 'includes/database.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule.php';
