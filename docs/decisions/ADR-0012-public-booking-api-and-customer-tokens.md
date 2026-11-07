@@ -2,7 +2,7 @@
 
 - Status: Implemented on the feature branch; public activation remains explicitly disabled by default
 - Date: 2026-11-07
-- Scope: Anonymous availability lookup, pending booking creation, scoped customer booking access, and customer cancellation. No SMS, payment, or production activation.
+- Scope: Anonymous availability lookup, pending booking creation, scoped customer booking access, customer cancellation, and the Persian RTL shortcode UI. No SMS, payment, or production activation.
 
 ## Context
 
@@ -23,19 +23,21 @@ The internal booking engine is concurrency-safe but deliberately has no public e
 7. Customer read/cancel routes resolve the token to one booking before operating. The customer view omits name, phone, email, event history, and internal database identifiers. Customer cancellation only permits pending/confirmed to cancelled, under the same per-staff advisory lock and a transaction that records an audit event.
 8. Anonymous state-changing requests require an `Origin` matching the configured WordPress home origin. This is intentionally strict; reverse-proxy and headless deployment topologies require separate verification before enabling the API.
 9. Public responses set `Cache-Control: no-store`, `Pragma: no-cache`, and `Vary` headers. The reusable HMAC/IP rate limiter is applied to availability, creation, customer reads, and cancellation. It uses only `REMOTE_ADDR`; proxy trust and multi-node behavior remain unverified.
-10. All public routes remain unavailable unless the owner deliberately enables the constant after deployment-specific review. This implementation does not authorize production activation.
+10. The `[parisan_booking]` shortcode renders a Persian-first responsive form, availability selector, customer details form, one-time token copy panel, and token-based booking lookup/cancellation. It renders only a disabled notice while the feature flag is off.
+11. Terminal-booking anonymization and opt-in retention revoke associated customer tokens in the same transaction as contact/event anonymization.
+12. All public routes remain unavailable unless the owner deliberately enables the constant after deployment-specific review. This implementation does not authorize production activation.
 
 ## Consequences and remaining limits
 
 - A public UUID/reference is not an authorization credential.
 - Token theft still grants scoped access until expiry/revocation; HTTPS, secure client storage, log/header redaction, and incident revocation procedures remain operational requirements.
-- There is no token self-service rotation/revocation endpoint yet; a successful idempotent retry rotates the token.
-- There is no public rescheduling, account registration, email verification, SMS, payment, or automated confirmation.
+- There is no token self-service rotation/revocation endpoint yet; a successful idempotent retry rotates the token, and privacy erasure/retention revokes tokens for anonymized terminal bookings.
+- There is no public rescheduling, account registration, email verification, SMS, payment, or automated confirmation. The initial shortcode UI has not yet passed browser/device/accessibility review.
 - Rate limiting is per database-backed WordPress installation and the observed source IP. Reverse proxies, shared caches, multi-node topologies, and distributed abuse monitoring need deployment-specific validation.
 - The owner must explicitly configure the constant only after reviewing same-origin behavior, HTTPS, proxy handling, backups, logging, and privacy operations.
 
 ## Verification
 
-- Added disposable WordPress/MariaDB integration checks for default-off route registration, schema v3, digest-only storage, token resolution, token rotation/revocation, expiry, and transactional customer cancellation.
-- CI result is pending until the updated workflow completes on the exact commit containing this ADR and implementation.
+- Disposable WordPress/MariaDB integration verifies default-off route registration, schema v3, digest-only storage, token resolution, token rotation/revocation, expiry, token-bound cancellation, privacy-erasure token revocation/rollback, and explicit enabled-route/shortcode rendering.
+- PHP 8.1/8.2/8.3 lint and JavaScript syntax validation are part of the active CI matrix; final exact-commit run evidence is pending.
 - Browser UX, real reverse-proxy behavior, multi-connection race stress, and production deployment remain UNVERIFIED.
