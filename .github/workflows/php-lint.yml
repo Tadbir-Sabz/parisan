@@ -310,13 +310,14 @@ jobs:
             }
             $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
             $transition_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"status_changed\"", $created["booking_id"] ) );
+            $reschedule_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"rescheduled\"", $created["booking_id"] ) );
             $invalid_transition = parisan_core_transition_booking( $created["booking_id"], "confirmed" );
             $terminal_reschedule = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 11:15" );
-            if ( "cancelled" !== $cancelled_status || 2 !== $transition_events || ! is_wp_error( $invalid_transition ) || "parisan_invalid_booking_transition" !== $invalid_transition->get_error_code() || ! is_wp_error( $terminal_reschedule ) || "parisan_booking_reschedule_not_allowed" !== $terminal_reschedule->get_error_code() ) {
+            if ( "cancelled" !== $cancelled_status || 2 !== $transition_events || 1 !== $reschedule_events || ! is_wp_error( $invalid_transition ) || "parisan_invalid_booking_transition" !== $invalid_transition->get_error_code() || ! is_wp_error( $terminal_reschedule ) || "parisan_booking_reschedule_not_allowed" !== $terminal_reschedule->get_error_code() ) {
               fwrite( STDERR, "Booking lifecycle state machine or audit history assertion failed.\\n" );
               exit( 1 );
             }
-            if ( ! function_exists( "parisan_core_render_booking_admin_page" ) || ! function_exists( "parisan_core_handle_booking_admin_transition" ) || false === has_action( "admin_post_parisan_transition_booking", "parisan_core_handle_booking_admin_transition" ) ) {
+            if ( ! function_exists( "parisan_core_render_booking_admin_page" ) || ! function_exists( "parisan_core_handle_booking_admin_transition" ) || false === has_action( "admin_post_parisan_transition_booking", "parisan_core_handle_booking_admin_transition" ) || ! function_exists( "parisan_core_handle_booking_reschedule" ) || false === has_action( "admin_post_parisan_reschedule_booking", "parisan_core_handle_booking_reschedule" ) ) {
               fwrite( STDERR, "Booking operations admin page or transition handler was not registered.\\n" );
               exit( 1 );
             }
@@ -342,7 +343,7 @@ jobs:
             parisan_core_render_booking_admin_page();
             $booking_detail_html = ob_get_clean();
             $_GET = array();
-            if ( false === strpos( $booking_detail_html, "جزئیات نوبت" ) || false === strpos( $booking_detail_html, "Synthetic booking customer" ) || false === strpos( $booking_detail_html, "سوابق و رویدادهای نوبت" ) || false === strpos( $booking_detail_html, "CI confirmation" ) ) {
+            if ( false === strpos( $booking_detail_html, "جزئیات نوبت" ) || false === strpos( $booking_detail_html, "Synthetic booking customer" ) || false === strpos( $booking_detail_html, "سوابق و رویدادهای نوبت" ) || false === strpos( $booking_detail_html, "CI confirmation" ) || false === strpos( $booking_detail_html, "parisan_reschedule_booking" ) || false === strpos( $booking_detail_html, "new_start_local" ) || false === strpos( $booking_detail_html, "CI reschedule" ) ) {
               fwrite( STDERR, "Booking detail view did not render customer details and audit timeline.\\n" );
               exit( 1 );
             }
