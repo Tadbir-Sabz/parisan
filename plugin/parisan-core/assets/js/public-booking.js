@@ -152,7 +152,7 @@
 		const price = data.currency_code === 'IRR' && Number.isFinite(Number(data.price_amount)) ? new Intl.NumberFormat('fa-IR').format(Math.round(Number(data.price_amount) / 10)) + ' تومان' : '';
 		summaryText.textContent = [
 			'وضعیت: ' + (labels[data.status] || data.status || '—'),
-			'خدمت: ' + (data.service || '—'), 'متخصص: ' + (data.specialist || '—'), 'زمان: ' + (date || '—'), 'مبلغ: ' + (price || '—')
+			'خدمت: ' + (data.service || '—'), 'متخصص: ' + (data.specialist || '—'), 'زمان: ' + (date || '—'), 'منطقه زمانی: ' + (data.timezone || '—'), 'مبلغ: ' + (price || '—')
 		].join(' | ');
 		summary.hidden = false;
 		cancelButton.hidden = !data.can_cancel;
