@@ -2,7 +2,7 @@
 
 > Product vision, architecture, delivery roadmap, and mandatory contributor instructions.
 
-**Project status:** Initial theme, service catalogue, and availability calculation implementation; full booking lifecycle pending  
+**Project status:** Initial theme/catalogue, timezone-aware availability engine, and date-specific staff calendar exception administration; full booking lifecycle pending  
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`
 
@@ -49,14 +49,16 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] Service duration and pricing fields with nonce, capability, sanitization, and bounded values.
 - [x] Hierarchical service categories.
 - [x] Specialist profiles, service eligibility, and weekly recurring availability editor.
-- [x] Timezone-aware availability calculation for a salon-local date, including existing bookings, stored unavailability intervals, service duration, slot interval, and before/after buffers (CI validation pending).
+- [x] Timezone-aware availability calculation for a salon-local date, including existing bookings, stored unavailability intervals, service duration, slot interval, and before/after buffers.
+- [x] Persian admin calendar for full-day and partial-day specialist leave/unavailability, with local-time validation and UTC persistence.
 - [x] PHP syntax lint workflow for PHP 8.1, 8.2, and 8.3.
 - [x] Standalone schedule-normalization test suite passes in CI on PHP 8.1, 8.2, and 8.3.
 - [x] Disposable WordPress + MariaDB activation/registration smoke test passes.
 - [x] Latest baseline CI run passed PHP 8.1/8.2/8.3 and disposable WordPress/MariaDB activation smoke test.
 - [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
+- [ ] CI validation of calendar exception administration and seeded database-backed availability integration (current run pending).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
-- [~] Availability calculation foundation implemented; date-exception admin management, breaks, leave/holiday UI, and concurrency-safe booking creation remain pending.
+- [~] Availability calculation and date-exception admin foundation implemented; break management, resource schedules, and concurrency-safe booking creation remain pending.
 - [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
 
 **Do not infer runtime readiness from source files.** This is an implementation foundation, not a production release. Each feature requires evidence from automated tests and relevant manual flows.
