@@ -82,9 +82,9 @@ $wpdb->update( $tokens_table, array( 'expires_at_utc' => $expired ), array( 'id'
 parisan_public_integration_assert( false === parisan_core_resolve_customer_access_token( $token_two ), 'expired customer token is rejected' );
 
 $token_three = bin2hex( random_bytes( 32 ) );
-parisan_public_integration_assert( 1 === $wpdb->query( 'START TRANSACTION' ), 'cancellation token transaction started' );
+parisan_public_integration_assert( false !== $wpdb->query( 'START TRANSACTION' ), 'cancellation token transaction started' );
 parisan_public_integration_assert( true === parisan_core_store_customer_access_token( $booking_id, $token_three ), 'cancellation token stored' );
-parisan_public_integration_assert( 1 === $wpdb->query( 'COMMIT' ), 'cancellation token transaction committed' );
+parisan_public_integration_assert( false !== $wpdb->query( 'COMMIT' ), 'cancellation token transaction committed' );
 parisan_public_integration_assert( true === parisan_core_cancel_booking_with_customer_token( $booking_id, $token_three ), 'scoped customer cancellation succeeds' );
 $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$bookings_table} WHERE id = %d", $booking_id ) );
 $cancel_event = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$events_table} WHERE booking_id = %d AND event_type = 'customer_cancelled' AND to_status = 'cancelled'", $booking_id ) );
