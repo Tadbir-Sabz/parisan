@@ -40,8 +40,10 @@ jobs:
             php -l "$file"
           done
 
-      - name: Check booking admin JavaScript syntax
-        run: node --check plugin/parisan-core/assets/js/booking-admin.js
+      - name: Check booking and public customer JavaScript syntax
+        run: |
+          node --check plugin/parisan-core/assets/js/booking-admin.js
+          node --check plugin/parisan-core/assets/js/public-booking.js
 
       - name: Run schedule and availability tests
         run: php tests/run-schedule-tests.php
