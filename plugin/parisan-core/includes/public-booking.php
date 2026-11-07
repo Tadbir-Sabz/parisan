@@ -278,6 +278,19 @@ function parisan_core_rest_public_create_booking( $request ) {
 		return $limited;
 	}
 
+	$starts_at_local = $request->get_param( 'starts_at_local' );
+	if ( ! is_string( $starts_at_local ) || ! preg_match( '/^\\d{4}-\\d{2}-\\d{2} (?:[01]\\d|2[0-3]):[0-5]\\d$/D', $starts_at_local ) ) {
+		return parisan_core_public_booking_error( __( 'زمان انتخاب‌شده معتبر نیست.', 'parisan-core' ), 400 );
+	}
+	$booking_timezone = wp_timezone();
+	$booking_date = substr( $starts_at_local, 0, 10 );
+	$requested_date = DateTimeImmutable::createFromFormat( '!Y-m-d', $booking_date, $booking_timezone );
+	$date_errors = DateTimeImmutable::getLastErrors();
+	$today = new DateTimeImmutable( 'today', $booking_timezone );
+	if ( false === $requested_date || ( is_array( $date_errors ) && ( $date_errors['warning_count'] || $date_errors['error_count'] ) ) || $requested_date->format( 'Y-m-d' ) !== $booking_date || $requested_date < $today || $requested_date > $today->modify( '+90 days' ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ رزرو باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+	}
+
 	$idempotency = $request->get_header( 'idempotency-key' );
 	if ( ! is_string( $idempotency ) || ! preg_match( '/^[a-f0-9]{64}$/D', $idempotency ) ) {
 		return parisan_core_public_booking_error( __( 'شناسه درخواست معتبر نیست؛ صفحه را تازه‌سازی و دوباره تلاش کنید.', 'parisan-core' ), 400 );
