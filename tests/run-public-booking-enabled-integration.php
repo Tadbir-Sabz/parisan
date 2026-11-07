@@ -94,6 +94,13 @@ $invalid_request->set_header( 'Idempotency-Key', str_repeat( 'a', 32 ) );
 $invalid_key_response = parisan_core_rest_public_create_booking( $invalid_request );
 parisan_public_enabled_assert( 400 === $invalid_key_response->get_status(), 'public route rejects idempotency keys below 256 bits' );
 
+$horizon_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
+$horizon_request->set_header( 'Origin', home_url( '/' ) );
+$horizon_request->set_header( 'Idempotency-Key', bin2hex( random_bytes( 32 ) ) );
+$horizon_request->set_param( 'starts_at_local', current_datetime()->modify( '+91 days' )->format( 'Y-m-d' ) . ' 10:00' );
+$horizon_response = parisan_core_rest_public_create_booking( $horizon_request );
+parisan_public_enabled_assert( 400 === $horizon_response->get_status(), 'public create route enforces the 90-day booking horizon' );
+
 $public_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
 $public_request->set_header( 'Origin', home_url( '/' ) );
 $public_request->set_header( 'Idempotency-Key', bin2hex( random_bytes( 32 ) ) );
