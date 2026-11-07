@@ -1,4 +1,4 @@
-name: WordPress privacy integration
+name: WordPress privacy and public-booking integration
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   privacy-integration:
-    name: WordPress and MariaDB privacy lifecycle
+    name: WordPress and MariaDB privacy and customer access
     runs-on: ubuntu-latest
     services:
       mariadb:
@@ -64,3 +64,10 @@ jobs:
         run: |
           set -euo pipefail
           wp eval-file tests/run-wordpress-privacy-integration.php --path="$WP_PATH"
+
+      - name: Verify gated customer tokens, rotation, expiry, and cancellation
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-privacy-wordpress
+        run: |
+          set -euo pipefail
+          wp eval-file tests/run-public-booking-integration.php --path="$WP_PATH"
