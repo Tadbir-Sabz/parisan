@@ -8,6 +8,7 @@
 define( 'ABSPATH', __DIR__ . '/' );
 define( 'DAY_IN_SECONDS', 86400 );
 define( 'HOUR_IN_SECONDS', 3600 );
+define( 'ARRAY_A', 'ARRAY_A' );
 
 $GLOBALS['parisan_test_hooks'] = array();
 $GLOBALS['parisan_test_options'] = array();
