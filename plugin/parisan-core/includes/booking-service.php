@@ -41,7 +41,7 @@ function parisan_core_release_staff_schedule_lock( $lock_name ) {
 	global $wpdb;
 
 	if ( is_string( $lock_name ) && '' !== $lock_name ) {
-		parisan_core_release_staff_schedule_lock( $lock_name );
+		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) );
 	}
 }
 
@@ -246,6 +246,6 @@ function parisan_core_create_booking( $input ) {
 		if ( $transaction_started ) {
 			$wpdb->query( 'ROLLBACK' );
 		}
-		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) );
+		parisan_core_release_staff_schedule_lock( $lock_name );
 	}
 }
