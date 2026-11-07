@@ -2,7 +2,7 @@
 
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Theme/catalogue, availability, date-specific calendar exceptions, internal transactional booking lifecycle, staff booking operations, and concurrency-safe rescheduling are implemented on the feature branch. Booking privacy export/erasure, opt-in terminal-record retention, and reusable request throttling are now in implementation; their dedicated CI evidence is pending.  
+**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, and reusable request throttling are implemented and CI-verified on the feature branch. Public booking and customer self-service remain incomplete.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -75,7 +75,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Implement timezone-aware availability calculation using staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Pure tests and a seeded WordPress database integration test are required for this milestone.
 - [x] Add Persian admin management for date-specific full-day leave/closures and partial-day unavailability; all submitted local intervals are validated and stored in UTC.
 - [ ] Add break management, resource schedules, capacity, lead time, and booking horizon.
-- [~] Implement internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, pending booking + audit event transaction. CI coverage is added but not yet evidenced; lock stress/forced rollback remain unverified. No public endpoint is exposed.
+- [x] Implement and CI-verify internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, and atomic pending booking + audit event transaction (run 42376217290). Multi-connection stress and lock-timeout behavior remain UNVERIFIED. No public endpoint is exposed.
 - [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
 - [ ] Implement public booking wizard with accessible mobile UX and server-side validation.
@@ -83,7 +83,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Implement customer portal: upcoming/past bookings, details, cancellation/reschedule, profile, preferences.
 - [~] Implement admin booking list, status filters/actions, detail/audit timeline, manual booking, and reschedule form; calendar-style operations view, search, and daily dashboard remain pending.
 - [ ] Add email notifications and testable notification queue.
-- [~] Test timezone boundaries, concurrent requests, authorization/IDOR, lifecycle transitions, privacy export/erasure, retention, and abuse controls; browser and multi-connection evidence remains pending.
+- [~] Test timezone boundaries, concurrent requests, authorization/IDOR, lifecycle transitions, privacy export/erasure, retention, and abuse controls; browser, multi-connection, proxy, and multi-node evidence remains pending.
 
 **Gate P3:** a complete customer can book and manage an appointment; staff can operate the schedule; no double booking under tested concurrency.
 
@@ -165,7 +165,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Add and integration-test administrator-controlled automatic retention, disabled by default, with bounded daily anonymization batches [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
 - [x] Add and test a reusable HMAC-keyed, MySQL-lock-serialized fixed-window request limiter; raw IPs are not stored and forwarded-IP headers are ignored [runs 42398990545 and 42398990422](https://github.com/Tadbir-Sabz/parisan/actions).
 - [x] Dedicated PHP 8.1/8.2/8.3 matrix assertions PASS [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545).
-- [?] Real MariaDB erasure/rollback, browser privacy workflow, reverse-proxy IP topology, multi-node rate-limit behavior, and owner-approved retention period remain UNVERIFIED.
+- [x] Disposable WordPress/MariaDB erasure and forced transaction rollback PASS (run 42398990422). Browser privacy workflow, reverse-proxy IP topology, multi-node rate-limit behavior, and owner-approved retention period remain UNVERIFIED.
 - [ ] Before public booking: implement scoped, expiring, non-guessable customer access tokens; object-level authorization; rate limiting on every public route; abuse monitoring; privacy-safe responses; and end-to-end IDOR/concurrency tests.
 
 ## Cross-cutting workstreams
@@ -190,14 +190,17 @@ These apply throughout all phases:
 
 ## Current verified progress
 
-As of the current implementation branch:
-- Product documentation and mandatory agent rules are present on main.
-- Initial theme bootstrap, homepage, service archive, and service detail source files exist on `feature/service-catalog-foundation`.
-- Parisan Core registers service and specialist content types; service duration/price metadata, hierarchical service categories, specialist-to-service eligibility, and weekly recurring availability fields have source implementations with nonce/capability checks and input validation.
-- GitHub Actions PHP syntax and pure schedule/availability tests pass on PHP 8.1, 8.2, and 8.3.
-- WordPress activation, editor save/reload, browser rendering, accessibility, RTL/mobile visual review, and compatibility are UNVERIFIED.
-- Versioned booking/event/schedule-exception schema is implemented and verified by the disposable WordPress/MariaDB CI smoke test.
-- Timezone-aware availability calculation source is implemented; the preceding CI run passed on PHP 8.1/8.2/8.3 with 22 assertions and WordPress/MariaDB smoke test. Date-specific exception admin UI is implemented; CI PASS: 26 pure assertions on PHP 8.1/8.2/8.3 and seeded WordPress/MariaDB integration confirms stored booking and exception rows exclude conflicting slots (run 42374197402). Internal booking creation and controlled lifecycle are implemented and verified by CI run 42376217290 (all 4 jobs PASS): InnoDB table checks, per-staff shared lock, atomic pending booking + audit event, idempotency replay/conflict, overlap rejection, fixed-price requirement, forced audit-insert rollback, confirmation/cancellation, status replay, and invalid transition rejection. CI run 42377819791 passed all 4 jobs for schema v2 duration snapshots and concurrency-safe rescheduling, including idempotent replay, exception conflict rejection, terminal-state rejection, and audit history. A Persian staff booking operations screen, authorized manual booking form, admin-only advisory slot picker, protected booking detail/audit timeline, and reschedule form are implemented. CI run 42376730497 passed all 4 jobs and verified manual form rendering, Persian phone digit normalization, and past-time rejection. CI run 42376924602 passed all 4 jobs and verified the authenticated nonce-protected slot lookup, absence of an unauthenticated AJAX handler, admin script enqueue, and Node syntax. CI run 42377058236 passed all 4 jobs and rendered the booking detail page with its audit history. Browser visual/accessibility review remains UNVERIFIED. Break management, resource schedules, public booking endpoint, customer portal, SMS, forms, SEO toolkit, caching, WooCommerce and Elementor adapters remain NOT STARTED. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, browser visual/accessibility review, and browser privacy workflow and production-like proxy/multi-node rate-limit behavior remain UNVERIFIED.
+As of the active implementation branch:
+
+- Product architecture, agent instructions, product plan, roadmap, and ADRs 0001–0011 are present in the repository.
+- Parisan theme and Core catalogue/scheduling foundations are implemented; browser rendering, responsive RTL, accessibility, and theme-switch persistence remain UNVERIFIED.
+- Availability and calendar exception integration passed [CI run 42374197402](https://github.com/Tadbir-Sabz/parisan/actions/runs/42374197402).
+- Internal booking creation and lifecycle passed [CI run 42376217290](https://github.com/Tadbir-Sabz/parisan/actions/runs/42376217290).
+- Manual booking, admin slot lookup, and booking detail/audit screens have CI evidence in runs 42376730497, 42376924602, and 42377058236.
+- Duration snapshots and concurrency-safe rescheduling passed [CI run 42377819791](https://github.com/Tadbir-Sabz/parisan/actions/runs/42377819791).
+- Privacy exporter/eraser, terminal-only anonymization, active-booking retention, rollback safety, opt-in retention, and request throttling passed the PHP matrix [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545) and disposable WordPress/MariaDB integration [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
+- Latest PHP syntax, schedule/availability, booking integration, and WordPress activation smoke tests passed [run 42398990464](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990464).
+- Public booking/customer portal, secure customer access tokens, break/resource scheduling, browser visual/accessibility review, multi-connection stress, proxy/multi-node rate-limit verification, SMS, forms, SEO, caching, WooCommerce/Elementor adapters, packaging, and production deployment remain NOT STARTED or UNVERIFIED as marked above.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
