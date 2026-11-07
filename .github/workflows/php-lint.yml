@@ -107,6 +107,23 @@ jobs:
               fwrite( STDERR, "Service category taxonomy was not registered.\n" );
               exit( 1 );
             }
+            global $wpdb;
+            foreach ( array( "parisan_bookings", "parisan_booking_events", "parisan_schedule_exceptions" ) as $suffix ) {
+              $table = $wpdb->prefix . $suffix;
+              $found = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
+              if ( $table !== $found ) {
+                fwrite( STDERR, "Expected schema table missing: " . $suffix . "\\n" );
+                exit( 1 );
+              }
+            }
+            if ( 1 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
+              fwrite( STDERR, "Parisan schema version was not recorded.\\n" );
+              exit( 1 );
+            }
+            if ( ! function_exists( "parisan_core_normalize_weekly_schedule" ) ) {
+              fwrite( STDERR, "Weekly schedule validator was not loaded.\\n" );
+              exit( 1 );
+            }
             $service_id = wp_insert_post( array(
               "post_type"   => "parisan_service",
               "post_status" => "publish",
