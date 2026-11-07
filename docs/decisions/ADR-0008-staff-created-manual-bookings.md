@@ -13,7 +13,7 @@ The booking operations list can manage existing bookings, but front-desk staff a
 1. Add a manual booking form to the Persian staff booking operations screen.
 2. Only authenticated users with `edit_others_posts` may open the workflow. The handler additionally checks edit permission for the selected specialist and service and verifies a nonce.
 3. The form accepts specialist, service, salon-local start time, customer name, phone, and optional email. It displays the WordPress salon timezone next to the datetime control.
-4. The handler delegates to `parisan_core_create_booking()`; it does not write booking rows directly. The shared staff lock, InnoDB transaction, idempotency, future-time check, fixed-price gate, and availability recheck therefore remain mandatory.
+4. The form requests advisory available starts from an authenticated, nonce-protected WordPress AJAX action. The handler checks capabilities and returns no customer data. The handler delegates to `parisan_core_create_booking()`; it does not write booking rows directly. The shared staff lock, InnoDB transaction, idempotency, future-time check, fixed-price gate, and locked availability recheck therefore remain mandatory.
 5. Every manual booking starts in `pending` and must be confirmed through the controlled lifecycle action.
 6. Persian and Arabic numerals in phone input are normalized to ASCII before validation/storage. The UI does not expose customer email in the booking list.
 7. The idempotency token is generated for the rendered form and submitted with the booking to make a repeated submission safe.
@@ -21,6 +21,6 @@ The booking operations list can manage existing bookings, but front-desk staff a
 ## Boundaries and follow-up
 
 - This is an internal front-desk form, not a customer-facing booking flow.
-- It does not yet offer live slot suggestions; the server validates the manually selected time at submit.
-- CI run 42376730497 passed all four jobs and verifies manual form rendering, Persian phone digit normalization, and rejection of past appointment times. Browser/RTL/mobile visual review, form validation UX, real staff role review, and end-to-end manual browser submission remain UNVERIFIED.
+- The slot picker is advisory only; the server validates the manually selected time again at submit.
+- CI run 42376730497 passed all four jobs and verifies manual form rendering, Persian phone digit normalization, and rejection of past appointment times. The authenticated slot-picker AJAX action, enqueued script, and Node syntax check were added afterward and await the current CI run. Browser/RTL/mobile visual review, form validation UX, real staff role review, and end-to-end manual browser submission remain UNVERIFIED.
 - No notification, SMS, payment, or external customer communication is triggered.
