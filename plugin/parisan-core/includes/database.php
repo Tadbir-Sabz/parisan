@@ -66,7 +66,7 @@ function parisan_core_install_database() {
 		KEY booking_id (booking_id),
 		KEY actor_user_id (actor_user_id),
 		KEY event_type (event_type)
-	) {$charset_collate};";
+	) ENGINE=InnoDB {$charset_collate};";
 
 	$exceptions_sql = "CREATE TABLE {$exceptions_table} (
 		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -80,7 +80,7 @@ function parisan_core_install_database() {
 		KEY staff_starts_at (staff_id, starts_at_utc),
 		KEY starts_at_utc (starts_at_utc),
 		KEY exception_type (exception_type)
-	) {$charset_collate};";
+	) ENGINE=InnoDB {$charset_collate};";
 
 	dbDelta( $bookings_sql );
 	dbDelta( $events_sql );
