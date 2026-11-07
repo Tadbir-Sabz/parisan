@@ -179,6 +179,34 @@ function parisan_core_handle_manual_booking_create() {
 add_action( 'admin_post_parisan_create_manual_booking', 'parisan_core_handle_manual_booking_create' );
 
 /**
+ * Handle an authorized booking reschedule from the detail screen.
+ *
+ * @return void
+ */
+function parisan_core_handle_booking_reschedule() {
+	if ( ! current_user_can( 'edit_others_posts' ) ) {
+		wp_die( esc_html__( 'اجازه انجام این عملیات را ندارید.', 'parisan-core' ), 403 );
+	}
+	$booking_id = isset( $_POST['booking_id'] ) && is_scalar( $_POST['booking_id'] ) ? absint( wp_unslash( $_POST['booking_id'] ) ) : 0;
+	check_admin_referer( 'parisan_reschedule_booking_' . $booking_id, 'parisan_reschedule_nonce' );
+	$new_start = isset( $_POST['new_start_local'] ) && is_string( $_POST['new_start_local'] ) ? sanitize_text_field( wp_unslash( $_POST['new_start_local'] ) ) : '';
+	if ( ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}T(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $new_start ) ) {
+		$result = new WP_Error( 'parisan_invalid_reschedule_input', __( 'تاریخ یا ساعت جدید معتبر نیست.', 'parisan-core' ) );
+	} else {
+		$result = parisan_core_reschedule_booking( $booking_id, str_replace( 'T', ' ', $new_start ) );
+	}
+	$redirect_args = array( 'page' => 'parisan-bookings', 'booking_id' => $booking_id );
+	if ( is_wp_error( $result ) ) {
+		$redirect_args['booking_error'] = $result->get_error_code();
+	} else {
+		$redirect_args['booking_rescheduled'] = 1;
+	}
+	wp_safe_redirect( add_query_arg( $redirect_args, admin_url( 'edit.php?post_type=parisan_staff' ) ) );
+	exit;
+}
+add_action( 'admin_post_parisan_reschedule_booking', 'parisan_core_handle_booking_reschedule' );
+
+/**
  * Render one booking and its audit timeline.
  *
  * @param int $booking_id Booking row ID.
