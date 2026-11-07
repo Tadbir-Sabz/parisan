@@ -156,6 +156,11 @@ function parisan_core_create_booking( $input ) {
 				&& hash_equals( (string) $existing['customer_email'], $email )
 				&& hash_equals( (string) $existing['starts_at_utc'], $starts_sql )
 				&& hash_equals( (string) $existing['ends_at_utc'], $ends_sql );
+			if ( ! $same_payload ) {
+				$wpdb->query( 'ROLLBACK' );
+				$transaction_started = false;
+				return new WP_Error( 'parisan_idempotency_conflict', __( 'کلید ثبت تکراری قبلاً برای اطلاعات دیگری استفاده شده است.', 'parisan-core' ) );
+			}
 			if ( '' !== $customer_access_token && ! parisan_core_store_customer_access_token( (int) $existing['id'], $customer_access_token ) ) {
 				$wpdb->query( 'ROLLBACK' );
 				$transaction_started = false;
@@ -167,9 +172,6 @@ function parisan_core_create_booking( $input ) {
 				return new WP_Error( 'parisan_booking_commit_failed', __( 'تأیید نهایی رزرو انجام نشد.', 'parisan-core' ) );
 			}
 			$transaction_started = false;
-			if ( ! $same_payload ) {
-				return new WP_Error( 'parisan_idempotency_conflict', __( 'کلید ثبت تکراری قبلاً برای اطلاعات دیگری استفاده شده است.', 'parisan-core' ) );
-			}
 			return array( 'booking_id' => (int) $existing['id'], 'public_id' => $existing['public_id'], 'reused' => true );
 		}
 
@@ -222,7 +224,16 @@ function parisan_core_create_booking( $input ) {
 			$duplicate = $wpdb->get_row( $wpdb->prepare( "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email, starts_at_utc, ends_at_utc FROM {$bookings_table} WHERE idempotency_key = %s LIMIT 1", $idempotency_key ), ARRAY_A );
 			if ( is_array( $duplicate ) ) {
 				$same = (int) $duplicate['service_id'] === $service_id && (int) $duplicate['staff_id'] === $staff_id && hash_equals( (string) $duplicate['customer_name'], $name ) && hash_equals( (string) $duplicate['customer_phone'], $phone ) && hash_equals( (string) $duplicate['customer_email'], $email ) && hash_equals( (string) $duplicate['starts_at_utc'], $starts_sql ) && hash_equals( (string) $duplicate['ends_at_utc'], $ends_sql );
-				return $same ? array( 'booking_id' => (int) $duplicate['id'], 'public_id' => $duplicate['public_id'], 'reused' => true ) : new WP_Error( 'parisan_idempotency_conflict', __( 'کلید ثبت تکراری قبلاً برای اطلاعات دیگری استفاده شده است.', 'parisan-core' ) );
+				if ( ! $same ) {
+					return new WP_Error( 'parisan_idempotency_conflict', __( 'کلید ثبت تکراری قبلاً برای اطلاعات دیگری استفاده شده است.', 'parisan-core' ) );
+				}
+				if ( '' !== $customer_access_token ) {
+					if ( false === $wpdb->query( 'START TRANSACTION' ) || ! parisan_core_store_customer_access_token( (int) $duplicate['id'], $customer_access_token ) || false === $wpdb->query( 'COMMIT' ) ) {
+						$wpdb->query( 'ROLLBACK' );
+						return new WP_Error( 'parisan_customer_token_store_failed', __( 'صدور دسترسی امن رزرو انجام نشد.', 'parisan-core' ) );
+					}
+				}
+				return array( 'booking_id' => (int) $duplicate['id'], 'public_id' => $duplicate['public_id'], 'reused' => true );
 			}
 			return new WP_Error( 'parisan_booking_insert_failed', __( 'ثبت رزرو انجام نشد.', 'parisan-core' ) );
 		}
