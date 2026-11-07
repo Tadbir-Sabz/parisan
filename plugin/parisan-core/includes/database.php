@@ -51,7 +51,7 @@ function parisan_core_install_database() {
 		KEY staff_starts_at (staff_id, starts_at_utc),
 		KEY customer_user_id (customer_user_id),
 		KEY status_starts_at (status, starts_at_utc)
-	) {$charset_collate};";
+	) ENGINE=InnoDB {$charset_collate};";
 
 	$events_sql = "CREATE TABLE {$events_table} (
 		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
