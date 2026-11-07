@@ -119,7 +119,7 @@ function parisan_core_resolve_customer_access_token( $token ) {
 
 	$booking = $wpdb->get_row(
 		$wpdb->prepare(
-			"SELECT id, public_id, service_id, staff_id, starts_at_utc, ends_at_utc, salon_timezone, status, price_amount, currency_code FROM {$bookings_table} WHERE id = %d LIMIT 1",
+			"SELECT id, public_id, service_id, staff_id, starts_at_utc, ends_at_utc, duration_minutes, salon_timezone, status, price_amount, currency_code FROM {$bookings_table} WHERE id = %d LIMIT 1",
 			(int) $token_row['booking_id']
 		),
 		ARRAY_A
@@ -388,8 +388,125 @@ function parisan_core_rest_customer_booking( $request ) {
 		'price_amount' => (int) $booking['price_amount'],
 		'currency_code' => $booking['currency_code'],
 		'can_cancel' => in_array( $booking['status'], array( 'pending', 'confirmed' ), true ),
+		'can_reschedule' => in_array( $booking['status'], array( 'pending', 'confirmed' ), true ),
 	);
 	return parisan_core_private_booking_response( new WP_REST_Response( $data, 200 ) );
+}
+
+/**
+ * Return availability scoped to a token-owned booking and its existing duration.
+ *
+ * @param WP_REST_Request $request Request.
+ * @return WP_REST_Response
+ */
+function parisan_core_rest_customer_availability( $request ) {
+	$booking = parisan_core_public_booking_from_request( $request );
+	if ( $booking instanceof WP_REST_Response ) {
+		return $booking;
+	}
+	if ( ! in_array( $booking['status'], array( 'pending', 'confirmed' ), true ) ) {
+		return parisan_core_public_booking_error( __( 'این رزرو دیگر قابل تغییر زمان نیست.', 'parisan-core' ), 409 );
+	}
+
+	$date = $request->get_param( 'date' );
+	if ( ! is_string( $date ) || ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}$/D', $date ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ انتخاب‌شده معتبر نیست.', 'parisan-core' ), 400 );
+	}
+	$timezone = wp_timezone();
+	$requested = DateTimeImmutable::createFromFormat( '!Y-m-d', $date, $timezone );
+	$errors = DateTimeImmutable::getLastErrors();
+	$today = new DateTimeImmutable( 'today', $timezone );
+	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || $requested > $today->modify( '+90 days' ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+	}
+
+	$duration = absint( $booking['duration_minutes'] );
+	$slots = parisan_core_get_available_slots(
+		(int) $booking['staff_id'],
+		(int) $booking['service_id'],
+		$date,
+		(int) $booking['id'],
+		$duration > 0 ? $duration : null
+	);
+	if ( is_wp_error( $slots ) ) {
+		return parisan_core_public_booking_error( __( 'در حال حاضر امکان بررسی زمان‌های آزاد وجود ندارد.', 'parisan-core' ), 503 );
+	}
+
+	$safe_slots = array();
+	foreach ( array_slice( $slots, 0, 100 ) as $slot ) {
+		if ( isset( $slot['starts_at_local'] ) && is_string( $slot['starts_at_local'] ) ) {
+			$safe_slots[] = array( 'starts_at_local' => $slot['starts_at_local'] );
+		}
+	}
+	return parisan_core_private_booking_response( new WP_REST_Response( array( 'date' => $date, 'slots' => $safe_slots ), 200 ) );
+}
+
+/**
+ * Reschedule a booking using its scoped customer token.
+ *
+ * @param WP_REST_Request $request Request.
+ * @return WP_REST_Response
+ */
+function parisan_core_rest_customer_reschedule_booking( $request ) {
+	if ( ! parisan_core_public_booking_same_origin( $request ) ) {
+		return parisan_core_public_booking_error( __( 'درخواست معتبر نیست.', 'parisan-core' ), 403 );
+	}
+	$limited = parisan_core_public_booking_rate_check( 'customer_booking_reschedule', 5 );
+	if ( true !== $limited ) {
+		return $limited;
+	}
+	$booking = parisan_core_public_booking_from_request( $request );
+	if ( $booking instanceof WP_REST_Response ) {
+		return $booking;
+	}
+	if ( ! in_array( $booking['status'], array( 'pending', 'confirmed' ), true ) ) {
+		return parisan_core_public_booking_error( __( 'این رزرو دیگر قابل تغییر زمان نیست.', 'parisan-core' ), 409 );
+	}
+
+	$new_start_local = $request->get_param( 'starts_at_local' );
+	if ( ! is_string( $new_start_local ) || ! preg_match( '/^\\d{4}-\\d{2}-\\d{2} (?:[01]\\d|2[0-3]):[0-5]\\d$/D', $new_start_local ) ) {
+		return parisan_core_public_booking_error( __( 'زمان انتخاب‌شده معتبر نیست.', 'parisan-core' ), 400 );
+	}
+	$timezone = wp_timezone();
+	$date = substr( $new_start_local, 0, 10 );
+	$requested = DateTimeImmutable::createFromFormat( '!Y-m-d', $date, $timezone );
+	$errors = DateTimeImmutable::getLastErrors();
+	$today = new DateTimeImmutable( 'today', $timezone );
+	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || $requested > $today->modify( '+90 days' ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+	}
+
+	$token = parisan_core_public_booking_request_token( $request );
+	$result = parisan_core_reschedule_booking( (int) $booking['id'], $new_start_local, 'Customer self-service', $token );
+	if ( is_wp_error( $result ) ) {
+		$code = $result->get_error_code();
+		if ( in_array( $code, array( 'parisan_booking_slot_unavailable', 'parisan_booking_reschedule_not_allowed' ), true ) ) {
+			return parisan_core_public_booking_error( __( 'زمان انتخاب‌شده برای این رزرو قابل استفاده نیست.', 'parisan-core' ), 409 );
+		}
+		if ( in_array( $code, array( 'parisan_invalid_reschedule_input', 'parisan_invalid_local_booking_time', 'parisan_booking_time_in_past' ), true ) ) {
+			return parisan_core_public_booking_error( __( 'زمان انتخاب‌شده معتبر نیست.', 'parisan-core' ), 400 );
+		}
+		if ( 'parisan_customer_booking_unavailable' === $code ) {
+			return parisan_core_public_booking_error( __( 'رزرو پیدا نشد یا دسترسی آن معتبر نیست.', 'parisan-core' ), 404 );
+		}
+		return parisan_core_public_booking_error( __( 'تغییر زمان رزرو در حال حاضر ممکن نیست؛ کمی بعد تلاش کنید.', 'parisan-core' ), 503 );
+	}
+
+	try {
+		$local = ( new DateTimeImmutable( $result['starts_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( $timezone );
+	} catch ( Exception $exception ) {
+		return parisan_core_public_booking_error( __( 'اطلاعات زمان رزرو در دسترس نیست.', 'parisan-core' ), 503 );
+	}
+	return parisan_core_private_booking_response(
+		new WP_REST_Response(
+			array(
+				'status' => 'rescheduled',
+				'starts_at_local_display' => $local->format( 'Y-m-d H:i' ),
+				'timezone' => $timezone->getName(),
+			),
+			200
+		)
+	);
 }
 
 /**
@@ -540,6 +657,24 @@ function parisan_core_register_public_booking_routes() {
 		array(
 			'methods' => WP_REST_Server::READABLE,
 			'callback' => 'parisan_core_rest_customer_booking',
+			'permission_callback' => '__return_true',
+		)
+	);
+	register_rest_route(
+		'parisan/v1',
+		'/customer-booking/availability',
+		array(
+			'methods' => WP_REST_Server::READABLE,
+			'callback' => 'parisan_core_rest_customer_availability',
+			'permission_callback' => '__return_true',
+		)
+	);
+	register_rest_route(
+		'parisan/v1',
+		'/customer-booking/reschedule',
+		array(
+			'methods' => WP_REST_Server::CREATABLE,
+			'callback' => 'parisan_core_rest_customer_reschedule_booking',
 			'permission_callback' => '__return_true',
 		)
 	);
