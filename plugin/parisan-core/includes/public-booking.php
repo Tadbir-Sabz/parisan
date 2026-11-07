@@ -205,7 +205,12 @@ function parisan_core_public_booking_rate_check( $scope, $limit ) {
 		return true;
 	}
 	if ( is_wp_error( $result ) && 'parisan_rate_limit_exceeded' === $result->get_error_code() ) {
-		return parisan_core_public_booking_error( __( 'درخواست‌های زیادی ثبت شده است؛ کمی بعد دوباره تلاش کنید.', 'parisan-core' ), 429 );
+		$response = parisan_core_public_booking_error( __( 'درخواست‌های زیادی ثبت شده است؛ کمی بعد دوباره تلاش کنید.', 'parisan-core' ), 429 );
+		$details = $result->get_error_data();
+		if ( is_array( $details ) && ! empty( $details['retry_after'] ) ) {
+			$response->header( 'Retry-After', (string) absint( $details['retry_after'] ) );
+		}
+		return $response;
 	}
 	return parisan_core_public_booking_error( __( 'سرویس موقتاً در دسترس نیست؛ کمی بعد تلاش کنید.', 'parisan-core' ), 503 );
 }
