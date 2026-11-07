@@ -51,6 +51,7 @@ $html = parisan_core_booking_shortcode();
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-booking' ), 'booking shortcode renders its accessible root' );
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-create-form' ), 'booking shortcode renders the create form' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Service' ), 'published services are offered in the wizard' );
+parisan_public_enabled_assert( false !== strpos( $html, 'تومان' ) && false !== strpos( $html, 'دقیقه' ), 'wizard displays fixed service price and duration before booking' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Specialist' ), 'eligible specialists are offered in the wizard' );
 parisan_public_enabled_assert( wp_script_is( 'parisan-public-booking', 'enqueued' ), 'public booking JavaScript is enqueued' );
 parisan_public_enabled_assert( wp_style_is( 'parisan-public-booking', 'enqueued' ), 'public booking CSS is enqueued' );
