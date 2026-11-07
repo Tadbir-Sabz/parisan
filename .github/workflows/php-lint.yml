@@ -294,6 +294,25 @@ jobs:
               fwrite( STDERR, "Reschedule into an unavailable exception interval was not rejected.\\n" );
               exit( 1 );
             }
+            $reschedule_trigger_name = "parisan_ci_fail_reschedule_event";
+            $reschedule_trigger_sql = "CREATE TRIGGER " . $reschedule_trigger_name . " BEFORE INSERT ON " . $quoted_events_table . " FOR EACH ROW SIGNAL SQLSTATE " . chr( 39 ) . "45000" . chr( 39 ) . " SET MESSAGE_TEXT = " . chr( 39 ) . "forced_reschedule_audit_failure" . chr( 39 );
+            $reschedule_trigger_created = $wpdb->query( $reschedule_trigger_sql );
+            if ( false === $reschedule_trigger_created ) {
+              fwrite( STDERR, "Could not create the disposable reschedule audit-failure trigger: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $reschedule_rollback_result = null;
+            try {
+              $reschedule_rollback_result = parisan_core_reschedule_booking( $created["booking_id"], "2026-11-09 11:15", "CI forced audit rollback" );
+            } finally {
+              $wpdb->query( "DROP TRIGGER IF EXISTS " . $reschedule_trigger_name );
+            }
+            $reschedule_rollback_error = is_wp_error( $reschedule_rollback_result ) ? $reschedule_rollback_result->get_error_code() : "not_wp_error";
+            $start_after_reschedule_rollback = $wpdb->get_var( $wpdb->prepare( "SELECT starts_at_utc FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
+            if ( "parisan_booking_audit_failed" !== $reschedule_rollback_error || "2026-11-09 10:45:00" !== $start_after_reschedule_rollback ) {
+              fwrite( STDERR, "Reschedule audit failure did not roll back the booking time. error=" . $reschedule_rollback_error . ", start=" . $start_after_reschedule_rollback . "\\n" );
+              exit( 1 );
+            }
             wp_set_current_user( 1 );
             if ( ! function_exists( "parisan_core_transition_booking" ) ) {
               fwrite( STDERR, "Booking lifecycle service was not loaded.\\n" );
