@@ -32,7 +32,8 @@ The availability foundation calculates candidate appointment starts for a salon-
 * WordPress personal-data exporter and eraser for booking records.
 * Administrator-controlled, opt-in anonymization of old terminal bookings; disabled by default.
 * Public API foundation for date-bounded availability, pending booking creation, and token-scoped customer view/cancellation; routes are registered only with an explicit owner feature flag.
-* 256-bit customer access tokens stored as HMAC digests, with expiry, rotation, and transactional cancellation/audit.
+* 256-bit customer access tokens stored as HMAC digests, with expiry, rotation, privacy-erasure revocation, and transactional cancellation/audit.
+* Persian-first responsive `[parisan_booking]` shortcode for availability selection, pending booking requests, one-time token display/copy, and token-based booking lookup/cancellation.
 
 == Important privacy and availability boundaries ==
 
@@ -42,7 +43,7 @@ The public REST API is disabled by default. The owner must explicitly define `PA
 
 WordPress privacy export includes booking details and associated event notes. Erasure anonymizes terminal bookings and removes their free-form event notes while preserving operational history. Pending and confirmed bookings are retained while needed to fulfil the appointment. Automatic anonymization is disabled by default and requires an administrator to choose a retention period. The site owner remains responsible for selecting a period appropriate to applicable legal and accounting duties, and for backup/processor retention.
 
-Break management, resource schedules, full customer portal/rescheduling, email/SMS, payment, forms, SEO, and browser booking UX remain future work. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
+Break management, resource schedules, full account-based customer portal/rescheduling, email/SMS, payment, forms, and SEO remain future work. The initial shortcode UI exists, but browser/device/accessibility review is still UNVERIFIED. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
 
 == Installation ==
 
@@ -52,6 +53,7 @@ Break management, resource schedules, full customer portal/rescheduling, email/S
 4. Add specialists and configure their weekly hours.
 5. Open Specialists -> Calendar and Holidays to record date-specific unavailability.
 6. Administrators can review privacy controls under Specialists -> Privacy and Data Retention.
+7. Add `[parisan_booking]` to a WordPress page to render the booking wizard. It shows a disabled notice until the owner explicitly enables the public API constant; do not enable it before deployment security review.
 
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
