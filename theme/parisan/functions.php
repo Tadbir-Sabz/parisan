@@ -104,6 +104,8 @@ function parisan_customize_brand_register( $wp_customize ) {
 		'parisan_brand_page' => array( '#fbf8f3', 'color', __( 'رنگ پس‌زمینه صفحات', 'parisan' ) ),
 		'parisan_brand_surface' => array( '#fffdf9', 'color', __( 'رنگ سطح کارت‌ها', 'parisan' ) ),
 		'parisan_brand_gold' => array( '#b69a70', 'color', __( 'رنگ تأکیدی و جزئیات', 'parisan' ) ),
+		'parisan_brand_dark_accent' => array( '#e0b7ca', 'color', __( 'رنگ اصلی در حالت تاریک', 'parisan' ) ),
+		'parisan_brand_dark_accent_dark' => array( '#f0d6e2', 'color', __( 'رنگ تیترها در حالت تاریک', 'parisan' ) ),
 		'parisan_brand_font' => array( 'tahoma', 'select', __( 'فونت رابط فارسی', 'parisan' ) ),
 		'parisan_brand_font_scale' => array( '16px', 'select', __( 'اندازه پایه متن', 'parisan' ) ),
 		'parisan_announcement_text' => array( '', 'text', __( 'متن نوار اطلاع‌رسانی', 'parisan' ) ),
@@ -149,6 +151,8 @@ function parisan_output_brand_tokens() {
 		'--parisan-paper' => sanitize_hex_color( get_theme_mod( 'parisan_brand_page', '#fbf8f3' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_page', '#fbf8f3' ) ) : '#fbf8f3',
 		'--parisan-surface' => sanitize_hex_color( get_theme_mod( 'parisan_brand_surface', '#fffdf9' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_surface', '#fffdf9' ) ) : '#fffdf9',
 		'--parisan-gold' => sanitize_hex_color( get_theme_mod( 'parisan_brand_gold', '#b69a70' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_gold', '#b69a70' ) ) : '#b69a70',
+		'--parisan-dark-plum' => sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent', '#e0b7ca' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent', '#e0b7ca' ) ) : '#e0b7ca',
+		'--parisan-dark-plum-dark' => sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent_dark', '#f0d6e2' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent_dark', '#f0d6e2' ) ) : '#f0d6e2',
 		'--parisan-body-size' => in_array( get_theme_mod( 'parisan_brand_font_scale', '16px' ), array( '15px', '16px', '17px' ), true ) ? get_theme_mod( 'parisan_brand_font_scale', '16px' ) : '16px',
 	);
 	$fonts = array( 'tahoma' => 'Tahoma, Segoe UI, sans-serif', 'arial' => 'Arial, Tahoma, sans-serif', 'system' => 'system-ui, Tahoma, sans-serif' );
