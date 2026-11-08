@@ -44,7 +44,7 @@ function parisan_core_seo_plugin_controls_output() {
 		|| defined( 'RANK_MATH_VERSION' )
 		|| defined( 'SEOPRESS_VERSION' )
 		|| defined( 'AIOSEO_VERSION' )
-		|| class_exists( '\\The_SEO_Framework\\Load' );
+		|| class_exists( '\The_SEO_Framework\Load' );
 }
 
 /**
@@ -63,7 +63,7 @@ function parisan_core_current_meta_description() {
 	if ( '' === trim( $description ) ) {
 		$description = parisan_core_seo_settings()['default_description'];
 	}
-	$description = trim( preg_replace( '/\\s+/', ' ', wp_strip_all_tags( $description ) ) );
+	$description = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $description ) ) );
 	if ( function_exists( 'mb_substr' ) ) {
 		return mb_substr( $description, 0, 160 );
 	}
@@ -83,21 +83,21 @@ function parisan_core_output_seo_metadata() {
 	$url = is_singular() ? get_permalink() : ( is_post_type_archive() ? get_post_type_archive_link( get_query_var( 'post_type' ) ) : home_url( '/' ) );
 	$title = wp_get_document_title();
 	if ( $description ) {
-		printf( "<meta name=\\"description\\" content=\\"%s\\">\\n", esc_attr( $description ) );
+		printf( "<meta name=\"description\" content=\"%s\">\n", esc_attr( $description ) );
 	}
 	if ( $url ) {
-		printf( "<link rel=\\"canonical\\" href=\\"%s\\">\\n", esc_url( $url ) );
-		printf( "<meta property=\\"og:url\\" content=\\"%s\\">\\n", esc_url( $url ) );
+		printf( "<link rel=\"canonical\" href=\"%s\">\n", esc_url( $url ) );
+		printf( "<meta property=\"og:url\" content=\"%s\">\n", esc_url( $url ) );
 	}
-	printf( "<meta property=\\"og:type\\" content=\\"%s\\">\\n", is_singular( 'parisan_service' ) ? 'product' : 'website' );
-	printf( "<meta property=\\"og:title\\" content=\\"%s\\">\\n", esc_attr( $title ) );
+	printf( "<meta property=\"og:type\" content=\"%s\">\n", is_singular( 'parisan_service' ) ? 'product' : 'website' );
+	printf( "<meta property=\"og:title\" content=\"%s\">\n", esc_attr( $title ) );
 	if ( $description ) {
-		printf( "<meta property=\\"og:description\\" content=\\"%s\\">\\n", esc_attr( $description ) );
+		printf( "<meta property=\"og:description\" content=\"%s\">\n", esc_attr( $description ) );
 	}
 	if ( is_singular() && has_post_thumbnail() ) {
 		$image = get_the_post_thumbnail_url( get_queried_object_id(), 'large' );
 		if ( $image ) {
-			printf( "<meta property=\\"og:image\\" content=\\"%s\\">\\n", esc_url( $image ) );
+			printf( "<meta property=\"og:image\" content=\"%s\">\n", esc_url( $image ) );
 		}
 	}
 	$settings = parisan_core_seo_settings();
@@ -118,7 +118,7 @@ function parisan_core_output_seo_metadata() {
 		if ( $excerpt ) {
 			$schema['description'] = wp_strip_all_tags( $excerpt );
 		}
-		echo "<script type=\\"application/ld+json\\">" . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\\n";
+		echo "<script type=\"application/ld+json\">" . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\n";
 	}
 }
 add_action( 'wp_head', 'parisan_core_output_seo_metadata', 2 );
