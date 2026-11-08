@@ -28,6 +28,7 @@ parisan_primary_menu_fallback();
 $navigation = ob_get_clean();
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#services' ) ), 'fallback navigation links to the services section' );
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#team' ) ), 'fallback navigation links to the team section' );
+parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#portfolio' ) ), 'fallback navigation links to the portfolio section' );
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#booking' ) ), 'fallback navigation links to booking from every page' );
 
 $service_id = wp_insert_post(
