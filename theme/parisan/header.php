@@ -16,6 +16,8 @@ defined( 'ABSPATH' ) || exit;
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 <a class="skip-link" href="#main-content"><?php esc_html_e( 'رفتن به محتوای اصلی', 'parisan' ); ?></a>
+<?php $announcement = parisan_public_setting( 'parisan_announcement_text' ); ?>
+<?php if ( $announcement ) : ?><div class="parisan-announcement"><?php if ( parisan_public_setting( 'parisan_announcement_url' ) ) : ?><a href="<?php echo esc_url( parisan_public_setting( 'parisan_announcement_url' ) ); ?>"><?php echo esc_html( $announcement ); ?></a><?php else : ?><?php echo esc_html( $announcement ); ?><?php endif; ?></div><?php endif; ?>
 <header class="site-header">
 	<div class="container header-inner">
 		<div class="site-branding">
