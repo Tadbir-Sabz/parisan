@@ -46,6 +46,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 
 - [x] Product plan, roadmap, and mandatory agent rules.
 - [x] Theme bootstrap, semantic header/footer, responsive RTL design system, dynamic editorial homepage, service/specialist preview cards, booking section, accessible fallback navigation, and owner-selectable homepage hero image through the WordPress Customizer. Browser visual review remains UNVERIFIED.
+- [~] Accessible light/dark preference toggle (system default + saved user choice) and mobile sticky booking shortcut that yields while the booking section is visible; browser/device and assistive-technology validation remain UNVERIFIED.
 - [x] Service catalogue archive and detail templates.
 - [x] Parisan Core service and specialist content types.
 - [x] Service duration and pricing fields with nonce, capability, sanitization, and bounded values.
