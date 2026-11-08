@@ -99,6 +99,9 @@ parisan_theme_smoke_assert( '' === $seo_settings['organization_url'], 'SEO setti
 $_GET['customer_token'] = 'synthetic-token';
 parisan_theme_smoke_assert( parisan_core_request_is_private_or_booking(), 'customer-token request is marked non-cacheable' );
 unset( $_GET['customer_token'] );
+$_GET['rest_route'] = '/parisan/v1/availability';
+parisan_theme_smoke_assert( parisan_core_request_is_private_or_booking(), 'query-style Parisan REST customer API request is marked non-cacheable' );
+unset( $_GET['rest_route'] );
 parisan_theme_smoke_assert( false === parisan_core_seo_plugin_controls_output(), 'first-party SEO output is available when no SEO plugin owns metadata' );
 update_post_meta( $service_id, '_parisan_seo_title', 'عنوان سئوی آزمایشی خدمت' );
 update_post_meta( $service_id, '_parisan_seo_description', 'توضیحات اختصاصی آزمایشی برای صفحه خدمت.' );
