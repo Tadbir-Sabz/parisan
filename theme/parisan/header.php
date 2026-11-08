@@ -34,11 +34,11 @@ defined( 'ABSPATH' ) || exit;
 					'theme_location' => 'primary',
 					'container'      => false,
 					'menu_class'     => 'menu-list',
-					'fallback_cb'    => false,
+					'fallback_cb'    => 'parisan_primary_menu_fallback',
 				)
 			);
 			?>
 		</nav>
-		<a class="button button-small header-booking" href="#booking"><?php esc_html_e( 'دریافت نوبت', 'parisan' ); ?></a>
+		<a class="button button-small header-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php esc_html_e( 'دریافت نوبت', 'parisan' ); ?></a>
 	</div>
 </header>
