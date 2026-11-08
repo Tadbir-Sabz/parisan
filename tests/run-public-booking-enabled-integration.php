@@ -29,6 +29,11 @@ do_action( 'wp_enqueue_scripts' );
 parisan_public_enabled_assert( wp_style_is( 'parisan-public-booking', 'enqueued' ), 'public booking stylesheet is enqueued before wp_head on the homepage' );
 parisan_public_enabled_assert( wp_script_is( 'parisan-public-booking', 'enqueued' ), 'public booking script is enqueued before wp_head on the homepage' );
 
+ob_start();
+wp_head();
+$booking_head_html = ob_get_clean();
+parisan_public_enabled_assert( false !== strpos( $booking_head_html, 'public-booking.css' ), 'public booking stylesheet is printed in the document head' );
+
 do_action( 'rest_api_init', rest_get_server() );
 $routes = rest_get_server()->get_routes();
 foreach ( array( '/parisan/v1/availability', '/parisan/v1/bookings', '/parisan/v1/customer-booking', '/parisan/v1/customer-booking/cancel', '/parisan/v1/customer-booking/availability', '/parisan/v1/customer-booking/reschedule' ) as $route ) {
