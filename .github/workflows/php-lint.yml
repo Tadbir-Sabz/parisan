@@ -44,6 +44,8 @@ jobs:
         run: |
           node --check plugin/parisan-core/assets/js/booking-admin.js
           node --check plugin/parisan-core/assets/js/public-booking.js
+          node --check theme/parisan/assets/js/theme.js
+          node tests/run-theme-js-tests.js
 
       - name: Run schedule and availability tests
         run: php tests/run-schedule-tests.php
