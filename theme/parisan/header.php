@@ -42,3 +42,6 @@ defined( 'ABSPATH' ) || exit;
 		<a class="button button-small header-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php esc_html_e( 'دریافت نوبت', 'parisan' ); ?></a>
 	</div>
 </header>
+<?php if ( function_exists( 'parisan_core_render_breadcrumbs' ) ) : ?>
+	<?php parisan_core_render_breadcrumbs(); ?>
+<?php endif; ?>
