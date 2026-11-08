@@ -21,7 +21,7 @@ Parisan is a premium, Persian-first WordPress experience for women's beauty salo
 
 - Responsive, accessible RTL website and brand-quality public pages.
 - First-party salon catalogue, booking engine, staff scheduling, customer portal, and operations dashboard.
-- First-party SEO, forms, performance/caching controls, and privacy-conscious settings.
+- First-party SEO metadata, forms, performance/caching controls, and privacy-conscious settings.
 - Adapter-based Melipayamak SMS integration.
 - Optional WooCommerce and Elementor integrations with graceful fallback.
 - Deliberately designed light/dark modes.
@@ -31,7 +31,7 @@ Parisan is a premium, Persian-first WordPress experience for women's beauty salo
 The product ships as a coordinated **theme + first-party companion plugin**:
 
 - **Parisan Beauty theme:** presentation, templates, design system, responsive behavior, accessibility.
-- **Parisan Core plugin:** durable business data and logic, including services, staff, bookings, customers, notifications, forms, SEO, and operational settings.
+- **Parisan Core plugin:** durable business data and logic, including services, staff, bookings, customers, notifications, forms, SEO metadata, privacy-aware cache boundaries, and operational settings.
 - Business data must survive theme changes. Do not put bookings or customer records in theme options or theme-only post types.
 - WooCommerce and Elementor are optional integrations, not mandatory dependencies and not silently bundled.
 
@@ -84,7 +84,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
 - [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
 - [~] Availability, date-exception administration, internal booking creation, controlled status lifecycle, and concurrency-safe rescheduling implemented and CI-verified. Booking accepts only fixed service prices; booking and calendar exception writes share the staff lock. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, browser privacy/admin visual and accessibility review, break management, and resource schedules remain pending.
-- [ ] Customer portal, SMS, forms, SEO, caching, and integrations.
+- [~] Initial SEO metadata and cache-safety boundaries; advanced SEO, sitemap, cache adapters/diagnostics, customer portal, SMS, forms, and integrations remain in the roadmap.
 - [x] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md), [ADR-0006](docs/decisions/ADR-0006-controlled-booking-lifecycle.md), [ADR-0007](docs/decisions/ADR-0007-staff-booking-operations-screen.md), [ADR-0008](docs/decisions/ADR-0008-staff-created-manual-bookings.md), [ADR-0009](docs/decisions/ADR-0009-booking-detail-and-audit-timeline.md), [ADR-0010](docs/decisions/ADR-0010-concurrency-safe-rescheduling.md), [ADR-0011](docs/decisions/ADR-0011-booking-personal-data-lifecycle.md), and [ADR-0012](docs/decisions/ADR-0012-public-booking-api-and-customer-tokens.md) for booking, privacy, and public API boundaries.
 
 **Do not infer runtime readiness from source files.** This is an implementation foundation, not a production release. Each feature requires evidence from automated tests and relevant manual flows.
