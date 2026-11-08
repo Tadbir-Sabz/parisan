@@ -280,7 +280,7 @@ body { background: var(--parisan-paper); color: var(--parisan-ink); }
 }
 
 /* Keep anchored sections visible below the sticky header. */
-#services, #team, #booking { scroll-margin-top: 112px; }
+#services, #team, #portfolio, #booking { scroll-margin-top: 112px; }
 
 
 /* Optional owner-selected homepage photography layered under the brand artwork. */
