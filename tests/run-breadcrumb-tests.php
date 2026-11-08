@@ -91,6 +91,29 @@ $sitemap_args = apply_filters(
 	),
 	'parisan_service'
 );
+$preserved_meta_args = apply_filters(
+	'wp_sitemaps_posts_query_args',
+	array(
+		'post_type'   => 'parisan_service',
+		'post_status' => array( 'publish' ),
+		'meta_query'  => array(
+			'relation' => 'OR',
+			array(
+				'key'   => '_parisan_test_flag',
+			'value' => 'yes',
+			),
+			array(
+				'key'   => '_parisan_other_flag',
+			'value' => 'yes',
+			),
+		),
+	),
+	'parisan_service'
+);
+parisan_test_breadcrumb_assert( 'AND' === $preserved_meta_args['meta_query']['relation'], 'Noindex exclusion must be ANDed with existing sitemap meta-query constraints.' );
+parisan_test_breadcrumb_assert( 'OR' === $preserved_meta_args['meta_query'][0]['relation'], 'Existing nested OR meta-query semantics were not preserved.' );
+parisan_test_breadcrumb_assert( 'OR' === $preserved_meta_args['meta_query'][1]['relation'], 'Noindex exclusion must remain a nested OR clause.' );
+
 $sitemap_query = new WP_Query( $sitemap_args );
 $sitemap_ids = wp_list_pluck( $sitemap_query->posts, 'ID' );
 parisan_test_breadcrumb_assert( in_array( (int) $visible_service_id, $sitemap_ids, true ), 'Indexable service was unexpectedly excluded from the core sitemap.' );
