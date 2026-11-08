@@ -44,7 +44,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Define complete RTL/LTR interaction rules and dark/light tokens.
 - [x] Add initial theme scaffold, semantic header/footer, navigation, dedicated front page, standard page/post, archive, search, and 404 templates, and responsive RTL-aware base styles.
 - [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
-- [ ] Build public templates: home, service archive/detail, team, gallery, blog, contact, FAQ, policies, search, 404.
+- [~] Build public templates: dynamic editorial homepage and service/staff catalogue archive/detail foundations are implemented; gallery, blog, contact, FAQ, policies, and remaining content templates are pending. Browser rendering and responsive visual review remain UNVERIFIED.
 - [ ] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action.
 - [ ] Validate content editing and Elementor coexistence/fallback.
 - [ ] Create visual regression baselines for key viewports.
