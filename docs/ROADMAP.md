@@ -105,16 +105,16 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 **Status:** [~] IN PROGRESS — initial metadata, structured-data, and privacy-aware cache boundaries implemented; sitemap extensions, crawler controls, vendor cache adapters, and performance diagnostics pending
 
-**Status:** [ ] NOT STARTED
-
 - [~] Implement SEO metadata templates, canonical, Open Graph, and Service JSON-LD; per-content title/description and site defaults are implemented. Robots/noindex controls, sitemap extensions, and breadcrumbs remain pending.
-- [ ] Implement duplicate-output detection and coexistence controls for other SEO plugins.
+- [x] Implement duplicate-output detection and coexistence controls for Yoast SEO, Rank Math, SEOPress, All in One SEO, and The SEO Framework using explicit ownership detection; full version/plugin-matrix compatibility remains UNVERIFIED.
 - [ ] Add redirect management and privacy-safe 404 diagnostics if justified.
 - [ ] Implement page-specific asset loading, image optimization, font strategy, and Core Web Vitals instrumentation guidance.
 - [~] Implement safe first-party cache boundaries: logged-in, booking-shortcode, tokenized customer, and Parisan customer REST contexts receive no-store protection; public-content invalidation hook is available. Persistent object-cache detection, cache diagnostics, full-page cache adapters, and measured purge verification remain pending.
 - [x] Explicitly bypass public cache for authenticated, booking-shortcode, tokenized customer, and Parisan customer REST contexts using WordPress cache flags and no-store headers; reverse-proxy behavior remains UNVERIFIED.
 - [ ] Benchmark representative pages and queries; tune database indexes and query plans.
 - [ ] Validate sitemap, metadata, structured data, crawlability, and real mobile performance.
+
+- [x] CI on runtime/test commit `933275c`: PHP 8.1/8.2/8.3 lint, WordPress theme/SEO/cache smoke, privacy/customer integration, and PHP 8.1/8.2/8.3 abuse-control matrix all PASS — [PHP/WordPress run 42452747362](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452747362), [WordPress/MariaDB run 42452747334](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452747334), [privacy matrix run 42452747312](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452747312). Later commits through `c2f54dd` are documentation-only.
 
 **Gate P5:** no duplicate SEO output; sitemap, metadata, and structured data validated; cache-plugin/reverse-proxy purge and bypass behavior verified; performance report meets agreed targets or documents justified gaps; no private data cached publicly.
 
