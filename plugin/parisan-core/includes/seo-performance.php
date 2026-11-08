@@ -187,6 +187,13 @@ function parisan_core_save_seo_meta( $post_id ) {
 }
 add_action( 'save_post', 'parisan_core_save_seo_meta' );
 
+
+/** Remove WordPress core canonical output; Parisan or an SEO plugin owns it. */
+function parisan_core_remove_core_canonical() {
+	remove_action( 'wp_head', 'rel_canonical' );
+}
+add_action( 'init', 'parisan_core_remove_core_canonical', 1 );
+
 /**
  * Register a small Persian-first SEO settings screen.
  *
@@ -207,9 +214,15 @@ function parisan_core_register_seo_settings() {
 	add_settings_field( 'organization_name', __( 'نام سالن / کسب‌وکار', 'parisan-core' ), 'parisan_core_render_seo_name_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
 	add_settings_field( 'organization_url', __( 'نشانی رسمی سایت', 'parisan-core' ), 'parisan_core_render_seo_url_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
 	add_settings_field( 'output_json_ld', __( 'داده ساختاریافته خدمات', 'parisan-core' ), 'parisan_core_render_seo_schema_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
-	add_submenu_page( 'edit.php?post_type=parisan_staff', __( 'سئو و عملکرد', 'parisan-core' ), __( 'سئو و عملکرد', 'parisan-core' ), 'manage_options', 'parisan-core-seo', 'parisan_core_render_seo_settings_page' );
+
 }
 add_action( 'admin_init', 'parisan_core_register_seo_settings' );
+
+/** Register the SEO page in the WordPress admin menu. */
+function parisan_core_add_seo_admin_menu() {
+	add_submenu_page( 'edit.php?post_type=parisan_staff', __( 'سئو و عملکرد', 'parisan-core' ), __( 'سئو و عملکرد', 'parisan-core' ), 'manage_options', 'parisan-core-seo', 'parisan_core_render_seo_settings_page' );
+}
+add_action( 'admin_menu', 'parisan_core_add_seo_admin_menu' );
 
 /**
  * Sanitize SEO settings.
