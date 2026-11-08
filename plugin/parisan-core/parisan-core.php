@@ -3,7 +3,7 @@
  * Plugin Name: Parisan Core
  * Plugin URI: https://github.com/Tadbir-Sabz/parisan
  * Description: First-party salon operations foundation for the Parisan Beauty theme.
- * Version: 0.16.0
+ * Version: 0.17.0
  * Author: Tadbir-Sabz
  * License: GPL-2.0-or-later
  * Text Domain: parisan-core
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_VERSION', '0.16.0' );
+define( 'PARISAN_CORE_VERSION', '0.17.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PARISAN_CORE_URL', plugin_dir_url( __FILE__ ) );
