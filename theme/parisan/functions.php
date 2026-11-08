@@ -119,6 +119,13 @@ function parisan_enqueue_assets() {
 		array(),
 		PARISAN_THEME_VERSION
 	);
+	wp_enqueue_script(
+		'parisan-theme',
+		PARISAN_THEME_URI . '/assets/js/theme.js',
+		array(),
+		PARISAN_THEME_VERSION,
+		array( 'in_footer' => true, 'strategy' => 'defer' )
+	);
 }
 add_action( 'wp_enqueue_scripts', 'parisan_enqueue_assets' );
 
