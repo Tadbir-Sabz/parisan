@@ -187,6 +187,10 @@ function parisan_primary_menu_fallback() {
 		array( home_url( '/#services' ), __( 'خدمات', 'parisan' ) ),
 		array( home_url( '/#team' ), __( 'متخصصان', 'parisan' ) ),
 		array( home_url( '/#portfolio' ), __( 'نمونه‌کارها', 'parisan' ) ),
+		array( get_option( 'page_for_posts' ) ? get_permalink( get_option( 'page_for_posts' ) ) : home_url( '/blog/' ), __( 'مجله', 'parisan' ) ),
+		array( home_url( '/about/' ), __( 'درباره ما', 'parisan' ) ),
+		array( home_url( '/contact/' ), __( 'تماس با ما', 'parisan' ) ),
+		array( home_url( '/faq/' ), __( 'سؤالات متداول', 'parisan' ) ),
 		array( home_url( '/#booking' ), __( 'رزرو نوبت', 'parisan' ) ),
 	);
 	foreach ( $items as $item ) {
