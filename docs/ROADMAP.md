@@ -114,7 +114,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Benchmark representative pages and queries; tune database indexes and query plans.
 - [ ] Validate sitemap, metadata, structured data, crawlability, and real mobile performance.
 
-- [x] CI on runtime/test commit `933275c`: PHP 8.1/8.2/8.3 lint, WordPress theme/SEO/cache smoke, privacy/customer integration, and PHP 8.1/8.2/8.3 abuse-control matrix all PASS — [PHP/WordPress run 42452747362](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452747362), [WordPress/MariaDB run 42452747334](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452747334), [privacy matrix run 42452747312](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452747312). Later commits through `c2f54dd` are documentation-only.
+- [x] CI on runtime/test commit `c01e55e`: PHP 8.1/8.2/8.3 lint, WordPress theme/SEO/cache smoke, privacy/customer integration, and PHP 8.1/8.2/8.3 abuse-control matrix all PASS — [PHP/WordPress run 42452870953](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870953), [WordPress/MariaDB run 42452870912](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870912), [privacy matrix run 42452870925](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870925). Later commits are documentation-only.
 
 **Gate P5:** no duplicate SEO output; sitemap, metadata, and structured data validated; cache-plugin/reverse-proxy purge and bypass behavior verified; performance report meets agreed targets or documents justified gaps; no private data cached publicly.
 
