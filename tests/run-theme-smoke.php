@@ -19,6 +19,9 @@ function parisan_theme_smoke_assert( $condition, $message ) {
 }
 
 parisan_theme_smoke_assert( 'parisan' === get_stylesheet(), 'Parisan theme is active' );
+parisan_theme_smoke_assert( post_type_exists( 'parisan_portfolio' ), 'first-party portfolio content type is registered' );
+parisan_theme_smoke_assert( taxonomy_exists( 'parisan_portfolio_category' ), 'portfolio category taxonomy is registered' );
+parisan_theme_smoke_assert( is_string( get_post_type_archive_link( 'parisan_portfolio' ) ) && '' !== get_post_type_archive_link( 'parisan_portfolio' ), 'portfolio archive URL is available' );
 parisan_theme_smoke_assert( function_exists( 'parisan_primary_menu_fallback' ), 'primary navigation fallback is registered' );
 ob_start();
 parisan_primary_menu_fallback();
@@ -40,6 +43,17 @@ parisan_theme_smoke_assert( ! is_wp_error( $service_id ), 'synthetic service is 
 update_post_meta( $service_id, '_parisan_duration', 45 );
 update_post_meta( $service_id, '_parisan_price', 250000 );
 update_post_meta( $service_id, '_parisan_price_type', 'fixed' );
+
+$portfolio_id = wp_insert_post(
+	array(
+		'post_type'   => 'parisan_portfolio',
+		'post_status' => 'publish',
+		'post_title'  => 'Synthetic Portfolio Work',
+		'post_excerpt' => 'Synthetic portfolio work description.',
+	),
+	true
+);
+parisan_theme_smoke_assert( ! is_wp_error( $portfolio_id ), 'synthetic portfolio work is created' );
 
 $staff_id = wp_insert_post(
 	array(
@@ -77,6 +91,8 @@ remove_theme_mod( 'parisan_hero_image' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیباییِ شما، با امضای ظرافت' ), 'editorial Persian hero renders' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Service' ), 'homepage renders real published service content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Specialist' ), 'homepage renders real published specialist content' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Portfolio Work' ), 'homepage renders published portfolio work' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="portfolio"' ), 'homepage exposes the portfolio section' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ), 'disabled booking shortcode displays its safe disabled state' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
@@ -128,4 +144,4 @@ parisan_theme_smoke_assert( false !== strpos( $seo_head, 'name="description"' ) 
 parisan_theme_smoke_assert( false !== strpos( $seo_head, 'rel="canonical"' ) && false !== strpos( $seo_head, 'og:title' ), 'canonical and Open Graph metadata are emitted' );
 parisan_theme_smoke_assert( false !== strpos( $seo_head, 'application/ld+json' ) && false !== strpos( $seo_head, '"@type":"Service"' ), 'service JSON-LD is emitted for service detail pages' );
 
-echo "PASS: Parisan theme, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
+echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
