@@ -54,6 +54,8 @@ parisan_theme_smoke_assert( ! is_wp_error( $staff_id ), 'synthetic specialist is
 update_post_meta( $staff_id, '_parisan_staff_role', 'متخصص آزمایشی' );
 
 global $wp_query, $post;
+$original_wp_query = $wp_query;
+$original_post = $post;
 $wp_query = new WP_Query(
 	array(
 		'post_type'      => 'page',
@@ -68,6 +70,8 @@ set_theme_mod( 'parisan_hero_image', 'https://example.test/parisan-hero.jpg' );
 ob_start();
 include get_template_directory() . '/front-page.php';
 $homepage = ob_get_clean();
+$wp_query = $original_wp_query;
+$post = $original_post;
 remove_theme_mod( 'parisan_hero_image' );
 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیباییِ شما، با امضای ظرافت' ), 'editorial Persian hero renders' );
