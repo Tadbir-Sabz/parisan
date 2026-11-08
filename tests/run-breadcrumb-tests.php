@@ -64,6 +64,38 @@ parisan_test_breadcrumb_assert( is_array( $schema ) && 'BreadcrumbList' === $sch
 parisan_test_breadcrumb_assert( 3 === count( $schema['itemListElement'] ), 'BreadcrumbList positions are incomplete.' );
 parisan_test_breadcrumb_assert( get_permalink( $service_id ) === $schema['itemListElement'][2]['item'], 'The current breadcrumb schema item must use the canonical service URL.' );
 
+$visible_service_id = wp_insert_post(
+	array(
+		'post_type'   => 'parisan_service',
+		'post_status' => 'publish',
+		'post_title'  => 'Synthetic sitemap-visible service',
+	),
+	true
+);
+$noindex_service_id = wp_insert_post(
+	array(
+		'post_type'   => 'parisan_service',
+		'post_status' => 'publish',
+		'post_title'  => 'Synthetic sitemap-hidden service',
+	),
+	true
+);
+parisan_test_breadcrumb_assert( ! is_wp_error( $visible_service_id ) && ! is_wp_error( $noindex_service_id ), 'Could not create synthetic sitemap services.' );
+update_post_meta( $noindex_service_id, '_parisan_seo_noindex', '1' );
+
+$sitemap_args = apply_filters(
+	'wp_sitemaps_posts_query_args',
+	array(
+		'post_type'   => 'parisan_service',
+		'post_status' => array( 'publish' ),
+	),
+	'parisan_service'
+);
+$sitemap_query = new WP_Query( $sitemap_args );
+$sitemap_ids = wp_list_pluck( $sitemap_query->posts, 'ID' );
+parisan_test_breadcrumb_assert( in_array( (int) $visible_service_id, $sitemap_ids, true ), 'Indexable service was unexpectedly excluded from the core sitemap.' );
+parisan_test_breadcrumb_assert( ! in_array( (int) $noindex_service_id, $sitemap_ids, true ), 'Noindex service was not excluded from the core sitemap.' );
+
 if ( ! defined( 'RANK_MATH_VERSION' ) ) {
 	define( 'RANK_MATH_VERSION', 'parisan-ci-test' );
 }
@@ -95,4 +127,4 @@ parisan_test_breadcrumb_assert( empty( $invalidated_ids ), 'Unrelated post delet
 do_action( 'deleted_post', $service_id, get_post( $service_id ) );
 parisan_test_breadcrumb_assert( array( (int) $service_id ) === $invalidated_ids, 'Deleting a Parisan service must trigger exactly one targeted invalidation event.' );
 
-echo "WordPress breadcrumb navigation and JSON-LD smoke test passed." . PHP_EOL;
+echo "WordPress breadcrumb, sitemap noindex, and JSON-LD smoke tests passed." . PHP_EOL;
