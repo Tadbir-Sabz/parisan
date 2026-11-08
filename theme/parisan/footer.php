@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 					'theme_location' => 'footer',
 					'container'      => false,
 					'menu_class'     => 'footer-menu',
-					'fallback_cb'    => false,
+					'fallback_cb'    => 'parisan_footer_menu_fallback',
 				)
 			);
 			?>
