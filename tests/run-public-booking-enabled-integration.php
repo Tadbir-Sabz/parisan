@@ -143,7 +143,7 @@ $customer_availability_request->set_param( 'date', $booking_date );
 $customer_availability_response = parisan_core_rest_customer_availability( $customer_availability_request );
 parisan_public_enabled_assert( 200 === $customer_availability_response->get_status(), 'customer-token availability route returns reschedule candidates' );
 $customer_available_times = wp_list_pluck( $customer_availability_response->get_data()['slots'], 'starts_at_local' );
-parisan_public_enabled_assert( ! in_array( $booking_date . ' 11:00', $customer_available_times, true ) && in_array( $booking_date . ' 12:00', $customer_available_times, true ), 'customer availability excludes the current booking while preserving free times; actual=' . implode( ',', $customer_available_times ) );
+parisan_public_enabled_assert( in_array( $booking_date . ' 11:00', $customer_available_times, true ) && in_array( $booking_date . ' 12:00', $customer_available_times, true ), 'customer reschedule availability excludes its own booking from conflicts and offers the original and another free time' );
 
 $customer_reschedule_request = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
 $customer_reschedule_request->set_header( 'Origin', home_url( '/' ) );
