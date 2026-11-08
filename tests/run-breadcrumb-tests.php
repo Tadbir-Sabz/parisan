@@ -159,4 +159,12 @@ parisan_test_breadcrumb_assert( empty( $invalidated_ids ), 'Unrelated post delet
 do_action( 'deleted_post', $service_id, get_post( $service_id ) );
 parisan_test_breadcrumb_assert( array( (int) $service_id ) === $invalidated_ids, 'Deleting a Parisan service must trigger exactly one targeted invalidation event.' );
 
+wp_set_current_user( 1 );
+ob_start();
+parisan_core_render_seo_settings_page();
+$admin_markup = ob_get_clean();
+parisan_test_breadcrumb_assert( false !== strpos( $admin_markup, 'وضعیت کش در زمان اجرا' ), 'SEO settings page did not render the cache diagnostics heading.' );
+parisan_test_breadcrumb_assert( false !== strpos( $admin_markup, 'object-cache.php' ), 'SEO settings page did not render the object-cache drop-in signal.' );
+parisan_test_breadcrumb_assert( false === strpos( $admin_markup, 'password=' ), 'Cache diagnostics must not expose credential-like values.' );
+
 echo "WordPress breadcrumb, sitemap noindex, and JSON-LD smoke tests passed." . PHP_EOL;
