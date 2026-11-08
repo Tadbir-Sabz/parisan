@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_THEME_VERSION', '0.4.1' );
+define( 'PARISAN_THEME_VERSION', '0.5.0' );
 define( 'PARISAN_THEME_DIR', get_template_directory() );
 define( 'PARISAN_THEME_URI', get_template_directory_uri() );
 
@@ -85,6 +85,94 @@ function parisan_customize_register( $wp_customize ) {
 	);
 }
 add_action( 'customize_register', 'parisan_customize_register' );
+
+/**
+ * Register brand, contact, editorial, and global layout controls.
+ *
+ * @param WP_Customize_Manager $wp_customize Customizer manager.
+ * @return void
+ */
+function parisan_customize_brand_register( $wp_customize ) {
+	$wp_customize->add_section( 'parisan_brand', array(
+		'title'       => esc_html__( 'پاریسان — هویت بصری و برند', 'parisan' ),
+		'description' => esc_html__( 'رنگ‌ها، تایپوگرافی و اطلاعات عمومی سالن را بدون ویرایش کد تنظیم کنید.', 'parisan' ),
+		'priority'    => 36,
+	) );
+	$settings = array(
+		'parisan_brand_accent' => array( '#6f4657', 'color', __( 'رنگ اصلی برند', 'parisan' ) ),
+		'parisan_brand_accent_dark' => array( '#573443', 'color', __( 'رنگ تیره برند', 'parisan' ) ),
+		'parisan_brand_page' => array( '#fbf8f3', 'color', __( 'رنگ پس‌زمینه صفحات', 'parisan' ) ),
+		'parisan_brand_surface' => array( '#fffdf9', 'color', __( 'رنگ سطح کارت‌ها', 'parisan' ) ),
+		'parisan_brand_gold' => array( '#b69a70', 'color', __( 'رنگ تأکیدی و جزئیات', 'parisan' ) ),
+		'parisan_brand_font' => array( 'tahoma', 'select', __( 'فونت رابط فارسی', 'parisan' ) ),
+		'parisan_brand_font_scale' => array( '16px', 'select', __( 'اندازه پایه متن', 'parisan' ) ),
+		'parisan_announcement_text' => array( '', 'text', __( 'متن نوار اطلاع‌رسانی', 'parisan' ) ),
+		'parisan_announcement_url' => array( '', 'url', __( 'پیوند نوار اطلاع‌رسانی', 'parisan' ) ),
+		'parisan_contact_phone' => array( '', 'text', __( 'تلفن سالن', 'parisan' ) ),
+		'parisan_contact_email' => array( '', 'email', __( 'ایمیل عمومی', 'parisan' ) ),
+		'parisan_contact_address' => array( '', 'textarea', __( 'نشانی سالن', 'parisan' ) ),
+		'parisan_contact_hours' => array( '', 'text', __( 'ساعات پاسخ‌گویی', 'parisan' ) ),
+		'parisan_social_instagram' => array( '', 'url', __( 'نشانی اینستاگرام', 'parisan' ) ),
+		'parisan_social_whatsapp' => array( '', 'url', __( 'پیوند واتساپ', 'parisan' ) ),
+		'parisan_footer_description' => array( 'زیبایی، با آرامش و ظرافت.', 'textarea', __( 'توضیح کوتاه پابرگ', 'parisan' ) ),
+	);
+	foreach ( $settings as $id => $definition ) {
+		list( $default, $type, $label ) = $definition;
+		$sanitize = 'color' === $type ? 'sanitize_hex_color' : ( 'url' === $type ? 'esc_url_raw' : ( 'email' === $type ? 'sanitize_email' : ( 'textarea' === $type ? 'sanitize_textarea_field' : 'sanitize_text_field' ) ) );
+		$wp_customize->add_setting( $id, array( 'default' => $default, 'sanitize_callback' => $sanitize, 'transport' => 'refresh' ) );
+		$args = array( 'label' => $label, 'section' => 'parisan_brand' );
+		if ( 'parisan_brand_font' === $id ) {
+			$args['choices'] = array( 'tahoma' => 'Tahoma', 'arial' => 'Arial', 'system' => 'System UI' );
+		}
+		if ( 'parisan_brand_font_scale' === $id ) {
+			$args['choices'] = array( '15px' => 'کوچک', '16px' => 'استاندارد', '17px' => 'درشت' );
+		}
+		if ( 'color' === $type ) {
+			$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, $id, $args ) );
+		} else {
+			$args['type'] = 'textarea' === $type ? 'textarea' : ( 'select' === $type ? 'select' : $type );
+			$wp_customize->add_control( $id, $args );
+		}
+	}
+}
+add_action( 'customize_register', 'parisan_customize_brand_register', 20 );
+
+/**
+ * Output sanitized theme design tokens.
+ *
+ * @return void
+ */
+function parisan_output_brand_tokens() {
+	$tokens = array(
+		'--parisan-plum' => get_theme_mod( 'parisan_brand_accent', '#6f4657' ),
+		'--parisan-plum-dark' => get_theme_mod( 'parisan_brand_accent_dark', '#573443' ),
+		'--parisan-paper' => get_theme_mod( 'parisan_brand_page', '#fbf8f3' ),
+		'--parisan-surface' => get_theme_mod( 'parisan_brand_surface', '#fffdf9' ),
+		'--parisan-gold' => get_theme_mod( 'parisan_brand_gold', '#b69a70' ),
+		'--parisan-body-size' => get_theme_mod( 'parisan_brand_font_scale', '16px' ),
+	);
+	$fonts = array( 'tahoma' => 'Tahoma, "Segoe UI", sans-serif', 'arial' => 'Arial, Tahoma, sans-serif', 'system' => 'system-ui, Tahoma, sans-serif' );
+	$font = get_theme_mod( 'parisan_brand_font', 'tahoma' );
+	$tokens['--parisan-font'] = isset( $fonts[ $font ] ) ? $fonts[ $font ] : $fonts['tahoma'];
+	echo '<style id="parisan-brand-tokens">:root{';
+	foreach ( $tokens as $name => $value ) {
+		printf( '%1$s:%2$s;', esc_html( $name ), esc_html( $value ) );
+	}
+	echo '}</style>';
+}
+add_action( 'wp_head', 'parisan_output_brand_tokens', 20 );
+
+/**
+ * Read a public string theme setting.
+ *
+ * @param string $key Theme modification key.
+ * @return string
+ */
+function parisan_public_setting( $key ) {
+	$value = get_theme_mod( $key, '' );
+	return is_string( $value ) ? trim( $value ) : '';
+}
+
 
 
 /**
