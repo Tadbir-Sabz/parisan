@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.19.0
+Stable tag: 0.20.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -34,7 +34,7 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Public API foundation for date-bounded availability, pending booking creation, and token-scoped customer view/cancellation; routes are registered only with an explicit owner feature flag.
 * 256-bit customer access tokens stored as HMAC digests, with expiry, rotation, privacy-erasure revocation, and transactional cancellation/audit.
 * First-party SEO defaults and per-content title/description/noindex controls, canonical/Open Graph output, Service JSON-LD, accessible context-aware breadcrumbs, BreadcrumbList JSON-LD, and exclusion of per-content noindex pages from the WordPress core sitemap when no supported SEO plugin owns metadata.
-* Explicit no-store cache boundaries for logged-in, booking-shortcode, customer-token, and Parisan customer REST contexts; public-content invalidation hook and targeted LiteSpeed Cache, WP Rocket, and W3 Total Cache post-purge adapters.
+* Explicit no-store cache boundaries for logged-in, booking-shortcode, customer-token, and Parisan customer REST contexts; public-content invalidation hook, targeted LiteSpeed Cache/WP Rocket/W3 Total Cache post-purge adapters, and non-secret runtime cache diagnostics.
 * Persian-first responsive `[parisan_booking]` shortcode for availability selection, pending booking requests, one-time token display/copy, and token-based booking lookup/cancellation.
 
 == Important privacy and availability boundaries ==
@@ -45,7 +45,7 @@ The public REST API is disabled by default. The owner must explicitly define `PA
 
 WordPress privacy export includes booking details and associated event notes. Erasure anonymizes terminal bookings and removes their free-form event notes while preserving operational history. Pending and confirmed bookings are retained while needed to fulfil the appointment. Automatic anonymization is disabled by default and requires an administrator to choose a retention period. The site owner remains responsible for selecting a period appropriate to applicable legal and accounting duties, and for backup/processor retention.
 
-Break management, resource schedules, full account-based customer portal/rescheduling, email/SMS, payment, advanced SEO controls (sitemap extensions, redirects, SEO audits), CDN/reverse-proxy purge adapters and real cache diagnostics remain future work. The initial shortcode UI exists, but browser/device/accessibility review is still UNVERIFIED. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
+Break management, resource schedules, full account-based customer portal/rescheduling, email/SMS, payment, advanced SEO controls (sitemap extensions, redirects, SEO audits), CDN/reverse-proxy purge adapters, backend health checks, cache hit/miss metrics, and measured purge completion remain future work. The initial shortcode UI exists, but browser/device/accessibility review is still UNVERIFIED. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
 
 == Installation ==
 
@@ -60,6 +60,11 @@ Break management, resource schedules, full account-based customer portal/resched
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.20.0 =
+* Added a Persian admin diagnostics table for the persistent object-cache runtime flag, object-cache drop-in presence, and supported page-cache purge APIs.
+* Diagnostics do not expose cache keys/credentials or claim backend health/CDN purge completion.
+* Added isolated tests for runtime diagnostic signals and provider detection.
 
 = 0.19.0 =
 * Excluded content marked noindex from WordPress core post-type XML sitemaps while preserving other query constraints.
