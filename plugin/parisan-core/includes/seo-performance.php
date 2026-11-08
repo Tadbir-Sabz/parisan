@@ -57,7 +57,8 @@ function parisan_core_current_meta_description() {
 	if ( is_singular() ) {
 		$post = get_queried_object();
 		if ( $post instanceof WP_Post ) {
-			$description = has_excerpt( $post ) ? $post->post_excerpt : wp_strip_all_tags( $post->post_content );
+			$custom_description = get_post_meta( $post->ID, '_parisan_seo_description', true );
+			$description = $custom_description ? $custom_description : ( has_excerpt( $post ) ? $post->post_excerpt : wp_strip_all_tags( $post->post_content ) );
 		}
 	}
 	if ( '' === trim( $description ) ) {
@@ -80,8 +81,22 @@ function parisan_core_output_seo_metadata() {
 		return;
 	}
 	$description = parisan_core_current_meta_description();
-	$url = is_singular() ? get_permalink() : ( is_post_type_archive() ? get_post_type_archive_link( get_query_var( 'post_type' ) ) : home_url( '/' ) );
+	$url = home_url( '/' );
+	if ( is_singular() ) {
+		$url = get_permalink();
+	} elseif ( is_post_type_archive() ) {
+		$queried_type = get_query_var( 'post_type' );
+		if ( is_string( $queried_type ) && $queried_type ) {
+			$url = get_post_type_archive_link( $queried_type );
+		}
+	}
 	$title = wp_get_document_title();
+	if ( is_singular() ) {
+		$custom_title = get_post_meta( get_queried_object_id(), '_parisan_seo_title', true );
+		if ( $custom_title ) {
+			$title = $custom_title;
+		}
+	}
 	if ( $description ) {
 		printf( "<meta name=\"description\" content=\"%s\">\n", esc_attr( $description ) );
 	}
@@ -122,6 +137,55 @@ function parisan_core_output_seo_metadata() {
 	}
 }
 add_action( 'wp_head', 'parisan_core_output_seo_metadata', 2 );
+
+/**
+ * Add per-content SEO fields to public content editors.
+ *
+ * @return void
+ */
+function parisan_core_add_seo_meta_boxes() {
+	foreach ( get_post_types( array( 'public' => true ), 'names' ) as $post_type ) {
+		add_meta_box( 'parisan-seo-fields', __( 'پیش‌نمایش و تنظیمات سئو', 'parisan-core' ), 'parisan_core_render_seo_meta_box', $post_type, 'normal', 'default' );
+	}
+}
+add_action( 'add_meta_boxes', 'parisan_core_add_seo_meta_boxes' );
+
+/**
+ * Render per-content SEO fields.
+ *
+ * @param WP_Post $post Current post.
+ * @return void
+ */
+function parisan_core_render_seo_meta_box( $post ) {
+	wp_nonce_field( 'parisan_save_seo_meta', 'parisan_seo_nonce' );
+	$title = get_post_meta( $post->ID, '_parisan_seo_title', true );
+	$description = get_post_meta( $post->ID, '_parisan_seo_description', true );
+	echo '<p><label for="parisan-seo-title"><strong>' . esc_html__( 'عنوان سئو', 'parisan-core' ) . '</strong></label><br>';
+	printf( '<input id="parisan-seo-title" class="widefat" maxlength="180" name="parisan_seo_title" value="%s">', esc_attr( $title ) );
+	echo '</p><p><label for="parisan-seo-description"><strong>' . esc_html__( 'توضیحات متا', 'parisan-core' ) . '</strong></label><br>';
+	printf( '<textarea id="parisan-seo-description" class="widefat" rows="3" maxlength="320" name="parisan_seo_description">%s</textarea>', esc_textarea( $description ) );
+	echo '<span class="description">' . esc_html__( 'پیشنهاد: توضیح کوتاه و منحصربه‌فرد؛ خروجی در ۱۶۰ نویسه محدود می‌شود.', 'parisan-core' ) . '</span></p>';
+}
+
+/**
+ * Save per-content SEO fields after capability and nonce validation.
+ *
+ * @param int $post_id Current post ID.
+ * @return void
+ */
+function parisan_core_save_seo_meta( $post_id ) {
+	if ( ! isset( $_POST['parisan_seo_nonce'] ) || ! is_string( $_POST['parisan_seo_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['parisan_seo_nonce'] ) ), 'parisan_save_seo_meta' ) ) {
+		return;
+	}
+	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_revision( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	$title = isset( $_POST['parisan_seo_title'] ) && is_scalar( $_POST['parisan_seo_title'] ) ? sanitize_text_field( wp_unslash( $_POST['parisan_seo_title'] ) ) : '';
+	$description = isset( $_POST['parisan_seo_description'] ) && is_scalar( $_POST['parisan_seo_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['parisan_seo_description'] ) ) : '';
+	update_post_meta( $post_id, '_parisan_seo_title', $title );
+	update_post_meta( $post_id, '_parisan_seo_description', $description );
+}
+add_action( 'save_post', 'parisan_core_save_seo_meta' );
 
 /**
  * Register a small Persian-first SEO settings screen.
