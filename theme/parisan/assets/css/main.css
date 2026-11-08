@@ -462,3 +462,6 @@ html[data-parisan-theme="dark"] .parisan-page-hero h1, html[data-parisan-theme="
 html[data-parisan-theme="dark"] .parisan-contact-card, html[data-parisan-theme="dark"] .parisan-faq-item, html[data-parisan-theme="dark"] .parisan-blog-featured { background: #302635; border-color: var(--parisan-line); }
 @media (max-width: 760px) { .parisan-contact-grid { grid-template-columns: 1fr; } .parisan-blog-featured { grid-template-columns: 1fr; padding: 16px; } .single-post-layout .entry-content { font-size: 16px; } }
 @media (prefers-reduced-motion: reduce) { .post-card-image img { transition: none; } }
+
+.parisan-journal-section { padding-block: clamp(64px, 8vw, 96px); background: var(--parisan-paper); }
+html[data-parisan-theme="dark"] .parisan-journal-section { background: #211a25; }
