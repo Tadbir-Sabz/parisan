@@ -287,3 +287,57 @@ body { background: var(--parisan-paper); color: var(--parisan-ink); }
 .hero-art-photo { position: absolute; z-index: 0; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; opacity: .9; filter: brightness(.82) saturate(.9); mix-blend-mode: normal; }
 .hero-art-orbit, .hero-art-petal { z-index: 1; }
 .hero-art-label, .hero-art-index, .hero-art-seal { z-index: 2; }
+
+
+/* Accessible breadcrumbs */
+.parisan-breadcrumbs {
+	margin-block: 1rem 1.5rem;
+	color: var(--color-muted, #756a70);
+	font-size: 0.875rem;
+}
+.parisan-breadcrumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.parisan-breadcrumbs li {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 0;
+}
+.parisan-breadcrumbs li + li::before {
+	content: "/";
+	color: currentColor;
+	opacity: 0.55;
+}
+.parisan-breadcrumbs a {
+	color: inherit;
+	text-decoration: none;
+	text-underline-offset: 0.2em;
+}
+.parisan-breadcrumbs a:hover,
+.parisan-breadcrumbs a:focus-visible {
+	color: var(--color-accent, #8c536d);
+	text-decoration: underline;
+}
+.parisan-breadcrumbs [aria-current="page"] {
+	color: var(--color-ink, #30252b);
+	font-weight: 600;
+}
+@media (max-width: 640px) {
+	.parisan-breadcrumbs {
+		margin-block: 0.75rem 1rem;
+		font-size: 0.8125rem;
+	}
+	.parisan-breadcrumbs ol {
+		gap: 0.35rem;
+	}
+	.parisan-breadcrumbs li {
+		gap: 0.35rem;
+	}
+}
