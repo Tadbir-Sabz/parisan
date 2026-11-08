@@ -2,7 +2,7 @@
 
 **Canonical branch:** main  
 **Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, reusable request throttling, and a gated public booking/customer-token API foundation are implemented on the feature branch. Public activation remains disabled by default; end-to-end customer UX and deployment-specific security validation remain incomplete.  
+**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, reusable request throttling, and a gated public booking/customer-token API, and token-scoped customer rescheduling are implemented on the feature branch. Public activation remains disabled by default; end-to-end customer UX and deployment-specific security validation remain incomplete.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -80,7 +80,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
 - [~] Implement a gated public API foundation for availability, pending booking creation, token-scoped customer view, and cancellation (ADR-0012). Routes and the wizard remain disabled unless the owner explicitly defines `PARISAN_PUBLIC_BOOKING_ENABLED=true`; initial Persian RTL shortcode UI is implemented, while browser/device/accessibility review remains UNVERIFIED.
 - [~] Implement non-account customer ownership using 256-bit random, HMAC-digested, expiring, revocable access tokens (ADR-0012). Customer registration/login and account-based ownership remain future options.
-- [~] Add a minimal token-scoped booking view/cancellation API and initial shortcode UI for token-based lookup/cancellation. Customer rescheduling, profile/preferences, account-based portal, and browser workflows remain pending.
+- [x] Add token-scoped booking view, availability, cancellation, and self-service rescheduling APIs plus the Persian shortcode UI for lookup/rescheduling/cancellation. Disposable WordPress/MariaDB integration verifies token ownership, same-origin enforcement, the 90-day horizon, current-booking exclusion from conflict checks, duration/price preservation, and token-expiry adjustment; browser/device/accessibility workflows remain UNVERIFIED.
 - [~] Implement admin booking list, status filters/actions, detail/audit timeline, manual booking, and reschedule form; calendar-style operations view, search, and daily dashboard remain pending.
 - [ ] Add email notifications and testable notification queue.
 - [~] Test timezone boundaries, concurrent requests, token scoping/rotation/expiry, lifecycle transitions, privacy export/erasure, retention, and abuse controls; updated WordPress/MariaDB CI covers token lifecycle and default-off/explicitly-enabled route/shortcode behavior. Browser, multi-connection stress, proxy, and multi-node evidence remains pending.
