@@ -375,14 +375,20 @@ add_action( 'send_headers', 'parisan_core_send_private_cache_headers', 0 );
  * @param int $post_id Updated post ID.
  * @return void
  */
-function parisan_core_invalidate_public_content_cache( $post_id ) {
+function parisan_core_invalidate_public_content_cache( $post_id, $post = null ) {
 	$post_id = absint( $post_id );
 	if ( ! $post_id ) {
 		return;
 	}
+
+	$post_type = $post instanceof WP_Post ? $post->post_type : get_post_type( $post_id );
+	if ( ! in_array( $post_type, array( 'parisan_service', 'parisan_staff' ), true ) ) {
+		return;
+	}
+
 	clean_post_cache( $post_id );
 	do_action( 'parisan_core_public_content_cache_invalidated', $post_id );
 }
-add_action( 'save_post_parisan_service', 'parisan_core_invalidate_public_content_cache', 20 );
-add_action( 'save_post_parisan_staff', 'parisan_core_invalidate_public_content_cache', 20 );
-add_action( 'deleted_post', 'parisan_core_invalidate_public_content_cache', 20 );
+add_action( 'save_post_parisan_service', 'parisan_core_invalidate_public_content_cache', 20, 1 );
+add_action( 'save_post_parisan_staff', 'parisan_core_invalidate_public_content_cache', 20, 1 );
+add_action( 'deleted_post', 'parisan_core_invalidate_public_content_cache', 20, 2 );
