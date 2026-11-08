@@ -221,15 +221,11 @@ add_filter( 'wp_robots', 'parisan_core_filter_robots', 20 );
  * @return array
  */
 function parisan_core_exclude_noindex_from_sitemap( $args, $post_type ) {
-	if ( parisan_core_seo_plugin_controls_output() || ! is_array( $args ) ) {
+	if ( parisan_core_seo_plugin_controls_output() || ! is_array( $args ) || ! is_string( $post_type ) || ! post_type_exists( $post_type ) ) {
 		return $args;
 	}
 
-	if ( ! isset( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
-		$args['meta_query'] = array();
-	}
-
-	$args['meta_query'][] = array(
+	$noindex_clause = array(
 		'relation' => 'OR',
 		array(
 			'key'     => '_parisan_seo_noindex',
@@ -241,6 +237,17 @@ function parisan_core_exclude_noindex_from_sitemap( $args, $post_type ) {
 			'compare' => '!=',
 		),
 	);
+
+	$existing_meta_query = isset( $args['meta_query'] ) && is_array( $args['meta_query'] ) ? $args['meta_query'] : array();
+	if ( ! empty( $existing_meta_query ) ) {
+		$args['meta_query'] = array(
+			'relation' => 'AND',
+			$existing_meta_query,
+			$noindex_clause,
+		);
+	} else {
+		$args['meta_query'] = array( $noindex_clause );
+	}
 
 	return $args;
 }
