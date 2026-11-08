@@ -210,6 +210,43 @@ function parisan_core_filter_robots( $robots ) {
 }
 add_filter( 'wp_robots', 'parisan_core_filter_robots', 20 );
 
+/**
+ * Exclude Parisan noindex content from the WordPress core XML sitemap.
+ *
+ * The first-party noindex control is authoritative only when Parisan owns
+ * metadata output. Existing sitemap query constraints are preserved.
+ *
+ * @param array  $args     WordPress sitemap query arguments.
+ * @param string $post_type Current post type.
+ * @return array
+ */
+function parisan_core_exclude_noindex_from_sitemap( $args, $post_type ) {
+	if ( parisan_core_seo_plugin_controls_output() || ! is_array( $args ) ) {
+		return $args;
+	}
+
+	if ( ! isset( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
+		$args['meta_query'] = array();
+	}
+
+	$args['meta_query'][] = array(
+		'relation' => 'OR',
+		array(
+			'key'     => '_parisan_seo_noindex',
+			'compare' => 'NOT EXISTS',
+		),
+		array(
+			'key'     => '_parisan_seo_noindex',
+			'value'   => '1',
+			'compare' => '!=',
+		),
+	);
+
+	return $args;
+}
+add_filter( 'wp_sitemaps_posts_query_args', 'parisan_core_exclude_noindex_from_sitemap', 10, 2 );
+
+
 
 /** Remove WordPress core canonical output; Parisan or an SEO plugin owns it. */
 function parisan_core_remove_core_canonical() {
