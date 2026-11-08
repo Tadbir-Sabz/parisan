@@ -19,6 +19,16 @@ function parisan_public_enabled_assert( $condition, $message ) {
 }
 
 parisan_public_enabled_assert( true === parisan_core_public_booking_enabled(), 'explicit feature flag enables the public booking module' );
+
+global $wp_query;
+if ( ! $wp_query instanceof WP_Query ) {
+	$wp_query = new WP_Query();
+}
+$wp_query->is_front_page = true;
+do_action( 'wp_enqueue_scripts' );
+parisan_public_enabled_assert( wp_style_is( 'parisan-public-booking', 'enqueued' ), 'public booking stylesheet is enqueued before wp_head on the homepage' );
+parisan_public_enabled_assert( wp_script_is( 'parisan-public-booking', 'enqueued' ), 'public booking script is enqueued before wp_head on the homepage' );
+
 do_action( 'rest_api_init', rest_get_server() );
 $routes = rest_get_server()->get_routes();
 foreach ( array( '/parisan/v1/availability', '/parisan/v1/bookings', '/parisan/v1/customer-booking', '/parisan/v1/customer-booking/cancel', '/parisan/v1/customer-booking/availability', '/parisan/v1/customer-booking/reschedule' ) as $route ) {
