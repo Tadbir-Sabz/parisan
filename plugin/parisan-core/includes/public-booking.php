@@ -725,22 +725,15 @@ function parisan_core_enqueue_public_booking_assets() {
 }
 
 /**
- * Detect supported shortcode locations and enqueue their assets early.
+ * Enqueue booking assets on public views when the owner enables the feature.
+ *
+ * Loading the small assets site-wide while this opt-in feature is enabled
+ * supports shortcodes rendered by page builders, widgets, and template parts.
  *
  * @return void
  */
 function parisan_core_maybe_enqueue_public_booking_assets() {
-	if ( ! parisan_core_public_booking_enabled() ) {
-		return;
-	}
-
-	$should_enqueue = is_front_page();
-	if ( ! $should_enqueue && is_singular() ) {
-		$queried = get_queried_object();
-		$should_enqueue = $queried instanceof WP_Post && has_shortcode( $queried->post_content, 'parisan_booking' );
-	}
-
-	if ( $should_enqueue ) {
+	if ( parisan_core_public_booking_enabled() ) {
 		parisan_core_enqueue_public_booking_assets();
 	}
 }
