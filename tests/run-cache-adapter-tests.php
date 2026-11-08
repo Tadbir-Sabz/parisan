@@ -6,12 +6,18 @@
  */
 
 define( 'ABSPATH', __DIR__ . '/' );
+define( 'WP_CONTENT_DIR', __DIR__ . '/parisan-cache-test-content' );
+$GLOBALS['parisan_test_external_cache'] = false;
 
 $GLOBALS['parisan_test_hooks'] = array();
 $GLOBALS['parisan_test_purges'] = array();
 
 function absint( $value ) {
 	return abs( (int) $value );
+}
+
+function wp_using_ext_object_cache() {
+	return $GLOBALS['parisan_test_external_cache'];
 }
 
 function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
@@ -41,6 +47,14 @@ function parisan_test_assert( $condition, $message ) {
 		exit( 1 );
 	}
 }
+
+$runtime_diagnostics = parisan_core_cache_runtime_diagnostics();
+parisan_test_assert( false === $runtime_diagnostics['persistent_object_cache_active'], 'Runtime diagnostics must report the external object cache flag accurately.' );
+parisan_test_assert( false === $runtime_diagnostics['object_cache_dropin_present'], 'Runtime diagnostics must not invent an object-cache drop-in.' );
+$GLOBALS['parisan_test_external_cache'] = true;
+$runtime_diagnostics = parisan_core_cache_runtime_diagnostics();
+parisan_test_assert( true === $runtime_diagnostics['persistent_object_cache_active'], 'Runtime diagnostics did not reflect the external object cache flag.' );
+$GLOBALS['parisan_test_external_cache'] = false;
 
 $empty_status = parisan_core_cache_adapter_status();
 parisan_test_assert( false === $empty_status['wp_rocket']['detected'], 'WP Rocket must be reported absent before its API is loaded.' );
