@@ -103,18 +103,20 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 ## Phase 5 — SEO and performance toolkit
 
+**Status:** [~] IN PROGRESS — initial metadata, structured-data, and privacy-aware cache boundaries implemented; sitemap extensions, crawler controls, vendor cache adapters, and performance diagnostics pending
+
 **Status:** [ ] NOT STARTED
 
-- [ ] Implement SEO metadata templates, canonical/robots controls, sitemap generation, Open Graph, breadcrumbs, and validated JSON-LD.
+- [~] Implement SEO metadata templates, canonical, Open Graph, and Service JSON-LD; per-content title/description and site defaults are implemented. Robots/noindex controls, sitemap extensions, and breadcrumbs remain pending.
 - [ ] Implement duplicate-output detection and coexistence controls for other SEO plugins.
 - [ ] Add redirect management and privacy-safe 404 diagnostics if justified.
 - [ ] Implement page-specific asset loading, image optimization, font strategy, and Core Web Vitals instrumentation guidance.
-- [ ] Implement safe first-party cache controls, invalidation, persistent object-cache detection, and diagnostics.
-- [ ] Explicitly bypass public cache for authenticated, booking, customer, and personalized routes.
+- [~] Implement safe first-party cache boundaries: logged-in, booking-shortcode, tokenized customer, and Parisan customer REST contexts receive no-store protection; public-content invalidation hook is available. Persistent object-cache detection, cache diagnostics, full-page cache adapters, and measured purge verification remain pending.
+- [x] Explicitly bypass public cache for authenticated, booking-shortcode, tokenized customer, and Parisan customer REST contexts using WordPress cache flags and no-store headers; reverse-proxy behavior remains UNVERIFIED.
 - [ ] Benchmark representative pages and queries; tune database indexes and query plans.
 - [ ] Validate sitemap, metadata, structured data, crawlability, and real mobile performance.
 
-**Gate P5:** no duplicate SEO output; benchmark report meets agreed targets or documents justified gaps; no private data cached publicly.
+**Gate P5:** no duplicate SEO output; sitemap, metadata, and structured data validated; cache-plugin/reverse-proxy purge and bypass behavior verified; performance report meets agreed targets or documents justified gaps; no private data cached publicly.
 
 ## Phase 6 — Commerce and page-builder integrations
 
