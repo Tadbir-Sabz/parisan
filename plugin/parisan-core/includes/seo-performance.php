@@ -296,6 +296,9 @@ function parisan_core_request_is_private_or_booking() {
 	if ( isset( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) && false !== strpos( wp_unslash( $_SERVER['REQUEST_URI'] ), '/wp-json/parisan/v1/' ) ) {
 		return true;
 	}
+	if ( isset( $_GET['rest_route'] ) && is_scalar( $_GET['rest_route'] ) && false !== strpos( (string) wp_unslash( $_GET['rest_route'] ), '/parisan/v1/' ) ) {
+		return true;
+	}
 	if ( function_exists( 'is_singular' ) && is_singular() ) {
 		$post = get_queried_object();
 		if ( $post instanceof WP_Post && has_shortcode( $post->post_content, 'parisan_booking' ) ) {
@@ -323,6 +326,7 @@ function parisan_core_mark_private_requests_uncacheable() {
 		}
 	}
 }
+add_action( 'init', 'parisan_core_mark_private_requests_uncacheable', 0 );
 add_action( 'template_redirect', 'parisan_core_mark_private_requests_uncacheable', 0 );
 
 /**
