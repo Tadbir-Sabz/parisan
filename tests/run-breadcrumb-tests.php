@@ -62,7 +62,7 @@ preg_match( '/<script type="application\/ld\+json">(.*?)<\/script>/s', $schema_m
 $schema = isset( $matches[1] ) ? json_decode( $matches[1], true ) : null;
 parisan_test_breadcrumb_assert( is_array( $schema ) && 'BreadcrumbList' === $schema['@type'], 'BreadcrumbList JSON-LD is invalid.' );
 parisan_test_breadcrumb_assert( 3 === count( $schema['itemListElement'] ), 'BreadcrumbList positions are incomplete.' );
-parisan_test_breadcrumb_assert( ! isset( $schema['itemListElement'][2]['item'] ), 'The current breadcrumb must not have a destination URL.' );
+parisan_test_breadcrumb_assert( get_permalink( $service_id ) === $schema['itemListElement'][2]['item'], 'The current breadcrumb schema item must use the canonical service URL.' );
 
 if ( ! defined( 'RANK_MATH_VERSION' ) ) {
 	define( 'RANK_MATH_VERSION', 'parisan-ci-test' );
