@@ -63,23 +63,19 @@ $wp_query = new WP_Query(
 );
 $post = null;
 
+parisan_theme_smoke_assert( function_exists( 'parisan_customize_register' ), 'homepage image customization is registered' );
+set_theme_mod( 'parisan_hero_image', 'https://example.test/parisan-hero.jpg' );
 ob_start();
 include get_template_directory() . '/front-page.php';
 $homepage = ob_get_clean();
+remove_theme_mod( 'parisan_hero_image' );
 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیباییِ شما، با امضای ظرافت' ), 'editorial Persian hero renders' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Service' ), 'homepage renders real published service content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Specialist' ), 'homepage renders real published specialist content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ), 'disabled booking shortcode displays its safe disabled state' );
-
-parisan_theme_smoke_assert( function_exists( 'parisan_customize_register' ), 'homepage image customization is registered' );
-set_theme_mod( 'parisan_hero_image', 'https://example.test/parisan-hero.jpg' );
-ob_start();
-include get_template_directory() . '/front-page.php';
-$customized_homepage = ob_get_clean();
-remove_theme_mod( 'parisan_hero_image' );
-parisan_theme_smoke_assert( false !== strpos( $customized_homepage, 'hero-art-photo' ) && false !== strpos( $customized_homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
 
 
 echo "PASS: Parisan theme activation, fallback navigation, dynamic homepage content, and disabled booking state.\n";
