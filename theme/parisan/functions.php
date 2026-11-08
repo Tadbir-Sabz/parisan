@@ -144,14 +144,14 @@ add_action( 'customize_register', 'parisan_customize_brand_register', 20 );
  */
 function parisan_output_brand_tokens() {
 	$tokens = array(
-		'--parisan-plum' => get_theme_mod( 'parisan_brand_accent', '#6f4657' ),
-		'--parisan-plum-dark' => get_theme_mod( 'parisan_brand_accent_dark', '#573443' ),
-		'--parisan-paper' => get_theme_mod( 'parisan_brand_page', '#fbf8f3' ),
-		'--parisan-surface' => get_theme_mod( 'parisan_brand_surface', '#fffdf9' ),
-		'--parisan-gold' => get_theme_mod( 'parisan_brand_gold', '#b69a70' ),
-		'--parisan-body-size' => get_theme_mod( 'parisan_brand_font_scale', '16px' ),
+		'--parisan-plum' => sanitize_hex_color( get_theme_mod( 'parisan_brand_accent', '#6f4657' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_accent', '#6f4657' ) ) : '#6f4657',
+		'--parisan-plum-dark' => sanitize_hex_color( get_theme_mod( 'parisan_brand_accent_dark', '#573443' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_accent_dark', '#573443' ) ) : '#573443',
+		'--parisan-paper' => sanitize_hex_color( get_theme_mod( 'parisan_brand_page', '#fbf8f3' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_page', '#fbf8f3' ) ) : '#fbf8f3',
+		'--parisan-surface' => sanitize_hex_color( get_theme_mod( 'parisan_brand_surface', '#fffdf9' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_surface', '#fffdf9' ) ) : '#fffdf9',
+		'--parisan-gold' => sanitize_hex_color( get_theme_mod( 'parisan_brand_gold', '#b69a70' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_gold', '#b69a70' ) ) : '#b69a70',
+		'--parisan-body-size' => in_array( get_theme_mod( 'parisan_brand_font_scale', '16px' ), array( '15px', '16px', '17px' ), true ) ? get_theme_mod( 'parisan_brand_font_scale', '16px' ) : '16px',
 	);
-	$fonts = array( 'tahoma' => 'Tahoma, "Segoe UI", sans-serif', 'arial' => 'Arial, Tahoma, sans-serif', 'system' => 'system-ui, Tahoma, sans-serif' );
+	$fonts = array( 'tahoma' => 'Tahoma, Segoe UI, sans-serif', 'arial' => 'Arial, Tahoma, sans-serif', 'system' => 'system-ui, Tahoma, sans-serif' );
 	$font = get_theme_mod( 'parisan_brand_font', 'tahoma' );
 	$tokens['--parisan-font'] = isset( $fonts[ $font ] ) ? $fonts[ $font ] : $fonts['tahoma'];
 	echo '<style id="parisan-brand-tokens">:root{';
