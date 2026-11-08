@@ -160,11 +160,13 @@ function parisan_core_render_seo_meta_box( $post ) {
 	wp_nonce_field( 'parisan_save_seo_meta', 'parisan_seo_nonce' );
 	$title = get_post_meta( $post->ID, '_parisan_seo_title', true );
 	$description = get_post_meta( $post->ID, '_parisan_seo_description', true );
+	$noindex = get_post_meta( $post->ID, '_parisan_seo_noindex', true );
 	echo '<p><label for="parisan-seo-title"><strong>' . esc_html__( 'عنوان سئو', 'parisan-core' ) . '</strong></label><br>';
 	printf( '<input id="parisan-seo-title" class="widefat" maxlength="180" name="parisan_seo_title" value="%s">', esc_attr( $title ) );
 	echo '</p><p><label for="parisan-seo-description"><strong>' . esc_html__( 'توضیحات متا', 'parisan-core' ) . '</strong></label><br>';
 	printf( '<textarea id="parisan-seo-description" class="widefat" rows="3" maxlength="320" name="parisan_seo_description">%s</textarea>', esc_textarea( $description ) );
 	echo '<span class="description">' . esc_html__( 'پیشنهاد: توضیح کوتاه و منحصربه‌فرد؛ خروجی در ۱۶۰ نویسه محدود می‌شود.', 'parisan-core' ) . '</span></p>';
+	printf( '<p><label><input type="checkbox" name="parisan_seo_noindex" value="1" %s> %s</label></p>', checked( '1', $noindex, false ), esc_html__( 'این صفحه در موتورهای جست‌وجو ایندکس نشود (noindex)', 'parisan-core' ) );
 }
 
 /**
@@ -182,10 +184,31 @@ function parisan_core_save_seo_meta( $post_id ) {
 	}
 	$title = isset( $_POST['parisan_seo_title'] ) && is_scalar( $_POST['parisan_seo_title'] ) ? sanitize_text_field( wp_unslash( $_POST['parisan_seo_title'] ) ) : '';
 	$description = isset( $_POST['parisan_seo_description'] ) && is_scalar( $_POST['parisan_seo_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['parisan_seo_description'] ) ) : '';
+	$noindex = isset( $_POST['parisan_seo_noindex'] ) && '1' === (string) wp_unslash( $_POST['parisan_seo_noindex'] ) ? '1' : '0';
 	update_post_meta( $post_id, '_parisan_seo_title', $title );
 	update_post_meta( $post_id, '_parisan_seo_description', $description );
+	update_post_meta( $post_id, '_parisan_seo_noindex', $noindex );
 }
 add_action( 'save_post', 'parisan_core_save_seo_meta' );
+
+/**
+ * Respect the editor's noindex choice when Parisan owns SEO metadata.
+ *
+ * @param array $robots WordPress robots directives.
+ * @return array
+ */
+function parisan_core_filter_robots( $robots ) {
+	if ( parisan_core_seo_plugin_controls_output() || ! is_singular() ) {
+		return $robots;
+	}
+	$post_id = get_queried_object_id();
+	if ( $post_id && '1' === get_post_meta( $post_id, '_parisan_seo_noindex', true ) ) {
+		$robots['noindex'] = true;
+		unset( $robots['index'] );
+	}
+	return $robots;
+}
+add_filter( 'wp_robots', 'parisan_core_filter_robots', 20 );
 
 
 /** Remove WordPress core canonical output; Parisan or an SEO plugin owns it. */
