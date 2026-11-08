@@ -13,6 +13,7 @@
 3. [Delivery Roadmap](docs/ROADMAP.md) — sequencing, dependencies, milestones, and evidence-backed status.
 4. [Architecture decisions](docs/decisions/) — durable implementation decisions.
 5. [راهنمای حریم خصوصی و نگهداری اطلاعات رزرو](docs/PRIVACY-OPERATIONS.fa.md) — راهنمای خروجی اطلاعات، ناشناس‌سازی رزروها و تنظیم نگهداری خودکار.
+6. [راهنمای راه‌اندازی پوسته پاریسان](docs/THEME-SETUP.fa.md) — تنظیم تصویر اصلی، خدمات، متخصصان، منو و مرزهای فعال‌سازی رزرو عمومی.
 
 ## Product promise
 
