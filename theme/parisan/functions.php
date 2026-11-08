@@ -49,6 +49,45 @@ function parisan_theme_setup() {
 add_action( 'after_setup_theme', 'parisan_theme_setup' );
 
 /**
+ * Register homepage art customization.
+ *
+ * @param WP_Customize_Manager $wp_customize Customizer manager.
+ * @return void
+ */
+function parisan_customize_register( $wp_customize ) {
+	$wp_customize->add_section(
+		'parisan_homepage',
+		array(
+			'title'       => esc_html__( 'پاریسان — صفحه اصلی', 'parisan' ),
+			'description' => esc_html__( 'تصویر اصلی صفحه نخست را انتخاب کنید. در صورت خالی‌بودن، طرح هنری پیش‌فرض نمایش داده می‌شود.', 'parisan' ),
+			'priority'    => 35,
+		)
+	);
+
+	$wp_customize->add_setting(
+		'parisan_hero_image',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'esc_url_raw',
+			'transport'         => 'refresh',
+		)
+	);
+
+	$wp_customize->add_control(
+		new WP_Customize_Image_Control(
+			$wp_customize,
+			'parisan_hero_image',
+			array(
+				'label'   => esc_html__( 'تصویر بخش اصلی صفحه نخست', 'parisan' ),
+				'section' => 'parisan_homepage',
+			)
+		)
+	);
+}
+add_action( 'customize_register', 'parisan_customize_register' );
+
+
+/**
  * Accessible primary navigation fallback when no menu is assigned.
  *
  * @return void
