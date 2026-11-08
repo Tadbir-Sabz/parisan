@@ -37,6 +37,24 @@ function parisan_core_cache_adapter_status() {
 }
 
 /**
+ * Report safe, non-secret cache runtime signals for the admin diagnostics page.
+ *
+ * These signals do not prove backend health, cache hits, or CDN purge completion.
+ *
+ * @return array
+ */
+function parisan_core_cache_runtime_diagnostics() {
+	$content_dir = defined( 'WP_CONTENT_DIR' ) ? WP_CONTENT_DIR : '';
+	$dropin_path = $content_dir ? rtrim( $content_dir, '/\\\\' ) . DIRECTORY_SEPARATOR . 'object-cache.php' : '';
+
+	return array(
+		'persistent_object_cache_active' => function_exists( 'wp_using_ext_object_cache' ) ? (bool) wp_using_ext_object_cache() : false,
+		'object_cache_dropin_present'    => $dropin_path && file_exists( $dropin_path ),
+		'provider_adapters'              => parisan_core_cache_adapter_status(),
+	);
+}
+
+/**
  * Request a targeted purge for one public Parisan content item.
  *
  * "requested" means the provider API was invoked; it is not proof that a
