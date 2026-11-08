@@ -31,7 +31,7 @@ defined( 'ABSPATH' ) || exit;
 			<?php if ( parisan_public_setting( 'parisan_social_instagram' ) ) : ?><a href="<?php echo esc_url( parisan_public_setting( 'parisan_social_instagram' ) ); ?>" rel="me noopener noreferrer"><?php esc_html_e( 'اینستاگرام', 'parisan' ); ?></a><?php endif; ?>
 			<?php if ( parisan_public_setting( 'parisan_social_whatsapp' ) ) : ?><a href="<?php echo esc_url( parisan_public_setting( 'parisan_social_whatsapp' ) ); ?>" rel="noopener noreferrer"><?php esc_html_e( 'واتساپ', 'parisan' ); ?></a><?php endif; ?>
 		</div>
-		<div class="footer-contact"><?php if ( parisan_public_setting( 'parisan_contact_address' ) ) : ?><span><?php echo esc_html( parisan_public_setting( 'parisan_contact_address' ) ); ?></span><?php endif; ?>
+		<div class="footer-contact"><?php if ( parisan_public_setting( 'parisan_contact_address' ) ) : ?><span><?php echo esc_html( parisan_public_setting( 'parisan_contact_address' ) ); ?></span><?php endif; ?></div>
 		<p class="copyright">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></p>
 	</div>
 </footer>
