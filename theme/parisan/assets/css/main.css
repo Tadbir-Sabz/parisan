@@ -353,7 +353,7 @@ body { background: var(--parisan-paper); color: var(--parisan-ink); }
 	.header-inner { column-gap: 10px; }
 	.parisan-theme-toggle { min-height: 38px; padding-inline: 11px; }
 }
-html[data-parisan-theme="dark"] { color-scheme: dark; --parisan-ink: #f3eaf0; --parisan-muted: #c2b2be; --parisan-paper: #1d1820; --parisan-surface: #29212c; --parisan-line: #493846; --parisan-plum: #d7a8bf; --parisan-plum-dark: #f0d6e2; --parisan-rose: #a77b91; --parisan-gold: #d2b88b; --parisan-shadow: 0 24px 70px rgba(0, 0, 0, .28); }
+html[data-parisan-theme="dark"] { color-scheme: dark; --parisan-ink: #f3eaf0; --parisan-muted: #c2b2be; --parisan-paper: #1d1820; --parisan-surface: #29212c; --parisan-line: #493846; --parisan-plum: #e0b7ca; --parisan-plum-dark: #f0d6e2; --parisan-rose: #a77b91; --parisan-gold: #d2b88b; --parisan-shadow: 0 24px 70px rgba(0, 0, 0, .28); }
 html[data-parisan-theme="dark"] body { background: var(--parisan-paper); color: var(--parisan-ink); }
 html[data-parisan-theme="dark"] .site-header { background: rgba(35, 27, 38, .94); border-color: var(--parisan-line); }
 html[data-parisan-theme="dark"] .site-title, html[data-parisan-theme="dark"] .hero-copy h1, html[data-parisan-theme="dark"] .intro-grid h2, html[data-parisan-theme="dark"] .section-heading h2, html[data-parisan-theme="dark"] .booking-section-heading h2 { color: var(--parisan-plum-dark); }
@@ -372,3 +372,9 @@ html[data-parisan-theme="dark"] .parisan-mobile-booking { background: #e6bfd0; b
 	html:not([data-parisan-theme]) .site-header { background: rgba(35,27,38,.94); border-color: #493846; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .parisan-mobile-booking { transition: none; } }
+
+/* Keep filled controls readable against the dark surface palette. */
+html[data-parisan-theme="dark"] .button { background: #81536d; border-color: #81536d; color: #fff8f1; }
+html[data-parisan-theme="dark"] .button:hover { background: #70445b; border-color: #70445b; }
+html[data-parisan-theme="dark"] .button-light { background: #fff8f1; border-color: #fff8f1; color: #553748; }
+html[data-parisan-theme="dark"] .button-light:hover { background: #fff; border-color: #fff; color: #553748; }
