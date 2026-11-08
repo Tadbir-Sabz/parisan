@@ -100,5 +100,23 @@ $_GET['customer_token'] = 'synthetic-token';
 parisan_theme_smoke_assert( parisan_core_request_is_private_or_booking(), 'customer-token request is marked non-cacheable' );
 unset( $_GET['customer_token'] );
 parisan_theme_smoke_assert( false === parisan_core_seo_plugin_controls_output(), 'first-party SEO output is available when no SEO plugin owns metadata' );
+update_post_meta( $service_id, '_parisan_seo_title', 'عنوان سئوی آزمایشی خدمت' );
+update_post_meta( $service_id, '_parisan_seo_description', 'توضیحات اختصاصی آزمایشی برای صفحه خدمت.' );
+$seo_original_query = $wp_query;
+$seo_original_post = $post;
+$wp_query = new WP_Query( array( 'p' => $service_id, 'post_type' => 'parisan_service' ) );
+$post = $wp_query->have_posts() ? $wp_query->posts[0] : null;
+if ( $post ) {
+	setup_postdata( $post );
+}
+ob_start();
+parisan_core_output_seo_metadata();
+$seo_head = ob_get_clean();
+$wp_query = $seo_original_query;
+$post = $seo_original_post;
+wp_reset_postdata();
+parisan_theme_smoke_assert( false !== strpos( $seo_head, 'name="description"' ) && false !== strpos( $seo_head, 'توضیحات اختصاصی آزمایشی برای صفحه خدمت.' ), 'per-page meta description is emitted' );
+parisan_theme_smoke_assert( false !== strpos( $seo_head, 'rel="canonical"' ) && false !== strpos( $seo_head, 'og:title' ), 'canonical and Open Graph metadata are emitted' );
+parisan_theme_smoke_assert( false !== strpos( $seo_head, 'application/ld+json' ) && false !== strpos( $seo_head, '"@type":"Service"' ), 'service JSON-LD is emitted for service detail pages' );
 
 echo "PASS: Parisan theme, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
