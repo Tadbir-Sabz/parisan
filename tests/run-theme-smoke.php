@@ -31,6 +31,7 @@ parisan_theme_smoke_assert( '#6f4657' === parisan_safe_theme_color( 'parisan_bra
 remove_theme_mod( 'parisan_brand_accent' );
 parisan_theme_smoke_assert( is_string( get_post_type_archive_link( 'parisan_portfolio' ) ) && '' !== get_post_type_archive_link( 'parisan_portfolio' ), 'portfolio archive URL is available' );
 parisan_theme_smoke_assert( function_exists( 'parisan_primary_menu_fallback' ), 'primary navigation fallback is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_footer_menu_fallback' ), 'footer navigation fallback is registered' );
 foreach ( array( 'home.php', 'single.php', 'page-about.php', 'page-contact.php', 'page-faq.php', 'page-privacy-policy.php', 'page-terms.php' ) as $template_file ) {
 	parisan_theme_smoke_assert( file_exists( get_template_directory() . '/' . $template_file ), 'required editorial template exists: ' . $template_file );
 }
