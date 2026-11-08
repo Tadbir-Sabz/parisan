@@ -86,6 +86,8 @@ parisan_theme_smoke_assert( function_exists( 'parisan_core_seo_settings' ), 'fir
 parisan_theme_smoke_assert( function_exists( 'parisan_core_output_seo_metadata' ), 'SEO metadata renderer is loaded' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_request_is_private_or_booking' ), 'privacy-aware cache guard is loaded' );
 parisan_theme_smoke_assert( false !== has_action( 'add_meta_boxes', 'parisan_core_add_seo_meta_boxes' ), 'per-content SEO editor fields are registered' );
+parisan_theme_smoke_assert( false !== has_action( 'admin_menu', 'parisan_core_add_seo_admin_menu' ), 'SEO settings page is registered on the correct admin hook' );
+parisan_theme_smoke_assert( false === has_action( 'wp_head', 'rel_canonical' ), 'WordPress core canonical output is disabled to prevent duplicate canonical tags' );
 $seo_settings = parisan_core_sanitize_seo_settings( array(
 	'default_description' => '<script>alert(1)</script> توضیح آزمایشی',
 	'organization_name' => '<b>سالن آزمایشی</b>',
