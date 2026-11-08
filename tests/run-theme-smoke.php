@@ -105,6 +105,7 @@ unset( $_GET['rest_route'] );
 parisan_theme_smoke_assert( false === parisan_core_seo_plugin_controls_output(), 'first-party SEO output is available when no SEO plugin owns metadata' );
 update_post_meta( $service_id, '_parisan_seo_title', 'عنوان سئوی آزمایشی خدمت' );
 update_post_meta( $service_id, '_parisan_seo_description', 'توضیحات اختصاصی آزمایشی برای صفحه خدمت.' );
+update_post_meta( $service_id, '_parisan_seo_noindex', '1' );
 $seo_original_query = $wp_query;
 $seo_original_post = $post;
 $wp_query = new WP_Query( array( 'p' => $service_id, 'post_type' => 'parisan_service' ) );
@@ -112,6 +113,8 @@ $post = $wp_query->have_posts() ? $wp_query->posts[0] : null;
 if ( $post ) {
 	setup_postdata( $post );
 }
+$robots = apply_filters( 'wp_robots', array( 'index' => true, 'follow' => true ) );
+parisan_theme_smoke_assert( ! empty( $robots['noindex'] ) && empty( $robots['index'] ), 'per-content noindex directive is emitted when selected' );
 ob_start();
 parisan_core_output_seo_metadata();
 $seo_head = ob_get_clean();
