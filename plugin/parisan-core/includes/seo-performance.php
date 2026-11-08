@@ -370,7 +370,7 @@ function parisan_core_render_seo_settings_page() {
 		return;
 	}
 	echo '<div class="wrap"><h1>' . esc_html__( 'سئو و عملکرد پاریسان', 'parisan-core' ) . '</h1>';
-	echo '<p>' . esc_html__( 'این نسخه تنظیمات پایه سئو و مرزبندی ایمن کش را فراهم می‌کند. نقشه سایت اختصاصی، کنترل‌های پیشرفته خزنده و ابزارهای تشخیص کش در مراحل بعدی تکمیل می‌شوند.', 'parisan-core' ) . '</p>';
+	echo '<p>' . esc_html__( 'این نسخه تنظیمات پایه سئو، مسیر راهنما، حذف محتوای noindex از نقشه سایت هسته و تشخیص امن وضعیت runtime کش را فراهم می‌کند. نقشه سایت اختصاصی، مدیریت Redirect/404 و سنجش سلامت backend و عملکرد در مراحل بعدی تکمیل می‌شوند.', 'parisan-core' ) . '</p>';
 	echo '<form method="post" action="options.php">';
 	settings_fields( 'parisan_core_seo' );
 	do_settings_sections( 'parisan-core-seo' );
