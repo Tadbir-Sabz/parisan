@@ -56,6 +56,17 @@ $runtime_diagnostics = parisan_core_cache_runtime_diagnostics();
 parisan_test_assert( true === $runtime_diagnostics['persistent_object_cache_active'], 'Runtime diagnostics did not reflect the external object cache flag.' );
 $GLOBALS['parisan_test_external_cache'] = false;
 
+$cache_test_dir = WP_CONTENT_DIR;
+if ( ! is_dir( $cache_test_dir ) ) {
+	mkdir( $cache_test_dir, 0700, true );
+}
+$dropin_file = $cache_test_dir . DIRECTORY_SEPARATOR . 'object-cache.php';
+file_put_contents( $dropin_file, "<?php // disposable cache diagnostics fixture\n" );
+$runtime_diagnostics = parisan_core_cache_runtime_diagnostics();
+parisan_test_assert( true === $runtime_diagnostics['object_cache_dropin_present'], 'Runtime diagnostics did not detect a present object-cache drop-in.' );
+unlink( $dropin_file );
+rmdir( $cache_test_dir );
+
 $empty_status = parisan_core_cache_adapter_status();
 parisan_test_assert( false === $empty_status['wp_rocket']['detected'], 'WP Rocket must be reported absent before its API is loaded.' );
 parisan_test_assert( false === $empty_status['litespeed_cache']['detected'], 'LiteSpeed must be reported absent without its purge hook.' );
