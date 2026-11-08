@@ -1,0 +1,478 @@
+name: PHP lint
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  php-lint:
+    name: PHP syntax (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.1", "8.2", "8.3"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Lint all PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find theme plugin tests -type f -name '*.php' -print)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No PHP files found." >&2
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            php -l "$file"
+          done
+
+      - name: Check booking and public customer JavaScript syntax
+        run: |
+          node --check plugin/parisan-core/assets/js/booking-admin.js
+          node --check plugin/parisan-core/assets/js/public-booking.js
+          node --check theme/parisan/assets/js/theme.js
+          node tests/run-theme-js-tests.js
+
+      - name: Run schedule and availability tests
+        run: php tests/run-schedule-tests.php
+
+      - name: Run cache adapter tests
+        run: php tests/run-cache-adapter-tests.php
+
+  wordpress-smoke:
+    name: WordPress activation smoke test
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_DATABASE: wordpress
+          MARIADB_USER: wordpress
+          MARIADB_PASSWORD: wordpress
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mysqli, curl, mbstring, zip
+          coverage: none
+
+      - name: Install WP-CLI
+        run: |
+          curl -fsSLo wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          php wp-cli.phar --info
+          chmod +x wp-cli.phar
+          sudo mv wp-cli.phar /usr/local/bin/wp
+
+      - name: Install disposable WordPress
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: |
+          set -euo pipefail
+          wp core download --path="$WP_PATH" --quiet
+          wp config create --path="$WP_PATH" --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=127.0.0.1 --skip-check
+          wp core install --path="$WP_PATH" --url=http://localhost --title="Parisan CI" --admin_user=parisan-ci --admin_password="ci-only-password" --admin_email=ci@example.test --skip-email
+          mkdir -p "$WP_PATH/wp-content/themes" "$WP_PATH/wp-content/plugins"
+          cp -R theme/parisan "$WP_PATH/wp-content/themes/parisan"
+          cp -R plugin/parisan-core "$WP_PATH/wp-content/plugins/parisan-core"
+          wp plugin activate parisan-core --path="$WP_PATH"
+          wp theme activate parisan --path="$WP_PATH"
+
+      - name: Verify dynamic homepage and navigation in disposable WordPress
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: wp eval-file tests/run-theme-smoke.php --path="$WP_PATH"
+
+      - name: Verify breadcrumbs, sitemap noindex, and structured data
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: wp eval-file tests/run-breadcrumb-tests.php --path="$WP_PATH"
+
+      - name: Verify registrations and template assets
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: |
+          set -euo pipefail
+          wp eval '
+            if ( ! post_type_exists( "parisan_service" ) || ! post_type_exists( "parisan_staff" ) ) {
+              fwrite( STDERR, "Expected Parisan post types were not registered.\n" );
+              exit( 1 );
+            }
+            if ( ! taxonomy_exists( "parisan_service_category" ) ) {
+              fwrite( STDERR, "Service category taxonomy was not registered.\n" );
+              exit( 1 );
+            }
+            global $wpdb;
+            foreach ( array( "parisan_bookings", "parisan_booking_events", "parisan_schedule_exceptions", "parisan_customer_tokens" ) as $suffix ) {
+              $table = $wpdb->prefix . $suffix;
+              $found = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
+              if ( $table !== $found ) {
+                fwrite( STDERR, "Expected schema table missing: " . $suffix . "\\n" );
+                exit( 1 );
+              }
+              $table_status = $wpdb->get_row( $wpdb->prepare( "SHOW TABLE STATUS LIKE %s", $wpdb->esc_like( $table ) ), ARRAY_A );
+              if ( ! is_array( $table_status ) || "InnoDB" !== $table_status["Engine"] ) {
+                fwrite( STDERR, "Expected InnoDB engine for " . $suffix . "\\n" );
+                exit( 1 );
+              }
+            }
+            if ( 3 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
+              fwrite( STDERR, "Parisan schema version was not recorded.\\n" );
+              exit( 1 );
+            }
+            $duration_column = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$wpdb->prefix}parisan_bookings LIKE %s", "duration_minutes" ) );
+            if ( ! $duration_column ) {
+              fwrite( STDERR, "Booking duration snapshot column was not installed.\\n" );
+              exit( 1 );
+            }
+            if ( ! function_exists( "parisan_core_normalize_weekly_schedule" ) || ! function_exists( "parisan_core_local_interval_to_utc" ) || ! function_exists( "parisan_core_handle_schedule_exception_create" ) ) {
+              fwrite( STDERR, "Schedule/exception components were not loaded.\\n" );
+              exit( 1 );
+            }
+            $service_id = wp_insert_post( array(
+              "post_type"   => "parisan_service",
+              "post_status" => "publish",
+              "post_title"  => "Synthetic CI service",
+            ), true );
+            if ( is_wp_error( $service_id ) ) {
+              fwrite( STDERR, $service_id->get_error_message() . "\n" );
+              exit( 1 );
+            }
+            update_post_meta( $service_id, "_parisan_duration", 45 );
+            if ( 45 !== absint( get_post_meta( $service_id, "_parisan_duration", true ) ) ) {
+              fwrite( STDERR, "Service metadata did not persist.\n" );
+              exit( 1 );
+            }
+            $staff_id = wp_insert_post( array(
+              "post_type"   => "parisan_staff",
+              "post_status" => "publish",
+              "post_title"  => "Synthetic CI specialist",
+            ), true );
+            if ( is_wp_error( $staff_id ) ) {
+              fwrite( STDERR, $staff_id->get_error_message() . "\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $staff_id, "_parisan_staff_services", array( $service_id ) );
+            update_post_meta( $staff_id, "_parisan_staff_weekly_schedule", parisan_core_normalize_weekly_schedule( array(
+              1 => array( "start" => "09:00", "end" => "12:00" ),
+            ) ) );
+            update_option( "timezone_string", "UTC" );
+            $ci_date = current_datetime()->modify( "next monday" )->format( "Y-m-d" );
+            $booking_table = $wpdb->prefix . "parisan_bookings";
+            $booking_inserted = $wpdb->insert( $booking_table, array(
+              "public_id" => wp_generate_uuid4(),
+              "service_id" => $service_id,
+              "staff_id" => $staff_id,
+              "customer_name" => "Synthetic CI customer",
+              "customer_phone" => "0000000000",
+              "customer_email" => "",
+              "starts_at_utc" => $ci_date . " 09:00:00",
+              "ends_at_utc" => $ci_date . " 09:45:00",
+              "salon_timezone" => "UTC",
+              "status" => "confirmed",
+              "price_amount" => 0,
+              "currency_code" => "IRR",
+              "idempotency_key" => hash( "sha256", "parisan-ci-booking" ),
+              "created_at_utc" => "2026-11-01 00:00:00",
+              "updated_at_utc" => "2026-11-01 00:00:00",
+            ) );
+            if ( false === $booking_inserted ) {
+              fwrite( STDERR, "Synthetic booking insert failed: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $exception_table = $wpdb->prefix . "parisan_schedule_exceptions";
+            $exception_inserted = $wpdb->insert( $exception_table, array(
+              "staff_id" => $staff_id,
+              "starts_at_utc" => $ci_date . " 10:00:00",
+              "ends_at_utc" => $ci_date . " 10:30:00",
+              "exception_type" => "unavailable",
+              "note" => "Synthetic CI leave",
+              "created_at_utc" => "2026-11-01 00:00:00",
+            ) );
+            if ( false === $exception_inserted ) {
+              fwrite( STDERR, "Synthetic exception insert failed: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $slots = parisan_core_get_available_slots( $staff_id, $service_id, $ci_date );
+            if ( is_wp_error( $slots ) || ! is_array( $slots ) || empty( $slots ) || $ci_date . " 10:30" !== $slots[0]["starts_at_local"] ) {
+              fwrite( STDERR, "Availability adapter did not exclude seeded booking/exception intervals.\\n" );
+              exit( 1 );
+            }
+            echo "WordPress activation, schema, and seeded availability integration test passed.\\n";
+          ' --path="$WP_PATH"
+          test -f "$WP_PATH/wp-content/themes/parisan/front-page.php"
+          test -f "$WP_PATH/wp-content/themes/parisan/archive-parisan_service.php"
+          test -f "$WP_PATH/wp-content/themes/parisan/single-parisan_service.php"
+          test -f "$WP_PATH/wp-content/themes/parisan/archive-parisan_portfolio.php"
+          test -f "$WP_PATH/wp-content/themes/parisan/single-parisan_portfolio.php"
+
+      - name: Verify transactional booking service
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: |
+          set -euo pipefail
+          wp eval '
+            global $wpdb;
+            $ci_date = current_datetime()->modify( "next monday" )->format( "Y-m-d" );
+            $service_id = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = \"parisan_service\" AND post_status = \"publish\" ORDER BY ID DESC LIMIT 1" );
+            $staff_id = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = \"parisan_staff\" AND post_status = \"publish\" ORDER BY ID DESC LIMIT 1" );
+            if ( ! $service_id || ! $staff_id || ! function_exists( "parisan_core_create_booking" ) ) {
+              fwrite( STDERR, "Booking service prerequisites are missing.\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $service_id, "_parisan_price", 1200 );
+            if ( ! function_exists( "parisan_core_acquire_staff_schedule_lock" ) || ! function_exists( "parisan_core_release_staff_schedule_lock" ) ) {
+              fwrite( STDERR, "Shared staff schedule lock helpers were not loaded.\\n" );
+              exit( 1 );
+            }
+            $probe_lock = parisan_core_acquire_staff_schedule_lock( $staff_id );
+            if ( is_wp_error( $probe_lock ) ) {
+              fwrite( STDERR, "Could not acquire the staff schedule lock.\\n" );
+              exit( 1 );
+            }
+            parisan_core_release_staff_schedule_lock( $probe_lock );
+            $payload = array(
+              "service_id" => $service_id,
+              "staff_id" => $staff_id,
+              "starts_at_local" => $ci_date . " 10:30",
+              "customer_name" => "Synthetic booking customer",
+              "customer_phone" => "09123456789",
+              "customer_email" => "booking@example.test",
+              "idempotency_token" => "ci-idempotency-token-0001",
+            );
+            $created = parisan_core_create_booking( $payload );
+            if ( is_wp_error( $created ) || empty( $created["booking_id"] ) || ! empty( $created["reused"] ) ) {
+              fwrite( STDERR, "Booking creation failed: " . ( is_wp_error( $created ) ? $created->get_error_code() : "unexpected result" ) . "\\n" );
+              exit( 1 );
+            }
+            $customer_token = bin2hex( random_bytes( 32 ) );
+            $customer_tokens_table = $wpdb->prefix . "parisan_customer_tokens";
+            if ( false === $wpdb->query( "START TRANSACTION" ) || ! parisan_core_store_customer_access_token( $created["booking_id"], $customer_token ) || false === $wpdb->query( "COMMIT" ) ) {
+              $wpdb->query( "ROLLBACK" );
+              fwrite( STDERR, "Could not issue synthetic customer token for reschedule test.\\n" );
+              exit( 1 );
+            }
+            $event_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"created\"", $created["booking_id"] ) );
+            $stored = $wpdb->get_row( $wpdb->prepare( "SELECT status, price_amount, currency_code, duration_minutes FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ), ARRAY_A );
+            if ( 1 !== $event_count || ! is_array( $stored ) || "pending" !== $stored["status"] || 12000 !== (int) $stored["price_amount"] || "IRR" !== $stored["currency_code"] || 45 !== (int) $stored["duration_minutes"] ) {
+              fwrite( STDERR, "Booking and audit event were not persisted with the expected snapshot.\\n" );
+              exit( 1 );
+            }
+            $replayed = parisan_core_create_booking( $payload );
+            if ( is_wp_error( $replayed ) || empty( $replayed["reused"] ) || (int) $replayed["booking_id"] !== (int) $created["booking_id"] ) {
+              fwrite( STDERR, "Same-payload idempotent replay did not return the original booking.\\n" );
+              exit( 1 );
+            }
+            $conflict_payload = $payload;
+            $conflict_payload["customer_name"] = "Different synthetic customer";
+            $conflict = parisan_core_create_booking( $conflict_payload );
+            if ( ! is_wp_error( $conflict ) || "parisan_idempotency_conflict" !== $conflict->get_error_code() ) {
+              fwrite( STDERR, "Reused idempotency token with a changed payload was not rejected.\\n" );
+              exit( 1 );
+            }
+            $overlap_payload = $payload;
+            $overlap_payload["idempotency_token"] = "ci-idempotency-token-0002";
+            $overlap = parisan_core_create_booking( $overlap_payload );
+            if ( ! is_wp_error( $overlap ) || "parisan_booking_slot_unavailable" !== $overlap->get_error_code() ) {
+              fwrite( STDERR, "Overlapping booking was not rejected after locked availability recheck.\\n" );
+              exit( 1 );
+            }
+            wp_set_current_user( 1 );
+            if ( ! function_exists( "parisan_core_reschedule_booking" ) ) {
+              fwrite( STDERR, "Booking reschedule service was not loaded.\\n" );
+              exit( 1 );
+            }
+            $rescheduled = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 10:45", "CI reschedule" );
+            if ( is_wp_error( $rescheduled ) || ! empty( $rescheduled["reused"] ) || ( $ci_date . " 10:45:00" ) !== $rescheduled["starts_at_utc"] || ( $ci_date . " 11:30:00" ) !== $rescheduled["ends_at_utc"] || 45 !== (int) $rescheduled["duration_minutes"] ) {
+              fwrite( STDERR, "Booking reschedule failed or did not preserve its duration: " . ( is_wp_error( $rescheduled ) ? $rescheduled->get_error_code() : "unexpected result" ) . "\\n" );
+              exit( 1 );
+            }
+            $rescheduled_token_expiry = $wpdb->get_var( $wpdb->prepare( "SELECT expires_at_utc FROM {$customer_tokens_table} WHERE booking_id = %d AND revoked_at_utc IS NULL", $created["booking_id"] ) );
+            $expected_token_expiry = ( new DateTimeImmutable( $rescheduled["ends_at_utc"], new DateTimeZone( "UTC" ) ) )->modify( "+30 days" )->format( "Y-m-d H:i:s" );
+            if ( $expected_token_expiry !== $rescheduled_token_expiry || ! is_array( parisan_core_resolve_customer_access_token( $customer_token ) ) ) {
+              fwrite( STDERR, "Rescheduling did not keep the customer token valid through the new appointment end.\\n" );
+              exit( 1 );
+            }
+            $reschedule_replay = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 10:45" );
+            if ( is_wp_error( $reschedule_replay ) || empty( $reschedule_replay["reused"] ) ) {
+              fwrite( STDERR, "Idempotent booking reschedule replay failed.\\n" );
+              exit( 1 );
+            }
+            $blocked_reschedule = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 10:15" );
+            if ( ! is_wp_error( $blocked_reschedule ) || "parisan_booking_slot_unavailable" !== $blocked_reschedule->get_error_code() ) {
+              fwrite( STDERR, "Reschedule into an unavailable exception interval was not rejected.\\n" );
+              exit( 1 );
+            }
+            $events_table = $wpdb->prefix . "parisan_booking_events";
+            $quoted_events_table = "`" . str_replace( "`", "``", $events_table ) . "`";
+            $reschedule_trigger_name = "parisan_ci_fail_reschedule_event";
+            $reschedule_trigger_sql = "CREATE TRIGGER " . $reschedule_trigger_name . " BEFORE INSERT ON " . $quoted_events_table . " FOR EACH ROW SIGNAL SQLSTATE " . chr( 39 ) . "45000" . chr( 39 ) . " SET MESSAGE_TEXT = " . chr( 39 ) . "forced_reschedule_audit_failure" . chr( 39 );
+            $reschedule_trigger_created = $wpdb->query( $reschedule_trigger_sql );
+            if ( false === $reschedule_trigger_created ) {
+              fwrite( STDERR, "Could not create the disposable reschedule audit-failure trigger: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $reschedule_rollback_result = null;
+            try {
+              $reschedule_rollback_result = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 11:15", "CI forced audit rollback" );
+            } finally {
+              $wpdb->query( "DROP TRIGGER IF EXISTS " . $reschedule_trigger_name );
+            }
+            $reschedule_rollback_error = is_wp_error( $reschedule_rollback_result ) ? $reschedule_rollback_result->get_error_code() : "not_wp_error";
+            $start_after_reschedule_rollback = $wpdb->get_var( $wpdb->prepare( "SELECT starts_at_utc FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
+            $expiry_after_reschedule_rollback = $wpdb->get_var( $wpdb->prepare( "SELECT expires_at_utc FROM {$customer_tokens_table} WHERE booking_id = %d AND revoked_at_utc IS NULL", $created["booking_id"] ) );
+            if ( "parisan_booking_audit_failed" !== $reschedule_rollback_error || $ci_date . " 10:45:00" !== $start_after_reschedule_rollback || $expected_token_expiry !== $expiry_after_reschedule_rollback ) {
+              fwrite( STDERR, "Reschedule audit failure did not roll back the booking time. error=" . $reschedule_rollback_error . ", start=" . $start_after_reschedule_rollback . "\\n" );
+              exit( 1 );
+            }
+            wp_set_current_user( 1 );
+            if ( ! function_exists( "parisan_core_transition_booking" ) ) {
+              fwrite( STDERR, "Booking lifecycle service was not loaded.\\n" );
+              exit( 1 );
+            }
+            $_GET = array( "booking_id" => $created["booking_id"] );
+            ob_start();
+            parisan_core_render_booking_admin_page();
+            $active_booking_detail_html = ob_get_clean();
+            $_GET = array();
+            if ( false === strpos( $active_booking_detail_html, "parisan_reschedule_booking" ) || false === strpos( $active_booking_detail_html, "new_start_local" ) ) {
+              fwrite( STDERR, "Active booking detail page did not render the reschedule form.\\n" );
+              exit( 1 );
+            }
+            $confirmed = parisan_core_transition_booking( $created["booking_id"], "confirmed", "CI confirmation" );
+            if ( is_wp_error( $confirmed ) || "confirmed" !== $confirmed["to_status"] || ! empty( $confirmed["reused"] ) ) {
+              fwrite( STDERR, "Pending-to-confirmed transition failed: " . ( is_wp_error( $confirmed ) ? $confirmed->get_error_code() : "unexpected result" ) . "\\n" );
+              exit( 1 );
+            }
+            $confirmed_replay = parisan_core_transition_booking( $created["booking_id"], "confirmed" );
+            if ( is_wp_error( $confirmed_replay ) || empty( $confirmed_replay["reused"] ) ) {
+              fwrite( STDERR, "Idempotent booking status replay failed.\\n" );
+              exit( 1 );
+            }
+            $cancelled = parisan_core_transition_booking( $created["booking_id"], "cancelled", "CI cancellation" );
+            if ( is_wp_error( $cancelled ) || "cancelled" !== $cancelled["to_status"] ) {
+              fwrite( STDERR, "Confirmed-to-cancelled transition failed.\\n" );
+              exit( 1 );
+            }
+            $cancelled_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $created["booking_id"] ) );
+            $transition_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"status_changed\"", $created["booking_id"] ) );
+            $reschedule_events = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_events WHERE booking_id = %d AND event_type = \"rescheduled\"", $created["booking_id"] ) );
+            $invalid_transition = parisan_core_transition_booking( $created["booking_id"], "confirmed" );
+            $terminal_reschedule = parisan_core_reschedule_booking( $created["booking_id"], $ci_date . " 11:15" );
+            if ( "cancelled" !== $cancelled_status || 2 !== $transition_events || 1 !== $reschedule_events || ! is_wp_error( $invalid_transition ) || "parisan_invalid_booking_transition" !== $invalid_transition->get_error_code() || ! is_wp_error( $terminal_reschedule ) || "parisan_booking_reschedule_not_allowed" !== $terminal_reschedule->get_error_code() ) {
+              fwrite( STDERR, "Booking lifecycle state machine or audit history assertion failed.\\n" );
+              exit( 1 );
+            }
+            if ( ! function_exists( "parisan_core_render_booking_admin_page" ) || ! function_exists( "parisan_core_handle_booking_admin_transition" ) || false === has_action( "admin_post_parisan_transition_booking", "parisan_core_handle_booking_admin_transition" ) || ! function_exists( "parisan_core_handle_booking_reschedule" ) || false === has_action( "admin_post_parisan_reschedule_booking", "parisan_core_handle_booking_reschedule" ) ) {
+              fwrite( STDERR, "Booking operations admin page or transition handler was not registered.\\n" );
+              exit( 1 );
+            }
+            if ( ! function_exists( "parisan_core_handle_admin_available_slots" ) || false === has_action( "wp_ajax_parisan_admin_available_slots", "parisan_core_handle_admin_available_slots" ) || false !== has_action( "wp_ajax_nopriv_parisan_admin_available_slots" ) || ! file_exists( PARISAN_CORE_DIR . "assets/js/booking-admin.js" ) ) {
+              fwrite( STDERR, "Authorized booking availability AJAX handler or script asset is missing or exposed to unauthenticated users.\\n" );
+              exit( 1 );
+            }
+            do_action( "admin_enqueue_scripts", "parisan_staff_page_parisan-bookings" );
+            if ( ! wp_script_is( "parisan-booking-admin", "enqueued" ) ) {
+              fwrite( STDERR, "Booking slot picker script was not enqueued on the booking operations screen.\\n" );
+              exit( 1 );
+            }
+            $_GET = array();
+            ob_start();
+            parisan_core_render_booking_admin_page();
+            $booking_admin_html = ob_get_clean();
+            if ( false === strpos( $booking_admin_html, "مدیریت نوبت‌ها" ) || false === strpos( $booking_admin_html, "Synthetic booking customer" ) || false === strpos( $booking_admin_html, "parisan_create_manual_booking" ) || false === strpos( $booking_admin_html, "booking_date" ) || false === strpos( $booking_admin_html, "booking_time" ) ) {
+              fwrite( STDERR, "Booking operations admin page did not render the seeded booking and manual booking form.\\n" );
+              exit( 1 );
+            }
+            $_GET = array( "booking_id" => $created["booking_id"] );
+            ob_start();
+            parisan_core_render_booking_admin_page();
+            $booking_detail_html = ob_get_clean();
+            $_GET = array();
+            if ( false === strpos( $booking_detail_html, "جزئیات نوبت" ) || false === strpos( $booking_detail_html, "Synthetic booking customer" ) || false === strpos( $booking_detail_html, "سوابق و رویدادهای نوبت" ) || false === strpos( $booking_detail_html, "CI confirmation" ) || false === strpos( $booking_detail_html, "CI reschedule" ) ) {
+              fwrite( STDERR, "Booking detail view did not render customer details and audit timeline.\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $service_id, "_parisan_price_type", "from" );
+            $from_price_payload = $payload;
+            $from_price_payload["idempotency_token"] = "ci-idempotency-token-0003";
+            $from_price = parisan_core_create_booking( $from_price_payload );
+            if ( ! is_wp_error( $from_price ) || "parisan_service_requires_price_confirmation" !== $from_price->get_error_code() ) {
+              fwrite( STDERR, "A starting-from service price was incorrectly accepted as a final booking price.\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $service_id, "_parisan_price_type", "fixed" );
+            $trigger_name = "parisan_ci_fail_booking_event";
+            $events_table = $wpdb->prefix . "parisan_booking_events";
+            $quoted_events_table = "`" . str_replace( "`", "``", $events_table ) . "`";
+            $trigger_sql = "CREATE TRIGGER " . $trigger_name . " BEFORE INSERT ON " . $quoted_events_table . " FOR EACH ROW SIGNAL SQLSTATE " . chr( 39 ) . "45000" . chr( 39 ) . " SET MESSAGE_TEXT = " . chr( 39 ) . "forced_audit_failure" . chr( 39 );
+            $trigger_created = $wpdb->query( $trigger_sql );
+            if ( false === $trigger_created ) {
+              fwrite( STDERR, "Could not create the disposable audit-failure trigger: " . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $rollback_payload = $payload;
+            $rollback_payload["starts_at_local"] = $ci_date . " 11:15";
+            $rollback_payload["idempotency_token"] = "ci-idempotency-token-0004";
+            $rollback_result = null;
+            try {
+              $rollback_result = parisan_core_create_booking( $rollback_payload );
+            } finally {
+              $wpdb->query( "DROP TRIGGER IF EXISTS " . $trigger_name );
+            }
+            $rollback_key = hash( "sha256", $rollback_payload["idempotency_token"] );
+            $rollback_booking_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_bookings WHERE idempotency_key = %s", $rollback_key ) );
+            $rollback_error_code = is_wp_error( $rollback_result ) ? $rollback_result->get_error_code() : "not_wp_error";
+            if ( "parisan_booking_audit_failed" !== $rollback_error_code || 0 !== $rollback_booking_count ) {
+              fwrite( STDERR, "Audit rollback assertion failed; error=" . $rollback_error_code . ", persisted_booking_count=" . $rollback_booking_count . ", db_error=" . $wpdb->last_error . "\\n" );
+              exit( 1 );
+            }
+            $persian_phone_payload = $payload;
+            $persian_phone_payload["starts_at_local"] = $ci_date . " 11:15";
+            $persian_phone_payload["customer_phone"] = "۰۹۱۲۳۴۵۶۷۸۹";
+            $persian_phone_payload["idempotency_token"] = "ci-idempotency-token-0005";
+            $persian_phone_booking = parisan_core_create_booking( $persian_phone_payload );
+            if ( is_wp_error( $persian_phone_booking ) ) {
+              fwrite( STDERR, "Booking with Persian phone digits failed: " . $persian_phone_booking->get_error_code() . "\\n" );
+              exit( 1 );
+            }
+            $normalized_phone = $wpdb->get_var( $wpdb->prepare( "SELECT customer_phone FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", $persian_phone_booking["booking_id"] ) );
+            if ( "09123456789" !== $normalized_phone ) {
+              fwrite( STDERR, "Persian phone digits were not normalized to ASCII.\\n" );
+              exit( 1 );
+            }
+            $past_payload = $payload;
+            $past_payload["starts_at_local"] = current_datetime()->modify( "-2 days" )->format( "Y-m-d" ) . " 10:30";
+            $past_payload["idempotency_token"] = "ci-idempotency-token-0006";
+            $past_booking = parisan_core_create_booking( $past_payload );
+            if ( ! is_wp_error( $past_booking ) || "parisan_booking_time_in_past" !== $past_booking->get_error_code() ) {
+              fwrite( STDERR, "Past booking time was not rejected.\\n" );
+              exit( 1 );
+            }
+            echo "Transactional booking creation, InnoDB, shared lock, audit event, idempotency, overlap rejection, fixed-price gate, and audit-failure rollback passed.\\n";
+          ' --path="$WP_PATH"

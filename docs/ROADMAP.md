@@ -1,7 +1,8 @@
 # Parisan Delivery Roadmap
 
 **Canonical branch:** main  
-**Roadmap status:** Initial baseline — no product implementation has been verified yet.  
+**Active implementation branch:** `feature/service-catalog-foundation`  
+**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, reusable request throttling, and a gated public booking/customer-token API, and token-scoped customer rescheduling are implemented on the feature branch. Public activation remains disabled by default; end-to-end customer UX and deployment-specific security validation remain incomplete.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -26,11 +27,11 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Define product vision, target users, scope, and architecture boundary.
 - [x] Define phased roadmap and status rules.
 - [ ] Inspect repository branch protections, CI, permissions, and initial commit state; document verified baseline.
-- [ ] Add architecture decision records for theme/core separation, booking data model, timezone/calendar, and integration strategy.
+- [~] Add architecture decision records for theme/core separation, booking data model, timezone/calendar, transactional booking creation, and integration strategy; ADR-0001 through ADR-0005 are present on the implementation branch.
 - [ ] Define supported WordPress/PHP matrix based on current stable releases and available test environments.
-- [ ] Establish coding standards, static analysis, unit/integration test harness, and CI.
+- [~] Establish CI and focused automated validation; PHP lint and standalone weekly schedule tests PASS on PHP 8.1, 8.2, and 8.3. Disposable WordPress/MariaDB activation, plugin/theme activation, post type/taxonomy registration, and template asset smoke test PASS. Broader static analysis and end-to-end tests remain pending.
 - [ ] Define local development environment and synthetic seed data.
-- [ ] Add security/privacy threat model and data classification.
+- [x] Define the first booking PII lifecycle, active-record retention boundary, opt-in anonymization, and future public-route abuse-control requirements in ADR-0011; broader product threat modeling remains pending.
 
 **Gate P0:** clean reproducible setup, CI baseline, approved architecture, no production credentials/data.
 
@@ -40,10 +41,11 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 - [ ] Define brand concept, naming/wordmark direction, color tokens, Persian/Latin type system, iconography, spacing, motion, and responsive breakpoints.
 - [ ] Produce desktop/tablet/mobile design references and high-fidelity homepage/service/booking/account/admin prototypes.
-- [ ] Define complete RTL/LTR interaction rules and dark/light tokens.
-- [ ] Implement theme scaffold, semantic template hierarchy, navigation, footer, global components, and theme settings.
-- [ ] Build public templates: home, service archive/detail, team, gallery, blog, contact, FAQ, policies, search, 404.
-- [ ] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action.
+- [~] Define complete RTL/LTR interaction rules and dark/light tokens; initial accessible light/dark preference control is implemented, while full-page contrast, RTL/LTR and keyboard/screen-reader review remain UNVERIFIED.
+- [x] Add initial theme scaffold, semantic header/footer, navigation, dedicated front page, standard page/post, archive, search, and 404 templates, and responsive RTL-aware base styles.
+- [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
+- [~] Build public templates: dynamic editorial homepage and service/staff catalogue archive/detail foundations are implemented; gallery, blog, contact, FAQ, policies, and remaining content templates are pending. Browser rendering and responsive visual review remain UNVERIFIED.
+- [~] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action; the mobile booking shortcut is implemented and hides while the booking section is visible, while gallery/testimonial components and browser/device validation remain pending.
 - [ ] Validate content editing and Elementor coexistence/fallback.
 - [ ] Create visual regression baselines for key viewports.
 
@@ -55,29 +57,33 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 - [ ] Implement plugin bootstrap, namespacing/autoloading, module boundaries, capability map, settings, logging, and diagnostics.
 - [ ] Add versioned database migrations and upgrade safety.
-- [ ] Implement service categories, services, duration, pricing, add-ons, packages, and booking rules.
-- [ ] Implement staff profiles, specialties, service eligibility, schedules, breaks, holidays, and leave.
+- [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
+- [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor, and date-specific full-day/partial-day unavailability administration. Breaks, resource schedules, and expanded calendar UX remain pending.
 - [ ] Implement branches/resources data model with single-salon-first UX.
 - [ ] Build admin navigation and setup wizard.
 - [ ] Add seed/demo data that is clearly non-production.
 - [ ] Test deactivation/theme-switch data persistence.
+- [x] Add pure weekly schedule normalization tests to the PHP CI matrix; previous run PASS on PHP 8.1/8.2/8.3; 22 assertions.
 
 **Gate P2:** salon catalogue and staff/schedule administration usable; migrations tested; permissions enforced.
 
 ## Phase 3 — Booking engine and customer portal (first business-ready release)
 
-**Status:** [ ] NOT STARTED
+**Status:** [~] IN PROGRESS — schema, availability, internal booking-write service, and gated API/token foundation; customer UX and deployment validation incomplete
 
-- [ ] Implement availability calculation with staff, service duration, buffers, breaks, leave, holidays, resources, capacity, lead time, and booking horizon.
-- [ ] Implement concurrency-safe booking creation and double-book prevention.
-- [ ] Implement booking state machine, audit trail, manual receptionist booking, reschedule/cancel policies, and walk-ins.
+- [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration; disposable WordPress/MariaDB smoke test confirms all three tables and schema version.
+- [x] Implement timezone-aware availability calculation using staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Pure tests and a seeded WordPress database integration test are required for this milestone.
+- [x] Add Persian admin management for date-specific full-day leave/closures and partial-day unavailability; all submitted local intervals are validated and stored in UTC.
+- [ ] Add break management, resource schedules, capacity, lead time, and booking horizon.
+- [x] Implement and CI-verify internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, and atomic pending booking + audit event transaction (run 42376217290). Multi-connection stress and lock-timeout behavior remain UNVERIFIED. The public route wrapper is separately feature-gated and reuses this service.
+- [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
-- [ ] Implement public booking wizard with accessible mobile UX and server-side validation.
-- [ ] Implement customer registration/login integration with WordPress accounts and secure booking ownership.
-- [ ] Implement customer portal: upcoming/past bookings, details, cancellation/reschedule, profile, preferences.
-- [ ] Implement admin calendar/list, filters, search, status actions, and daily dashboard.
+- [~] Implement a gated public API foundation for availability, pending booking creation, token-scoped customer view, and cancellation (ADR-0012). Routes and the wizard remain disabled unless the owner explicitly defines `PARISAN_PUBLIC_BOOKING_ENABLED=true`; initial Persian RTL shortcode UI is implemented, while browser/device/accessibility review remains UNVERIFIED.
+- [~] Implement non-account customer ownership using 256-bit random, HMAC-digested, expiring, revocable access tokens (ADR-0012). Customer registration/login and account-based ownership remain future options.
+- [x] Add token-scoped booking view, availability, cancellation, and self-service rescheduling APIs plus the Persian shortcode UI for lookup/rescheduling/cancellation. Disposable WordPress/MariaDB integration verifies token ownership, same-origin enforcement, the 90-day horizon, current-booking exclusion from conflict checks, duration/price preservation, and token-expiry adjustment; browser/device/accessibility workflows remain UNVERIFIED.
+- [~] Implement admin booking list, status filters/actions, detail/audit timeline, manual booking, and reschedule form; calendar-style operations view, search, and daily dashboard remain pending.
 - [ ] Add email notifications and testable notification queue.
-- [ ] Test timezone boundaries, concurrent requests, authorization/IDOR, and lifecycle transitions.
+- [~] Test timezone boundaries, concurrent requests, token scoping/rotation/expiry, lifecycle transitions, privacy export/erasure, retention, and abuse controls; updated WordPress/MariaDB CI covers token lifecycle and default-off/explicitly-enabled route/shortcode behavior. Browser, multi-connection stress, proxy, and multi-node evidence remains pending.
 
 **Gate P3:** a complete customer can book and manage an appointment; staff can operate the schedule; no double booking under tested concurrency.
 
@@ -88,7 +94,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Verify current official Melipayamak API docs and supported authentication/send/status methods.
 - [ ] Implement provider adapter, secure credential storage, masked settings, and explicit connection test.
 - [ ] Implement Persian SMS templates, variable preview, event mapping, and staff/customer routing.
-- [ ] Implement queue, bounded retry, idempotency, quiet hours, consent, rate limits, and redacted logs.
+- [ ] Implement queue, bounded retry, idempotency, quiet hours, consent, endpoint-specific rate limits, and redacted logs. The current reusable rate-limit primitive does not enable or secure a public route by itself.
 - [ ] Implement reminders with duplicate prevention and real-cron guidance.
 - [ ] Implement contact/consultation/custom forms, validation, spam controls, privacy consent, retention, export/delete.
 - [ ] Add mock-provider and test-recipient modes; prove automated tests never send live SMS.
@@ -97,18 +103,20 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 ## Phase 5 — SEO and performance toolkit
 
-**Status:** [ ] NOT STARTED
+**Status:** [~] IN PROGRESS — initial metadata, structured-data, and privacy-aware cache boundaries implemented; sitemap extensions, crawler controls, vendor cache adapters, and performance diagnostics pending
 
-- [ ] Implement SEO metadata templates, canonical/robots controls, sitemap generation, Open Graph, breadcrumbs, and validated JSON-LD.
-- [ ] Implement duplicate-output detection and coexistence controls for other SEO plugins.
+- [~] Implement SEO metadata templates, canonical, Open Graph, Service JSON-LD, and context-aware breadcrumbs with BreadcrumbList schema. Per-content title/description/noindex, site defaults, BreadcrumbList, and WordPress core sitemap exclusion for noindex content are implemented with smoke coverage; custom sitemap providers/extensions, redirect management, and real search-engine validation remain pending.
+- [x] Implement duplicate-output detection and coexistence controls for Yoast SEO, Rank Math, SEOPress, All in One SEO, and The SEO Framework using explicit ownership detection; full version/plugin-matrix compatibility remains UNVERIFIED.
 - [ ] Add redirect management and privacy-safe 404 diagnostics if justified.
 - [ ] Implement page-specific asset loading, image optimization, font strategy, and Core Web Vitals instrumentation guidance.
-- [ ] Implement safe first-party cache controls, invalidation, persistent object-cache detection, and diagnostics.
-- [ ] Explicitly bypass public cache for authenticated, booking, customer, and personalized routes.
+- [~] Implement safe first-party cache boundaries and targeted post-purge adapters for LiteSpeed Cache, WP Rocket, and W3 Total Cache. The adapters are capability-detected and scoped to Parisan service/specialist content; isolated PHP tests cover provider detection and post-scoped requests. A Persian admin diagnostics table reports the external object-cache runtime flag, drop-in presence, and provider APIs. Provider-installed runtime verification, backend health metrics, CDN/Reverse Proxy purge, and measured purge completion remain pending.
+- [x] Explicitly bypass public cache for authenticated, booking-shortcode, tokenized customer, and Parisan customer REST contexts using WordPress cache flags and no-store headers; reverse-proxy behavior remains UNVERIFIED.
 - [ ] Benchmark representative pages and queries; tune database indexes and query plans.
 - [ ] Validate sitemap, metadata, structured data, crawlability, and real mobile performance.
 
-**Gate P5:** no duplicate SEO output; benchmark report meets agreed targets or documents justified gaps; no private data cached publicly.
+- [x] CI on runtime/test commit `c01e55e`: PHP 8.1/8.2/8.3 lint, WordPress theme/SEO/cache smoke, privacy/customer integration, and PHP 8.1/8.2/8.3 abuse-control matrix all PASS — [PHP/WordPress run 42452870953](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870953), [WordPress/MariaDB run 42452870912](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870912), [privacy matrix run 42452870925](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870925). Later commits are documentation-only.
+
+**Gate P5:** no duplicate SEO output; sitemap, metadata, and structured data validated; cache-plugin/reverse-proxy purge and bypass behavior verified; performance report meets agreed targets or documents justified gaps; no private data cached publicly.
 
 ## Phase 6 — Commerce and page-builder integrations
 
@@ -150,6 +158,19 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 **Gate P8:** reproducible release artifacts and documented support/upgrade process.
 
+## Booking privacy and public endpoint readiness
+
+**Status:** [~] IN PROGRESS — see [ADR-0011](docs/decisions/ADR-0011-booking-personal-data-lifecycle.md).
+
+- [x] Register booking records with WordPress personal-data export/erasure hooks; PHP matrix PASS [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545).
+- [x] Define and integration-test terminal-booking anonymization while preserving operational/event structure; active pending/confirmed bookings are reported as retained [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
+- [x] Add and integration-test administrator-controlled automatic retention, disabled by default, with bounded daily anonymization batches [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
+- [x] Add and test a reusable HMAC-keyed, MySQL-lock-serialized fixed-window request limiter; raw IPs are not stored and forwarded-IP headers are ignored [runs 42398990545 and 42398990422](https://github.com/Tadbir-Sabz/parisan/actions).
+- [x] Dedicated PHP 8.1/8.2/8.3 matrix assertions PASS [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545).
+- [x] Disposable WordPress/MariaDB erasure and forced transaction rollback PASS (run 42398990422). Browser privacy workflow, reverse-proxy IP topology, multi-node rate-limit behavior, and owner-approved retention period remain UNVERIFIED.
+- [~] Implemented gated public availability/create/customer-view/cancel routes, HMAC-digested 256-bit expiring customer tokens, rotation/revocation, same-origin mutation checks, endpoint rate limiting, no-store responses, and transactional customer cancellation (ADR-0012). Updated disposable WordPress/MariaDB integration CI is pending.
+- [ ] Before enabling the feature constant: complete end-to-end IDOR/replay/brute-force/concurrency tests, browser booking UX and accessibility, reverse-proxy/multi-node verification, security review, and explicit site-owner approval. The routes remain disabled by default.
+
 ## Cross-cutting workstreams
 
 These apply throughout all phases:
@@ -172,10 +193,17 @@ These apply throughout all phases:
 
 ## Current verified progress
 
-As of this initial roadmap commit:
-- Repository metadata confirms the canonical default branch is main.
-- The repository was empty before the documentation bootstrap.
-- Product documentation has been initialized.
-- No theme, plugin, booking, SEO, caching, SMS, WooCommerce, or Elementor implementation has been verified.
+As of the active implementation branch:
 
-Do not infer implementation progress from roadmap planning. Replace this section with evidence-backed updates as work proceeds.
+- Product architecture, agent instructions, product plan, roadmap, and ADRs 0001–0011 are present in the repository.
+- Parisan theme and Core catalogue/scheduling foundations are implemented; browser rendering, responsive RTL, accessibility, and theme-switch persistence remain UNVERIFIED.
+- Availability and calendar exception integration passed [CI run 42374197402](https://github.com/Tadbir-Sabz/parisan/actions/runs/42374197402).
+- Internal booking creation and lifecycle passed [CI run 42376217290](https://github.com/Tadbir-Sabz/parisan/actions/runs/42376217290).
+- Manual booking, admin slot lookup, and booking detail/audit screens have CI evidence in runs 42376730497, 42376924602, and 42377058236.
+- Duration snapshots and concurrency-safe rescheduling passed [CI run 42377819791](https://github.com/Tadbir-Sabz/parisan/actions/runs/42377819791).
+- Privacy exporter/eraser, terminal-only anonymization, active-booking retention, rollback safety, opt-in retention, and request throttling passed the PHP matrix [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545) and disposable WordPress/MariaDB integration [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
+- Latest PHP syntax, schedule/availability, booking integration, and WordPress activation smoke tests passed [run 42398990464](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990464).
+- Public booking/customer portal, secure customer access tokens, break/resource scheduling, browser visual/accessibility review, multi-connection stress, proxy/multi-node rate-limit verification, SMS, forms, SEO, caching, WooCommerce/Elementor adapters, packaging, and production deployment remain NOT STARTED or UNVERIFIED as marked above.
+- No production site, customer database, live SMS, or payment system has been accessed.
+
+Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.

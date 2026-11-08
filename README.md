@@ -2,72 +2,98 @@
 
 > Product vision, architecture, delivery roadmap, and mandatory contributor instructions.
 
-**Project status:** Planning / repository bootstrap  
+**Project status:** Internal booking operations, privacy lifecycle, gated public booking API with token-scoped customer rescheduling, and a refreshed Persian RTL theme homepage are implemented on the feature branch; public activation and release readiness remain blocked pending browser/accessibility and infrastructure validation  
 **Canonical branch:** main  
-**Product:** A premium, Persian-first WordPress experience for women's beauty salons, backed by a first-party salon operations engine.
+**Active implementation branch:** `feature/service-catalog-foundation`
 
-## Start here — mandatory for every agent
+## Mandatory reading for every agent
 
-Before inspecting, changing, testing, or proposing work, read these documents in order:
-
-1. [AGENTS.md](AGENTS.md) — mandatory agent workflow, safety rules, scope boundaries, and definition of done.
-2. [Product Plan](docs/PRODUCT-PLAN.md) — product requirements, user journeys, architecture, design direction, and quality targets.
-3. [Delivery Roadmap](docs/ROADMAP.md) — phases, dependencies, milestones, acceptance gates, and current status.
-
-If a task request conflicts with these documents, do not silently choose one: explain the conflict and propose a documented resolution. Update the roadmap when scope or status materially changes.
+1. [AGENTS.md](AGENTS.md) — operating rules, safety, architecture boundaries, and definition of done.
+2. [Product Plan](docs/PRODUCT-PLAN.md) — requirements, user journeys, design direction, and quality targets.
+3. [Delivery Roadmap](docs/ROADMAP.md) — sequencing, dependencies, milestones, and evidence-backed status.
+4. [Architecture decisions](docs/decisions/) — durable implementation decisions.
+5. [راهنمای حریم خصوصی و نگهداری اطلاعات رزرو](docs/PRIVACY-OPERATIONS.fa.md) — راهنمای خروجی اطلاعات، ناشناس‌سازی رزروها و تنظیم نگهداری خودکار.
+6. [راهنمای راه‌اندازی پوسته پاریسان](docs/THEME-SETUP.fa.md) — تنظیم تصویر اصلی، خدمات، متخصصان، منو و مرزهای فعال‌سازی رزرو عمومی.
 
 ## Product promise
 
-Parisan is intended to feel like a polished premium beauty brand while working as a dependable salon business platform. It combines:
+Parisan is a premium, Persian-first WordPress experience for women's beauty salons, combined with a dependable salon operations platform:
 
-- A high-conversion, responsive, accessible, Persian-first RTL website.
-- A first-party salon management and online appointment-booking engine.
-- Customer accounts, staff/service scheduling, notifications, and operational reporting.
-- First-party SEO, performance/caching controls, forms, and security-conscious settings.
-- Deep, optional integrations with WooCommerce and Elementor.
-- An adapter-based SMS integration for Melipayamak (ملی پیامک).
-- Light and dark themes, with remembered visitor preference.
+- Responsive, accessible RTL website and brand-quality public pages.
+- First-party salon catalogue, booking engine, staff scheduling, customer portal, and operations dashboard.
+- First-party SEO metadata, forms, performance/caching controls, and privacy-conscious settings.
+- Adapter-based Melipayamak SMS integration.
+- Optional WooCommerce and Elementor integrations with graceful fallback.
+- Deliberately designed light/dark modes.
 
-The product must not require unrelated third-party plugins for its advertised core capabilities. WordPress itself remains the platform; WooCommerce and Elementor are supported integrations, not silently bundled dependencies.
+## Architecture
 
-## Important architecture decision
+The product ships as a coordinated **theme + first-party companion plugin**:
 
-The product is delivered as a coordinated **theme + first-party companion plugin** in this same repository:
+- **Parisan Beauty theme:** presentation, templates, design system, responsive behavior, accessibility.
+- **Parisan Core plugin:** durable business data and logic, including services, staff, bookings, customers, notifications, forms, SEO metadata, privacy-aware cache boundaries, and operational settings.
+- Business data must survive theme changes. Do not put bookings or customer records in theme options or theme-only post types.
+- WooCommerce and Elementor are optional integrations, not mandatory dependencies and not silently bundled.
 
-- The **theme** owns presentation, templates, design system, responsive behavior, accessibility, and theme-specific settings.
-- The **Parisan Core plugin** owns durable business logic and data: bookings, staff, services, customers, notifications, forms, SEO features, and operational settings.
-- Core functionality must remain available when the visual theme is changed. Never store bookings or other business-critical data in theme options or theme-only custom post types.
-- The companion plugin is part of the Parisan product distribution. It is not an external dependency the customer must find independently.
-- WooCommerce and Elementor integrations are feature-detected and degrade gracefully when those plugins are absent. Do not reimplement their entire platforms.
+## Repository structure
 
-This separation is intentional: WordPress deactivates theme code on a theme switch, so putting booking and customer records in the theme would be fragile and unsafe.
+- `theme/parisan/` — WordPress theme.
+- `plugin/parisan-core/` — first-party salon platform plugin.
+- `docs/` — product plan, roadmap, architecture decisions.
+- `.github/workflows/` — automated checks.
 
-## Repository structure (target)
+## Current implementation status
 
-- AGENTS.md
-- README.md
-- docs/PRODUCT-PLAN.md
-- docs/ROADMAP.md
-- docs/ARCHITECTURE.md
-- docs/DESIGN-SYSTEM.md
-- docs/decisions/
-- theme/ — Parisan Beauty WordPress theme
-- plugin/parisan-core/ — first-party business and platform features
-- tests/ — automated and integration tests
-- .github/ — CI, issue and contribution templates
+- [x] Product plan, roadmap, and mandatory agent rules.
+- [x] Theme bootstrap, semantic header/footer, responsive RTL design system, dynamic editorial homepage, service/specialist preview cards, booking section, accessible fallback navigation, and owner-selectable homepage hero image through the WordPress Customizer. Browser visual review remains UNVERIFIED.
+- [~] Accessible light/dark preference toggle (system default + saved user choice) and mobile sticky booking shortcut that yields while the booking section is visible; browser/device and assistive-technology validation remain UNVERIFIED.
+- [x] Service catalogue archive and detail templates.
+- [~] First-party portfolio content type, categories, homepage showcase, archive filters, and detail template are implemented; visual/browser validation remains UNVERIFIED.
+- [~] Editorial blog index/article templates, about/contact/FAQ/privacy/terms page templates, editable FAQ content, and brand/contact Customizer settings are implemented; runtime and visual validation remain UNVERIFIED.
+- [x] Parisan Core service and specialist content types.
+- [x] Service duration and pricing fields with nonce, capability, sanitization, and bounded values.
+- [x] Hierarchical service categories.
+- [x] Specialist profiles, service eligibility, and weekly recurring availability editor.
+- [x] Timezone-aware availability calculation for a salon-local date, including existing bookings, stored unavailability intervals, service duration, slot interval, and before/after buffers.
+- [x] Persian admin calendar for full-day and partial-day specialist leave/unavailability, with local-time validation and UTC persistence.
+- [x] Internal booking creation service with per-staff advisory lock, InnoDB transaction gate, locked availability recheck, idempotency, and atomic booking/audit-event persistence.
+- [x] Controlled internal booking lifecycle: pending → confirmed/cancelled/expired and confirmed → cancelled/completed/no-show, with permission checks, confirmation conflict recheck, idempotent status replay, and audit events.
+- [x] Persian WordPress admin booking operations screen with status filters, pagination, local time range, customer contact, price, and guarded lifecycle actions. Public REST booking routes are disabled by default and require an explicit owner-controlled feature flag.
+- [x] Gated public REST API and `[parisan_booking]` shortcode for availability, pending booking creation, token-scoped customer view, reschedule availability, transactional customer rescheduling, and cancellation. Disabled by default; 256-bit HMAC-digested tokens, token rotation/expiry/revocation, rate limiting, same-origin mutation checks, no-store responses, and audit-atomic lifecycle writes are implemented. Booking assets are enqueued before `wp_head` when the feature is enabled. Browser/device review and reverse-proxy/multi-node verification remain UNVERIFIED.
+- [x] PHP syntax lint workflow for PHP 8.1, 8.2, and 8.3.
+- [x] Standalone schedule-normalization test suite passes in CI on PHP 8.1, 8.2, and 8.3.
+- [x] Disposable WordPress + MariaDB activation/registration smoke test passes, including dynamic homepage, fallback navigation, and disabled booking-state rendering.
+- [x] Latest baseline CI run passed PHP 8.1/8.2/8.3 and disposable WordPress/MariaDB activation smoke test.
+- [x] Booking service + lifecycle CI run 42376217290 passed all 4 jobs: PHP 8.1/8.2/8.3 lint and schedule tests; disposable WordPress/MariaDB verifies InnoDB engines, staff lock acquisition/release, pending booking + audit event, idempotency replay/conflict, overlap rejection, fixed-price gate, atomic rollback on audit failure, confirmation/cancellation, idempotent status replay, invalid transition rejection.
+- [x] Booking admin screen CI run 42376411637 passed all 4 jobs and rendered the admin booking list with a seeded customer booking. Browser-based visual and responsive review remains UNVERIFIED.
+- [x] Manual booking workflow CI run 42376730497 passed all 4 jobs; the WordPress/MariaDB test rendered the manual booking form, normalized Persian phone digits, and rejected past appointment times.
+- [x] Admin availability slot picker CI run 42376924602 passed all 4 jobs; the authenticated nonce-protected AJAX handler is registered only for logged-in admins, the script is enqueued on the booking screen, and Node syntax validation passes. Booking creation still rechecks availability under the staff lock.
+- [x] Booking detail and audit timeline CI run 42377096704 passed all 4 jobs; the protected detail page rendered the seeded booking and its audit events.
+- [x] Concurrency-safe rescheduling CI run 42377819791 passed all 4 jobs; duration/price snapshots are preserved, conflict/terminal cases are rejected, and forced audit failure rolls back the schedule update.
+- [x] Booking privacy exporter/eraser, terminal-record anonymization, administrator opt-in retention (disabled by default), and a MySQL-lock-serialized request limiter passed the PHP 8.1/8.2/8.3 matrix — [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545).
+- [x] Gated public booking API, 256-bit HMAC-digested customer tokens, token rotation/expiry/revocation, transactional customer cancellation, privacy-driven token revocation, and reschedule-aligned token expiry with rollback — [WordPress/MariaDB integration run 42405661284](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405661284) PASS on `2231f0e`.
+- [x] Explicit default-off and owner-enabled route/shortcode integration, including Persian booking wizard rendering, idempotency conflict protection, and the 90-day horizon — covered by [run 42405661284](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405661284).
+- [x] PHP 8.1/8.2/8.3, both booking JavaScript syntax checks, schedule tests, and WordPress schema-v3 activation smoke test — [run 42405661236](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405661236) PASS on `2231f0e`.
+- [x] Privacy and abuse-control matrix — [run 42405661387](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405661387) PASS on `2231f0e`.
 
-The repository is currently being bootstrapped. This target structure is a direction, not a claim that these directories or features already exist.
+- [x] Current gated booking + privacy integration on runtime/test commit `40b9d48` — [WordPress/MariaDB run 42450974200](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450974200) PASS; verifies customer-token rescheduling, same-origin/ownership controls, booking asset stylesheet emitted in document head, and privacy lifecycle.
+- [x] Current PHP 8.1/8.2/8.3 lint, booking JavaScript syntax, schedule/availability, schema activation, and theme homepage/navigation/owner-selected hero image smoke — [run 42450977270](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450977270) PASS.
+- [x] Current privacy/abuse-control matrix — [run 42450974220](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450974220) PASS.
+- [~] Targeted public-cache purge adapters for LiteSpeed Cache, WP Rocket, and W3 Total Cache are implemented on the active branch; the PHP matrix runs isolated provider-detection and post-scoped purge tests. The Persian admin diagnostics page reports safe runtime cache signals; provider-installed runtime behavior, backend health, CDN/Reverse Proxy purge, and completion verification remain UNVERIFIED.
+- [~] Accessible context-aware breadcrumbs, BreadcrumbList JSON-LD, and exclusion of noindex content from the WordPress core sitemap are implemented; WordPress integration smoke covers service detail markup, schema validity, canonical item URL, and SEO-plugin ownership. Search-engine validation and browser visual review remain UNVERIFIED.
+- [x] Initial SEO and privacy-aware cache foundation on runtime/test commit `c01e55e` — [PHP 8.1/8.2/8.3 + WordPress SEO/cache smoke run 42452870953](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870953), [WordPress/MariaDB integration run 42452870912](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870912), and [PHP 8.1/8.2/8.3 privacy/abuse matrix run 42452870925](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870925) PASS. WordPress smoke covers SEO metadata, Service JSON-LD, per-page noindex, settings sanitization, and private-cache guards. Later runtime additions for targeted cache adapters, breadcrumbs, and sitemap noindex filtering have separate evidence in runs 42454956220 and 42455205772; the newest admin cache-diagnostics UI/test is tracked separately in the active CI run.
+- [ ] Browser/device visual QA, keyboard/screen-reader review, real reverse-proxy and multi-node behavior remain UNVERIFIED.
 
-## Current delivery status
+- [x] Disposable WordPress + MariaDB integration verified privacy export, terminal-only erasure, active-booking retention, event-note cleanup, forced rollback on audit-note failure, opt-in retention cleanup, and request throttling — [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
+- [x] Rescheduling CI run 42377819791 passed all 4 jobs; schema v2 persists the original duration, rescheduling preserves duration/price, rejects exception conflicts and terminal bookings, records a reschedule audit event, and proves a forced audit failure rolls the time change back.
+- [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
+- [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
+- [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
+- [~] Availability, date-exception administration, internal booking creation, controlled status lifecycle, and concurrency-safe rescheduling implemented and CI-verified. Booking accepts only fixed service prices; booking and calendar exception writes share the staff lock. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, browser privacy/admin visual and accessibility review, break management, and resource schedules remain pending.
+- [~] Initial SEO metadata and cache-safety boundaries; advanced SEO, sitemap, cache adapters/diagnostics, customer portal, SMS, forms, and integrations remain in the roadmap.
+- [x] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md), [ADR-0006](docs/decisions/ADR-0006-controlled-booking-lifecycle.md), [ADR-0007](docs/decisions/ADR-0007-staff-booking-operations-screen.md), [ADR-0008](docs/decisions/ADR-0008-staff-created-manual-bookings.md), [ADR-0009](docs/decisions/ADR-0009-booking-detail-and-audit-timeline.md), [ADR-0010](docs/decisions/ADR-0010-concurrency-safe-rescheduling.md), [ADR-0011](docs/decisions/ADR-0011-booking-personal-data-lifecycle.md), and [ADR-0012](docs/decisions/ADR-0012-public-booking-api-and-customer-tokens.md) for booking, privacy, and public API boundaries.
 
-- [x] Repository product entrypoint and mandatory documentation-first rule
-- [ ] Product requirements and architecture baseline
-- [ ] Delivery roadmap and acceptance criteria
-- [ ] UX flows and design system
-- [ ] Theme foundation and visual implementation
-- [ ] Parisan Core booking and salon operations engine
-- [ ] SEO, performance, forms, SMS, customer portal
-- [ ] WooCommerce and Elementor integrations
-- [ ] Security, accessibility, compatibility, and release validation
+**Do not infer runtime readiness from source files.** This is an implementation foundation, not a production release. Each feature requires evidence from automated tests and relevant manual flows.
 
-**Do not describe a feature as implemented or PASS until code, tests, and evidence demonstrate it.**
+
+- [راهنمای سئو و عملکرد پاریسان](docs/SEO-PERFORMANCE.fa.md)
