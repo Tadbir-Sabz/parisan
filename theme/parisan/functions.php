@@ -144,20 +144,49 @@ add_action( 'customize_register', 'parisan_customize_brand_register', 20 );
  *
  * @return void
  */
+/**
+ * Return a validated hex color from theme settings.
+ *
+ * @param string $key Theme modification key.
+ * @param string $default Safe fallback color.
+ * @return string
+ */
+function parisan_safe_theme_color( $key, $default ) {
+	$value = get_theme_mod( $key, $default );
+	if ( ! is_string( $value ) ) {
+		return $default;
+	}
+	$color = sanitize_hex_color( $value );
+	return $color ? $color : $default;
+}
+
+/**
+ * Output sanitized theme design tokens.
+ *
+ * @return void
+ */
 function parisan_output_brand_tokens() {
-	$tokens = array(
-		'--parisan-plum' => sanitize_hex_color( get_theme_mod( 'parisan_brand_accent', '#6f4657' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_accent', '#6f4657' ) ) : '#6f4657',
-		'--parisan-plum-dark' => sanitize_hex_color( get_theme_mod( 'parisan_brand_accent_dark', '#573443' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_accent_dark', '#573443' ) ) : '#573443',
-		'--parisan-paper' => sanitize_hex_color( get_theme_mod( 'parisan_brand_page', '#fbf8f3' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_page', '#fbf8f3' ) ) : '#fbf8f3',
-		'--parisan-surface' => sanitize_hex_color( get_theme_mod( 'parisan_brand_surface', '#fffdf9' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_surface', '#fffdf9' ) ) : '#fffdf9',
-		'--parisan-gold' => sanitize_hex_color( get_theme_mod( 'parisan_brand_gold', '#b69a70' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_gold', '#b69a70' ) ) : '#b69a70',
-		'--parisan-dark-plum' => sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent', '#e0b7ca' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent', '#e0b7ca' ) ) : '#e0b7ca',
-		'--parisan-dark-plum-dark' => sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent_dark', '#f0d6e2' ) ) ? sanitize_hex_color( get_theme_mod( 'parisan_brand_dark_accent_dark', '#f0d6e2' ) ) : '#f0d6e2',
-		'--parisan-body-size' => in_array( get_theme_mod( 'parisan_brand_font_scale', '16px' ), array( '15px', '16px', '17px' ), true ) ? get_theme_mod( 'parisan_brand_font_scale', '16px' ) : '16px',
+	$font_sizes = array( '15px', '16px', '17px' );
+	$font_size  = get_theme_mod( 'parisan_brand_font_scale', '16px' );
+	$font_size  = is_string( $font_size ) && in_array( $font_size, $font_sizes, true ) ? $font_size : '16px';
+	$fonts      = array(
+		'tahoma' => 'Tahoma, Segoe UI, sans-serif',
+		'arial'  => 'Arial, Tahoma, sans-serif',
+		'system' => 'system-ui, Tahoma, sans-serif',
 	);
-	$fonts = array( 'tahoma' => 'Tahoma, Segoe UI, sans-serif', 'arial' => 'Arial, Tahoma, sans-serif', 'system' => 'system-ui, Tahoma, sans-serif' );
 	$font = get_theme_mod( 'parisan_brand_font', 'tahoma' );
-	$tokens['--parisan-font'] = isset( $fonts[ $font ] ) ? $fonts[ $font ] : $fonts['tahoma'];
+	$font = is_string( $font ) && isset( $fonts[ $font ] ) ? $font : 'tahoma';
+	$tokens = array(
+		'--parisan-plum'           => parisan_safe_theme_color( 'parisan_brand_accent', '#6f4657' ),
+		'--parisan-plum-dark'      => parisan_safe_theme_color( 'parisan_brand_accent_dark', '#573443' ),
+		'--parisan-paper'          => parisan_safe_theme_color( 'parisan_brand_page', '#fbf8f3' ),
+		'--parisan-surface'        => parisan_safe_theme_color( 'parisan_brand_surface', '#fffdf9' ),
+		'--parisan-gold'           => parisan_safe_theme_color( 'parisan_brand_gold', '#b69a70' ),
+		'--parisan-dark-plum'      => parisan_safe_theme_color( 'parisan_brand_dark_accent', '#e0b7ca' ),
+		'--parisan-dark-plum-dark' => parisan_safe_theme_color( 'parisan_brand_dark_accent_dark', '#f0d6e2' ),
+		'--parisan-body-size'      => $font_size,
+		'--parisan-font'           => $fonts[ $font ],
+	);
 	echo '<style id="parisan-brand-tokens">:root{';
 	foreach ( $tokens as $name => $value ) {
 		printf( '%1$s:%2$s;', esc_html( $name ), esc_html( $value ) );
