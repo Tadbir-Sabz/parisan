@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_THEME_VERSION', '0.2.0' );
+define( 'PARISAN_THEME_VERSION', '0.3.0' );
 define( 'PARISAN_THEME_DIR', get_template_directory() );
 define( 'PARISAN_THEME_URI', get_template_directory_uri() );
 
