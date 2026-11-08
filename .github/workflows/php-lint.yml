@@ -106,7 +106,7 @@ jobs:
           WP_PATH: ${{ runner.temp }}/parisan-wordpress
         run: wp eval-file tests/run-theme-smoke.php --path="$WP_PATH"
 
-      - name: Verify breadcrumb navigation and structured data
+      - name: Verify breadcrumbs, sitemap noindex, and structured data
         env:
           WP_PATH: ${{ runner.temp }}/parisan-wordpress
         run: wp eval-file tests/run-breadcrumb-tests.php --path="$WP_PATH"
