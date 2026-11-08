@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_THEME_VERSION', '0.4.0' );
+define( 'PARISAN_THEME_VERSION', '0.4.1' );
 define( 'PARISAN_THEME_DIR', get_template_directory() );
 define( 'PARISAN_THEME_URI', get_template_directory_uri() );
 
@@ -98,6 +98,7 @@ function parisan_primary_menu_fallback() {
 		array( home_url( '/' ), __( 'خانه', 'parisan' ) ),
 		array( home_url( '/#services' ), __( 'خدمات', 'parisan' ) ),
 		array( home_url( '/#team' ), __( 'متخصصان', 'parisan' ) ),
+		array( home_url( '/#portfolio' ), __( 'نمونه‌کارها', 'parisan' ) ),
 		array( home_url( '/#booking' ), __( 'رزرو نوبت', 'parisan' ) ),
 	);
 	foreach ( $items as $item ) {
