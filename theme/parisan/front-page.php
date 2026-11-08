@@ -27,6 +27,8 @@ $parisan_staff = post_type_exists( 'parisan_staff' ) ? get_posts(
 	)
 ) : array();
 
+$parisan_portfolio = post_type_exists( 'parisan_portfolio' ) ? get_posts( array( 'post_type' => 'parisan_portfolio', 'post_status' => 'publish', 'posts_per_page' => 6, 'orderby' => 'date', 'order' => 'DESC' ) ) : array();
+
 $parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
 
 get_header();
@@ -113,6 +115,34 @@ get_header();
 				</div>
 			<?php else : ?>
 				<div class="catalog-empty parisan-empty-state"><span aria-hidden="true">✳</span><p><?php esc_html_e( 'خدمات سالن به‌زودی در این بخش معرفی می‌شوند.', 'parisan' ); ?></p></div>
+			<?php endif; ?>
+		</div>
+	</section>
+
+	<section class="parisan-portfolio-section" id="portfolio">
+		<div class="container">
+			<div class="section-heading">
+				<div><p class="eyebrow"><?php esc_html_e( 'THE PARISAN PORTFOLIO', 'parisan' ); ?></p><h2><?php esc_html_e( 'ظرافت را در جزئیات ببینید', 'parisan' ); ?></h2></div>
+				<?php if ( post_type_exists( 'parisan_portfolio' ) ) : ?><a class="text-link" href="<?php echo esc_url( get_post_type_archive_link( 'parisan_portfolio' ) ); ?>"><?php esc_html_e( 'مشاهده همه نمونه‌کارها', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
+			</div>
+			<?php if ( $parisan_portfolio ) : ?>
+				<div class="parisan-portfolio-grid">
+					<?php foreach ( $parisan_portfolio as $parisan_work ) : ?>
+						<article class="portfolio-card">
+							<a class="portfolio-card-media" href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'مشاهده نمونه‌کار %s', 'parisan' ), get_the_title( $parisan_work ) ) ); ?>">
+								<?php if ( has_post_thumbnail( $parisan_work ) ) : ?>
+									<?php echo get_the_post_thumbnail( $parisan_work, 'large', array( 'loading' => 'lazy' ) ); ?>
+								<?php else : ?><span aria-hidden="true">✳</span><?php endif; ?>
+							</a>
+							<div class="portfolio-card-content">
+								<h3><a href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>"><?php echo esc_html( get_the_title( $parisan_work ) ); ?></a></h3>
+								<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_work ), 16 ) ); ?></p>
+							</div>
+						</article>
+					<?php endforeach; ?>
+				</div>
+			<?php else : ?>
+				<div class="catalog-empty parisan-empty-state"><span aria-hidden="true">✳</span><p><?php esc_html_e( 'نمونه‌کارهای منتخب سالن به‌زودی در این بخش قرار می‌گیرند.', 'parisan' ); ?></p></div>
 			<?php endif; ?>
 		</div>
 	</section>
