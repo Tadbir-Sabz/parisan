@@ -233,6 +233,27 @@ function parisan_primary_menu_fallback() {
 }
 
 
+
+/**
+ * Accessible footer utility navigation fallback.
+ *
+ * @return void
+ */
+function parisan_footer_menu_fallback() {
+	$items = array(
+		array( home_url( '/about/' ), __( 'درباره ما', 'parisan' ) ),
+		array( home_url( '/contact/' ), __( 'تماس با ما', 'parisan' ) ),
+		array( home_url( '/faq/' ), __( 'سؤالات متداول', 'parisan' ) ),
+		array( home_url( '/privacy-policy/' ), __( 'حریم خصوصی', 'parisan' ) ),
+		array( home_url( '/terms/' ), __( 'شرایط رزرو', 'parisan' ) ),
+	);
+	echo '<ul class="footer-menu">';
+	foreach ( $items as $item ) {
+		printf( '<li><a href="%1$s">%2$s</a></li>', esc_url( $item[0] ), esc_html( $item[1] ) );
+	}
+	echo '</ul>';
+}
+
 /**
  * Load only the theme's small, local stylesheet.
  *
