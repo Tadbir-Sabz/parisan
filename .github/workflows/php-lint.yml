@@ -98,6 +98,11 @@ jobs:
           wp plugin activate parisan-core --path="$WP_PATH"
           wp theme activate parisan --path="$WP_PATH"
 
+      - name: Verify dynamic homepage and navigation in disposable WordPress
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: wp eval-file tests/run-theme-smoke.php --path="$WP_PATH"
+
       - name: Verify registrations and template assets
         env:
           WP_PATH: ${{ runner.temp }}/parisan-wordpress
