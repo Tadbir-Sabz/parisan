@@ -105,7 +105,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 **Status:** [~] IN PROGRESS — initial metadata, structured-data, and privacy-aware cache boundaries implemented; sitemap extensions, crawler controls, vendor cache adapters, and performance diagnostics pending
 
-- [~] Implement SEO metadata templates, canonical, Open Graph, and Service JSON-LD; per-content title/description and site defaults are implemented. Robots/noindex controls, sitemap extensions, and breadcrumbs remain pending.
+- [~] Implement SEO metadata templates, canonical, Open Graph, and Service JSON-LD; per-content title/description/noindex and site defaults are implemented. Sitemap extensions and breadcrumbs remain pending.
 - [x] Implement duplicate-output detection and coexistence controls for Yoast SEO, Rank Math, SEOPress, All in One SEO, and The SEO Framework using explicit ownership detection; full version/plugin-matrix compatibility remains UNVERIFIED.
 - [ ] Add redirect management and privacy-safe 404 diagnostics if justified.
 - [ ] Implement page-specific asset loading, image optimization, font strategy, and Core Web Vitals instrumentation guidance.
