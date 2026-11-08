@@ -49,6 +49,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [~] Accessible light/dark preference toggle (system default + saved user choice) and mobile sticky booking shortcut that yields while the booking section is visible; browser/device and assistive-technology validation remain UNVERIFIED.
 - [x] Service catalogue archive and detail templates.
 - [~] First-party portfolio content type, categories, homepage showcase, archive filters, and detail template are implemented; visual/browser validation remains UNVERIFIED.
+- [~] Editorial blog index/article templates, about/contact/FAQ/privacy/terms page templates, editable FAQ content, and brand/contact Customizer settings are implemented; runtime and visual validation remain UNVERIFIED.
 - [x] Parisan Core service and specialist content types.
 - [x] Service duration and pricing fields with nonce, capability, sanitization, and bounded values.
 - [x] Hierarchical service categories.
