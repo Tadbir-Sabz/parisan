@@ -341,3 +341,34 @@ body { background: var(--parisan-paper); color: var(--parisan-ink); }
 		gap: 0.35rem;
 	}
 }
+
+
+/* Accessible theme preference control and mobile booking shortcut. */
+.parisan-theme-toggle { min-height: 40px; padding: 7px 13px; border: 1px solid var(--parisan-line); border-radius: 999px; background: var(--parisan-surface); color: var(--parisan-plum-dark); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.parisan-theme-toggle[hidden], .parisan-mobile-booking[hidden] { display: none !important; }
+.parisan-mobile-booking { display: none; }
+@media (max-width: 680px) {
+	body { padding-block-end: calc(76px + env(safe-area-inset-bottom, 0px)); }
+	.parisan-mobile-booking { position: fixed; z-index: 30; inset-inline: 16px; inset-block-end: calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 10px 20px; border: 1px solid var(--parisan-plum-dark); border-radius: 999px; background: var(--parisan-plum-dark); color: #fff8f1; font-weight: 700; text-decoration: none; box-shadow: 0 12px 34px rgba(35, 20, 31, .24); }
+	.header-inner { column-gap: 10px; }
+	.parisan-theme-toggle { min-height: 38px; padding-inline: 11px; }
+}
+html[data-parisan-theme="dark"] { color-scheme: dark; --parisan-ink: #f3eaf0; --parisan-muted: #c2b2be; --parisan-paper: #1d1820; --parisan-surface: #29212c; --parisan-line: #493846; --parisan-plum: #d7a8bf; --parisan-plum-dark: #f0d6e2; --parisan-rose: #a77b91; --parisan-gold: #d2b88b; --parisan-shadow: 0 24px 70px rgba(0, 0, 0, .28); }
+html[data-parisan-theme="dark"] body { background: var(--parisan-paper); color: var(--parisan-ink); }
+html[data-parisan-theme="dark"] .site-header { background: rgba(35, 27, 38, .94); border-color: var(--parisan-line); }
+html[data-parisan-theme="dark"] .site-title, html[data-parisan-theme="dark"] .hero-copy h1, html[data-parisan-theme="dark"] .intro-grid h2, html[data-parisan-theme="dark"] .section-heading h2, html[data-parisan-theme="dark"] .booking-section-heading h2 { color: var(--parisan-plum-dark); }
+html[data-parisan-theme="dark"] .hero-section { background: radial-gradient(ellipse at 7% 15%, rgba(167,123,145,.14), transparent 34%), linear-gradient(180deg, #241d28 0%, #211a25 100%); }
+html[data-parisan-theme="dark"] .hero-copy .eyebrow { background: rgba(41,33,44,.72); border-color: var(--parisan-line); color: var(--parisan-plum); }
+html[data-parisan-theme="dark"] .parisan-home-intro, html[data-parisan-theme="dark"] .parisan-team-section { background: var(--parisan-surface); }
+html[data-parisan-theme="dark"] .parisan-services-section, html[data-parisan-theme="dark"] .parisan-booking-section { background: #211a25; }
+html[data-parisan-theme="dark"] .service-card, html[data-parisan-theme="dark"] .parisan-home-team-grid .specialist-card, html[data-parisan-theme="dark"] .parisan-booking-shell { background: #302635; border-color: var(--parisan-line); color: var(--parisan-ink); }
+html[data-parisan-theme="dark"] .service-card-content h2, html[data-parisan-theme="dark"] .service-card-content h3, html[data-parisan-theme="dark"] .parisan-home-team-grid .specialist-card h2, html[data-parisan-theme="dark"] .parisan-home-team-grid .specialist-card h3 { color: var(--parisan-ink); }
+html[data-parisan-theme="dark"] .parisan-booking-unavailable, html[data-parisan-theme="dark"] .parisan-empty-state { background: var(--parisan-surface); border-color: var(--parisan-line); color: var(--parisan-muted); }
+html[data-parisan-theme="dark"] .parisan-theme-toggle { background: #302635; border-color: #5a4655; color: #f0d6e2; }
+html[data-parisan-theme="dark"] .parisan-mobile-booking { background: #e6bfd0; border-color: #e6bfd0; color: #382431; }
+@media (prefers-color-scheme: dark) {
+	html:not([data-parisan-theme]) { color-scheme: dark; }
+	html:not([data-parisan-theme]) body { background: #1d1820; color: #f3eaf0; }
+	html:not([data-parisan-theme]) .site-header { background: rgba(35,27,38,.94); border-color: #493846; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .parisan-mobile-booking { transition: none; } }
