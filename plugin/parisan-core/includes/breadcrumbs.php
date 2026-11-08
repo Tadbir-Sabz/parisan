@@ -195,6 +195,47 @@ function parisan_core_render_breadcrumbs() {
 }
 
 /**
+ * Resolve the canonical URL for the current breadcrumb endpoint.
+ *
+ * @return string
+ */
+function parisan_core_current_breadcrumb_url() {
+	if ( is_singular() ) {
+		return (string) get_permalink();
+	}
+	if ( is_post_type_archive() ) {
+		$post_type = get_query_var( 'post_type' );
+		$post_type = is_array( $post_type ) ? reset( $post_type ) : $post_type;
+		return $post_type ? (string) get_post_type_archive_link( $post_type ) : '';
+	}
+	if ( is_category() || is_tag() || is_tax() ) {
+		$term = get_queried_object();
+		$url = $term instanceof WP_Term ? get_term_link( $term ) : '';
+		return is_wp_error( $url ) ? '' : (string) $url;
+	}
+	if ( is_home() ) {
+		$posts_page_id = absint( get_option( 'page_for_posts' ) );
+		return $posts_page_id ? (string) get_permalink( $posts_page_id ) : home_url( '/' );
+	}
+	if ( is_search() ) {
+		return (string) get_search_link();
+	}
+	if ( is_author() ) {
+		return (string) get_author_posts_url( get_queried_object_id() );
+	}
+	if ( is_day() ) {
+		return (string) get_day_link( get_query_var( 'year' ), get_query_var( 'monthnum' ), get_query_var( 'day' ) );
+	}
+	if ( is_month() ) {
+		return (string) get_month_link( get_query_var( 'year' ), get_query_var( 'monthnum' ) );
+	}
+	if ( is_year() ) {
+		return (string) get_year_link( get_query_var( 'year' ) );
+	}
+	return '';
+}
+
+/**
  * Emit BreadcrumbList JSON-LD when Parisan owns structured-data output.
  *
  * @return void
@@ -210,14 +251,17 @@ function parisan_core_output_breadcrumb_schema() {
 	}
 
 	$elements = array();
+	$current_url = parisan_core_current_breadcrumb_url();
+	$last_index = count( $items ) - 1;
 	foreach ( $items as $index => $item ) {
 		$element = array(
 			'@type'    => 'ListItem',
 			'position' => $index + 1,
 			'name'     => wp_strip_all_tags( $item['label'] ),
 		);
-		if ( ! empty( $item['url'] ) ) {
-			$element['item'] = esc_url_raw( $item['url'] );
+		$item_url = ! empty( $item['url'] ) ? $item['url'] : ( $index === $last_index ? $current_url : '' );
+		if ( $item_url ) {
+			$element['item'] = esc_url_raw( $item_url );
 		}
 		$elements[] = $element;
 	}
