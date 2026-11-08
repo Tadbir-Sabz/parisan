@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.17.0
+Stable tag: 0.18.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,7 +33,7 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Administrator-controlled, opt-in anonymization of old terminal bookings; disabled by default.
 * Public API foundation for date-bounded availability, pending booking creation, and token-scoped customer view/cancellation; routes are registered only with an explicit owner feature flag.
 * 256-bit customer access tokens stored as HMAC digests, with expiry, rotation, privacy-erasure revocation, and transactional cancellation/audit.
-* First-party SEO defaults and per-content title/description/noindex controls, canonical/Open Graph output, and Service JSON-LD for service pages when no supported SEO plugin owns metadata.
+* First-party SEO defaults and per-content title/description/noindex controls, canonical/Open Graph output, Service JSON-LD, accessible context-aware breadcrumbs, and BreadcrumbList JSON-LD when no supported SEO plugin owns metadata.
 * Explicit no-store cache boundaries for logged-in, booking-shortcode, customer-token, and Parisan customer REST contexts; public-content invalidation hook and targeted LiteSpeed Cache, WP Rocket, and W3 Total Cache post-purge adapters.
 * Persian-first responsive `[parisan_booking]` shortcode for availability selection, pending booking requests, one-time token display/copy, and token-based booking lookup/cancellation.
 
@@ -60,6 +60,11 @@ Break management, resource schedules, full account-based customer portal/resched
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.18.0 =
+* Added accessible, responsive, context-aware breadcrumbs for service/specialist details, pages, posts, archives, taxonomies, search, and 404 views.
+* Added BreadcrumbList JSON-LD with duplicate-schema suppression when a supported SEO plugin owns output.
+* Added WordPress integration smoke coverage for breadcrumb markup, schema, and SEO-plugin coexistence.
 
 = 0.17.0 =
 * Added capability-detected, post-scoped cache purge adapters for LiteSpeed Cache, WP Rocket, and W3 Total Cache.
