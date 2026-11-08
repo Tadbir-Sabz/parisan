@@ -9,6 +9,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+global $wpdb;
+
 function parisan_public_enabled_assert( $condition, $message ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );
