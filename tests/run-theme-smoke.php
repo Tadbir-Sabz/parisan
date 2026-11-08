@@ -80,6 +80,9 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Spe
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ), 'disabled booking shortcode displays its safe disabled state' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-theme-toggle' ), 'accessible light/dark theme control renders in the site header' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking' ), 'mobile booking shortcut renders in the site footer' );
+parisan_theme_smoke_assert( wp_script_is( 'parisan-theme', 'enqueued' ), 'theme interaction script is enqueued' );
 
 
 parisan_theme_smoke_assert( function_exists( 'parisan_core_seo_settings' ), 'first-party SEO settings module is loaded' );
