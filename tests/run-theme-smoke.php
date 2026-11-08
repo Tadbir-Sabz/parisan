@@ -82,4 +82,21 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
 
 
-echo "PASS: Parisan theme activation, fallback navigation, dynamic homepage content, and disabled booking state.\n";
+parisan_theme_smoke_assert( function_exists( 'parisan_core_seo_settings' ), 'first-party SEO settings module is loaded' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_output_seo_metadata' ), 'SEO metadata renderer is loaded' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_request_is_private_or_booking' ), 'privacy-aware cache guard is loaded' );
+parisan_theme_smoke_assert( false !== has_action( 'add_meta_boxes', 'parisan_core_add_seo_meta_boxes' ), 'per-content SEO editor fields are registered' );
+$seo_settings = parisan_core_sanitize_seo_settings( array(
+	'default_description' => '<script>alert(1)</script> توضیح آزمایشی',
+	'organization_name' => '<b>سالن آزمایشی</b>',
+	'organization_url' => 'javascript:alert(1)',
+	'output_json_ld' => '1',
+) );
+parisan_theme_smoke_assert( false === strpos( $seo_settings['default_description'], '<script' ) && false === strpos( $seo_settings['organization_name'], '<b>' ), 'SEO settings sanitize untrusted text' );
+parisan_theme_smoke_assert( '' === $seo_settings['organization_url'], 'SEO settings reject unsafe organization URLs' );
+$_GET['customer_token'] = 'synthetic-token';
+parisan_theme_smoke_assert( parisan_core_request_is_private_or_booking(), 'customer-token request is marked non-cacheable' );
+unset( $_GET['customer_token'] );
+parisan_theme_smoke_assert( false === parisan_core_seo_plugin_controls_output(), 'first-party SEO output is available when no SEO plugin owns metadata' );
+
+echo "PASS: Parisan theme, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
