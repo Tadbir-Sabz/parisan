@@ -33,7 +33,7 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Administrator-controlled, opt-in anonymization of old terminal bookings; disabled by default.
 * Public API foundation for date-bounded availability, pending booking creation, and token-scoped customer view/cancellation; routes are registered only with an explicit owner feature flag.
 * 256-bit customer access tokens stored as HMAC digests, with expiry, rotation, privacy-erasure revocation, and transactional cancellation/audit.
-* First-party SEO defaults and per-content title/description controls, canonical/Open Graph output, and Service JSON-LD for service pages when no supported SEO plugin owns metadata.
+* First-party SEO defaults and per-content title/description/noindex controls, canonical/Open Graph output, and Service JSON-LD for service pages when no supported SEO plugin owns metadata.
 * Explicit no-store cache boundaries for logged-in, booking-shortcode, customer-token, and Parisan customer REST contexts; public content invalidation integration hook.
 * Persian-first responsive `[parisan_booking]` shortcode for availability selection, pending booking requests, one-time token display/copy, and token-based booking lookup/cancellation.
 
