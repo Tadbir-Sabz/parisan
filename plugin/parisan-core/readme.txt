@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.15.0
+Stable tag: 0.16.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,6 +33,8 @@ The availability foundation calculates candidate appointment starts for a salon-
 * Administrator-controlled, opt-in anonymization of old terminal bookings; disabled by default.
 * Public API foundation for date-bounded availability, pending booking creation, and token-scoped customer view/cancellation; routes are registered only with an explicit owner feature flag.
 * 256-bit customer access tokens stored as HMAC digests, with expiry, rotation, privacy-erasure revocation, and transactional cancellation/audit.
+* First-party SEO defaults and per-content title/description controls, canonical/Open Graph output, and Service JSON-LD for service pages when no supported SEO plugin owns metadata.
+* Explicit no-store cache boundaries for logged-in, booking-shortcode, customer-token, and Parisan customer REST contexts; public content invalidation integration hook.
 * Persian-first responsive `[parisan_booking]` shortcode for availability selection, pending booking requests, one-time token display/copy, and token-based booking lookup/cancellation.
 
 == Important privacy and availability boundaries ==
@@ -43,7 +45,7 @@ The public REST API is disabled by default. The owner must explicitly define `PA
 
 WordPress privacy export includes booking details and associated event notes. Erasure anonymizes terminal bookings and removes their free-form event notes while preserving operational history. Pending and confirmed bookings are retained while needed to fulfil the appointment. Automatic anonymization is disabled by default and requires an administrator to choose a retention period. The site owner remains responsible for selecting a period appropriate to applicable legal and accounting duties, and for backup/processor retention.
 
-Break management, resource schedules, full account-based customer portal/rescheduling, email/SMS, payment, forms, and SEO remain future work. The initial shortcode UI exists, but browser/device/accessibility review is still UNVERIFIED. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
+Break management, resource schedules, full account-based customer portal/rescheduling, email/SMS, payment, advanced SEO controls (sitemap extensions, robots/noindex UI, redirects, SEO audits), full-page cache integration/purge adapters, and real cache diagnostics remain future work. The initial shortcode UI exists, but browser/device/accessibility review is still UNVERIFIED. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
 
 == Installation ==
 
@@ -58,6 +60,13 @@ Break management, resource schedules, full account-based customer portal/resched
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.16.0 =
+* Added per-content SEO title/description fields and site-level SEO defaults.
+* Added canonical and Open Graph metadata plus Service JSON-LD for service pages.
+* Avoided duplicate first-party metadata when supported SEO plugins are active.
+* Added explicit no-store cache guards for logged-in, booking, tokenized customer, and Parisan REST contexts.
+* Added a public-content cache invalidation integration hook.
 
 = 0.15.0 =
 * Added a gated public booking API foundation with availability, pending booking creation, scoped customer view, and transactional cancellation.
