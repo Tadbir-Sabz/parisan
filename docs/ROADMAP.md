@@ -41,11 +41,11 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 - [ ] Define brand concept, naming/wordmark direction, color tokens, Persian/Latin type system, iconography, spacing, motion, and responsive breakpoints.
 - [ ] Produce desktop/tablet/mobile design references and high-fidelity homepage/service/booking/account/admin prototypes.
-- [ ] Define complete RTL/LTR interaction rules and dark/light tokens.
+- [~] Define complete RTL/LTR interaction rules and dark/light tokens; initial accessible light/dark preference control is implemented, while full-page contrast, RTL/LTR and keyboard/screen-reader review remain UNVERIFIED.
 - [x] Add initial theme scaffold, semantic header/footer, navigation, dedicated front page, standard page/post, archive, search, and 404 templates, and responsive RTL-aware base styles.
 - [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
 - [~] Build public templates: dynamic editorial homepage and service/staff catalogue archive/detail foundations are implemented; gallery, blog, contact, FAQ, policies, and remaining content templates are pending. Browser rendering and responsive visual review remain UNVERIFIED.
-- [ ] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action.
+- [~] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action; the mobile booking shortcut is implemented and hides while the booking section is visible, while gallery/testimonial components and browser/device validation remain pending.
 - [ ] Validate content editing and Elementor coexistence/fallback.
 - [ ] Create visual regression baselines for key viewports.
 
