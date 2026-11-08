@@ -690,76 +690,17 @@ function parisan_core_register_public_booking_routes() {
 }
 add_action( 'rest_api_init', 'parisan_core_register_public_booking_routes' );
 
-
 /**
- * Render the Persian-first public booking wizard shortcode.
+ * Enqueue customer booking assets before wp_head prints styles and scripts.
  *
- * The UI is deliberately unavailable while the public API feature flag is off.
- *
- * @return string
+ * @return void
  */
-function parisan_core_booking_shortcode() {
+function parisan_core_enqueue_public_booking_assets() {
 	if ( ! parisan_core_public_booking_enabled() ) {
-		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'رزرو آنلاین در حال حاضر فعال نیست.', 'parisan-core' ) . '</p></section>';
+		return;
 	}
 
-	$services = get_posts(
-		array(
-			'post_type' => 'parisan_service',
-			'post_status' => 'publish',
-			'numberposts' => 200,
-			'orderby' => 'title',
-			'order' => 'ASC',
-		)
-	);
-	$staff_members = get_posts(
-		array(
-			'post_type' => 'parisan_staff',
-			'post_status' => 'publish',
-			'numberposts' => 200,
-			'orderby' => 'title',
-			'order' => 'ASC',
-		)
-	);
-	if ( ! $services || ! $staff_members ) {
-		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'برای فعال‌شدن رزرو آنلاین، ابتدا خدمات و متخصصان را در مدیریت تعریف کنید.', 'parisan-core' ) . '</p></section>';
-	}
-
-	$service_ids = array_map( 'absint', wp_list_pluck( $services, 'ID' ) );
-	$eligible_staff = array();
-	foreach ( $staff_members as $staff_member ) {
-		$eligible = get_post_meta( $staff_member->ID, '_parisan_staff_services', true );
-		$eligible = is_array( $eligible ) ? array_values( array_intersect( array_map( 'absint', $eligible ), $service_ids ) ) : array();
-		if ( $eligible ) {
-			$eligible_staff[] = array( 'post' => $staff_member, 'services' => $eligible );
-		}
-	}
-	if ( ! $eligible_staff ) {
-		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'هنوز متخصصی برای خدمات منتشرشده تعیین نشده است.', 'parisan-core' ) . '</p></section>';
-	}
-
-	wp_enqueue_style( 'parisan-public-booking', PARISAN_CORE_URL . 'assets/css/public-booking.css', array(), PARISAN_CORE_VERSION );
-	wp_enqueue_script( 'parisan-public-booking', PARISAN_CORE_URL . 'assets/js/public-booking.js', array(), PARISAN_CORE_VERSION, true );
-	wp_localize_script(
-		'parisan-public-booking',
-		'ParisanPublicBooking',
-		array(
-			'restUrl' => esc_url_raw( rest_url( 'parisan/v1/' ) ),
-			'strings' => array(
-				'loading' => __( 'در حال بررسی…', 'parisan-core' ),
-				'noSlots' => __( 'برای این تاریخ زمان آزادی پیدا نشد.', 'parisan-core' ),
-				'selectTargets' => __( 'ابتدا خدمت، متخصص و تاریخ را انتخاب کنید.', 'parisan-core' ),
-				'bookingCreated' => __( 'درخواست نوبت ثبت شد. توکن دسترسی را در جای امن نگه دارید.', 'parisan-core' ),
-				'bookingLoaded' => __( 'اطلاعات رزرو دریافت شد.', 'parisan-core' ),
-				'bookingCancelled' => __( 'رزرو لغو شد.', 'parisan-core' ),
-				'rescheduled' => __( 'زمان نوبت با موفقیت تغییر کرد.', 'parisan-core' ),
-				'customerSlotsLoaded' => __( 'زمان‌های آزاد برای تغییر نوبت بارگذاری شد.', 'parisan-core' ),
-				'genericError' => __( 'انجام درخواست ممکن نشد؛ دوباره تلاش کنید.', 'parisan-core' ),
-				'copySuccess' => __( 'توکن کپی شد.', 'parisan-core' ),
-				'copyFailure' => __( 'کپی خودکار ممکن نشد؛ توکن را دستی کپی کنید.', 'parisan-core' ),
-			),
-		)
-	);
+	parisan_core_enqueue_public_booking_assets();
 
 	$today = current_datetime();
 	$minimum_date = $today->format( 'Y-m-d' );
