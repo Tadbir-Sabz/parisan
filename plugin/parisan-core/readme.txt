@@ -9,13 +9,13 @@ First-party salon operations foundation for the Parisan Beauty WordPress theme.
 
 == Description ==
 
-Parisan Core stores salon business data independently from the active theme. It registers service, specialist, and portfolio and FAQ content types, service and portfolio categories, service duration/pricing metadata, specialist-to-service eligibility, recurring weekly schedules, and additive booking-related database tables.
+Parisan Core stores salon business data independently from the active theme. It registers service, specialist, portfolio, and FAQ content types, service and portfolio categories, service duration/pricing metadata, specialist-to-service eligibility, recurring weekly schedules, and additive booking-related database tables.
 
 The availability foundation calculates candidate appointment starts for a salon-local date using weekly staff hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals.
 
 == Features ==
 
-* Service, specialist, and portfolio custom post types.
+* Service, specialist, portfolio, and FAQ custom post types.
 * Hierarchical portfolio categories, portfolio archive, and individual portfolio detail pages.
 * Hierarchical service categories.
 * Service duration and price metadata.
