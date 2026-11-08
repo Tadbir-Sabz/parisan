@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.20.0
+Stable tag: 0.21.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -9,13 +9,14 @@ First-party salon operations foundation for the Parisan Beauty WordPress theme.
 
 == Description ==
 
-Parisan Core stores salon business data independently from the active theme. It registers service and specialist content types, service categories, service duration/pricing metadata, specialist-to-service eligibility, recurring weekly schedules, and additive booking-related database tables.
+Parisan Core stores salon business data independently from the active theme. It registers service, specialist, and portfolio content types, service and portfolio categories, service duration/pricing metadata, specialist-to-service eligibility, recurring weekly schedules, and additive booking-related database tables.
 
 The availability foundation calculates candidate appointment starts for a salon-local date using weekly staff hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals.
 
 == Features ==
 
-* Service and specialist custom post types.
+* Service, specialist, and portfolio custom post types.
+* Hierarchical portfolio categories, portfolio archive, and individual portfolio detail pages.
 * Hierarchical service categories.
 * Service duration and price metadata.
 * Specialist service eligibility and weekly recurring schedule.
