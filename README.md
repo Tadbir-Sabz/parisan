@@ -73,9 +73,9 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [x] PHP 8.1/8.2/8.3, both booking JavaScript syntax checks, schedule tests, and WordPress schema-v3 activation smoke test — [run 42405661236](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405661236) PASS on `2231f0e`.
 - [x] Privacy and abuse-control matrix — [run 42405661387](https://github.com/Tadbir-Sabz/parisan/actions/runs/42405661387) PASS on `2231f0e`.
 
-- [x] Current gated booking + privacy integration on runtime/test commit `d57a76e` — [WordPress/MariaDB run 42450894910](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450894910) PASS; verifies customer-token rescheduling, same-origin/ownership controls, booking asset stylesheet emitted in document head, and privacy lifecycle.
-- [x] Current PHP 8.1/8.2/8.3 lint, booking JavaScript syntax, schedule/availability, schema activation, and theme homepage/navigation/owner-selected hero image smoke — [run 42450894985](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450894985) PASS.
-- [x] Current privacy/abuse-control matrix — [run 42450894830](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450894830) PASS.
+- [x] Current gated booking + privacy integration on runtime/test commit `40b9d48` — [WordPress/MariaDB run 42450974200](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450974200) PASS; verifies customer-token rescheduling, same-origin/ownership controls, booking asset stylesheet emitted in document head, and privacy lifecycle.
+- [x] Current PHP 8.1/8.2/8.3 lint, booking JavaScript syntax, schedule/availability, schema activation, and theme homepage/navigation/owner-selected hero image smoke — [run 42450977270](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450977270) PASS.
+- [x] Current privacy/abuse-control matrix — [run 42450974220](https://github.com/Tadbir-Sabz/parisan/actions/runs/42450974220) PASS.
 - [ ] Browser/device visual QA, keyboard/screen-reader review, real reverse-proxy and multi-node behavior remain UNVERIFIED.
 
 - [x] Disposable WordPress + MariaDB integration verified privacy export, terminal-only erasure, active-booking retention, event-note cleanup, forced rollback on audit-note failure, opt-in retention cleanup, and request throttling — [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
