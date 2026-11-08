@@ -49,6 +49,26 @@ function parisan_theme_setup() {
 add_action( 'after_setup_theme', 'parisan_theme_setup' );
 
 /**
+ * Accessible primary navigation fallback when no menu is assigned.
+ *
+ * @return void
+ */
+function parisan_primary_menu_fallback() {
+	echo '<ul class="menu-list">';
+	$items = array(
+		array( home_url( '/' ), __( 'خانه', 'parisan' ) ),
+		array( home_url( '/#services' ), __( 'خدمات', 'parisan' ) ),
+		array( home_url( '/#team' ), __( 'متخصصان', 'parisan' ) ),
+		array( home_url( '/#booking' ), __( 'رزرو نوبت', 'parisan' ) ),
+	);
+	foreach ( $items as $item ) {
+		printf( '<li><a href="%1$s">%2$s</a></li>', esc_url( $item[0] ), esc_html( $item[1] ) );
+	}
+	echo '</ul>';
+}
+
+
+/**
  * Load only the theme's small, local stylesheet.
  *
  * @return void
