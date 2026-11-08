@@ -278,3 +278,6 @@ body { background: var(--parisan-paper); color: var(--parisan-ink); }
 @media (prefers-reduced-motion: reduce) {
 	.service-card, .service-card-media img { transition: none; }
 }
+
+/* Keep anchored sections visible below the sticky header. */
+#services, #team, #booking { scroll-margin-top: 112px; }
