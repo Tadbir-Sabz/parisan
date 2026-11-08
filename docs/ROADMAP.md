@@ -109,7 +109,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Implement duplicate-output detection and coexistence controls for Yoast SEO, Rank Math, SEOPress, All in One SEO, and The SEO Framework using explicit ownership detection; full version/plugin-matrix compatibility remains UNVERIFIED.
 - [ ] Add redirect management and privacy-safe 404 diagnostics if justified.
 - [ ] Implement page-specific asset loading, image optimization, font strategy, and Core Web Vitals instrumentation guidance.
-- [~] Implement safe first-party cache boundaries: logged-in, booking-shortcode, tokenized customer, and Parisan customer REST contexts receive no-store protection; public-content invalidation hook is available. Persistent object-cache detection, cache diagnostics, full-page cache adapters, and measured purge verification remain pending.
+- [~] Implement safe first-party cache boundaries and targeted post-purge adapters for LiteSpeed Cache, WP Rocket, and W3 Total Cache. The adapters are capability-detected, scoped to Parisan service/specialist content, and have an isolated PHP test suite wired into CI; provider-installed runtime verification, CDN/Reverse Proxy purge, persistent object-cache diagnostics, and measured purge completion remain pending.
 - [x] Explicitly bypass public cache for authenticated, booking-shortcode, tokenized customer, and Parisan customer REST contexts using WordPress cache flags and no-store headers; reverse-proxy behavior remains UNVERIFIED.
 - [ ] Benchmark representative pages and queries; tune database indexes and query plans.
 - [ ] Validate sitemap, metadata, structured data, crawlability, and real mobile performance.
