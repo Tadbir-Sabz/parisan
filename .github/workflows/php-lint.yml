@@ -51,6 +51,11 @@ jobs:
       - name: Run cache adapter tests
         run: php tests/run-cache-adapter-tests.php
 
+      - name: Run breadcrumb integration smoke test
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-wordpress
+        run: wp eval-file tests/run-breadcrumb-tests.php --path="$WP_PATH"
+
   wordpress-smoke:
     name: WordPress activation smoke test
     runs-on: ubuntu-latest
