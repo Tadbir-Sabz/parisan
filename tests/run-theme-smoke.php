@@ -7,6 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
+$_SERVER['SERVER_NAME'] = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : 'localhost';
+$_SERVER['HTTP_HOST'] = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : 'localhost';
+$_SERVER['REQUEST_URI'] = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/';
+
 function parisan_theme_smoke_assert( $condition, $message ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );
@@ -74,7 +78,7 @@ set_theme_mod( 'parisan_hero_image', 'https://example.test/parisan-hero.jpg' );
 ob_start();
 include get_template_directory() . '/front-page.php';
 $customized_homepage = ob_get_clean();
-delete_theme_mod( 'parisan_hero_image' );
+remove_theme_mod( 'parisan_hero_image' );
 parisan_theme_smoke_assert( false !== strpos( $customized_homepage, 'hero-art-photo' ) && false !== strpos( $customized_homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
 
 
