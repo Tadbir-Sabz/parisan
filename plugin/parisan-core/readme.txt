@@ -62,7 +62,7 @@ The plugin creates or upgrades its additive schema on activation/plugin load. De
 == Changelog ==
 
 = 0.16.0 =
-* Added per-content SEO title/description fields and site-level SEO defaults.
+* Added per-content SEO title/description/noindex fields and site-level SEO defaults.
 * Added canonical and Open Graph metadata plus Service JSON-LD for service pages.
 * Avoided duplicate first-party metadata when supported SEO plugins are active.
 * Added explicit no-store cache guards for logged-in, booking, tokenized customer, and Parisan REST contexts.
