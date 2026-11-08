@@ -28,6 +28,7 @@ $parisan_staff = post_type_exists( 'parisan_staff' ) ? get_posts(
 ) : array();
 
 $parisan_portfolio = post_type_exists( 'parisan_portfolio' ) ? get_posts( array( 'post_type' => 'parisan_portfolio', 'post_status' => 'publish', 'posts_per_page' => 6, 'orderby' => 'date', 'order' => 'DESC' ) ) : array();
+$parisan_articles = get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 3, 'orderby' => 'date', 'order' => 'DESC' ) );
 
 $parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
 
@@ -144,6 +145,24 @@ get_header();
 			<?php else : ?>
 				<div class="catalog-empty parisan-empty-state"><span aria-hidden="true">✳</span><p><?php esc_html_e( 'نمونه‌کارهای منتخب سالن به‌زودی در این بخش قرار می‌گیرند.', 'parisan' ); ?></p></div>
 			<?php endif; ?>
+		</div>
+	</section>
+
+	<section class="parisan-journal-section">
+		<div class="container">
+			<div class="section-heading">
+				<div><p class="eyebrow"><?php esc_html_e( 'THE PARISAN JOURNAL', 'parisan' ); ?></p><h2><?php esc_html_e( 'تازه‌هایی برای زیبایی و آرامش', 'parisan' ); ?></h2></div>
+				<?php $posts_page = absint( get_option( 'page_for_posts' ) ); ?>
+				<a class="text-link" href="<?php echo esc_url( $posts_page ? get_permalink( $posts_page ) : home_url( '/blog/' ) ); ?>"><?php esc_html_e( 'همه مطالب مجله', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
+			</div>
+			<?php if ( $parisan_articles ) : ?><div class="post-grid">
+				<?php foreach ( $parisan_articles as $parisan_article ) : ?>
+					<article class="post-card">
+						<?php if ( has_post_thumbnail( $parisan_article ) ) : ?><a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo get_the_post_thumbnail( $parisan_article, 'large', array( 'loading' => 'lazy' ) ); ?></a><?php endif; ?>
+						<div class="post-card-content"><p class="post-meta"><?php echo esc_html( get_the_date( '', $parisan_article ) ); ?></p><h3><a href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo esc_html( get_the_title( $parisan_article ) ); ?></a></h3><p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_article ), 18 ) ); ?></p></div>
+					</article>
+				<?php endforeach; ?>
+			</div><?php else : ?><p class="catalog-empty"><?php esc_html_e( 'مطالب مجله به‌زودی منتشر می‌شوند.', 'parisan' ); ?></p><?php endif; ?>
 		</div>
 	</section>
 
