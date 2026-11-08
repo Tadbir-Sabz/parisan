@@ -40,6 +40,7 @@ defined( 'ABSPATH' ) || exit;
 			?>
 		</nav>
 		<a class="button button-small header-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php esc_html_e( 'دریافت نوبت', 'parisan' ); ?></a>
+		<button class="parisan-theme-toggle" type="button" aria-label="<?php esc_attr_e( 'فعال‌سازی حالت تیره', 'parisan' ); ?>" aria-pressed="false" hidden><?php esc_html_e( 'حالت تیره', 'parisan' ); ?></button>
 	</div>
 </header>
 <?php if ( function_exists( 'parisan_core_render_breadcrumbs' ) ) : ?>
