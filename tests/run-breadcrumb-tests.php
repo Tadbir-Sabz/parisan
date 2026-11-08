@@ -1,0 +1,75 @@
+<?php
+/**
+ * WordPress integration smoke test for breadcrumbs and BreadcrumbList schema.
+ *
+ * @package ParisanCore
+ */
+
+function parisan_test_breadcrumb_assert( $condition, $message ) {
+	if ( ! $condition ) {
+		fwrite( STDERR, $message . PHP_EOL );
+		exit( 1 );
+	}
+}
+
+if ( ! function_exists( 'parisan_core_get_breadcrumb_items' ) || ! function_exists( 'parisan_core_output_breadcrumb_schema' ) ) {
+	fwrite( STDERR, "Breadcrumb module was not loaded." . PHP_EOL );
+	exit( 1 );
+}
+
+$service_id = wp_insert_post(
+	array(
+		'post_type'   => 'parisan_service',
+		'post_status' => 'publish',
+		'post_title'  => 'Synthetic breadcrumb service',
+	),
+	true
+);
+parisan_test_breadcrumb_assert( ! is_wp_error( $service_id ), 'Could not create the synthetic service.' );
+
+$query = new WP_Query(
+	array(
+		'post_type'      => 'parisan_service',
+		'p'              => $service_id,
+		'post_status'    => 'publish',
+		'posts_per_page' => 1,
+	)
+);
+parisan_test_breadcrumb_assert( $query->have_posts(), 'Synthetic service query returned no post.' );
+$GLOBALS['wp_query'] = $query;
+$GLOBALS['post'] = $query->posts[0];
+setup_postdata( $GLOBALS['post'] );
+
+$items = parisan_core_get_breadcrumb_items();
+parisan_test_breadcrumb_assert( 3 === count( $items ), 'Service detail should have Home, service archive, and current service breadcrumbs.' );
+parisan_test_breadcrumb_assert( 'خانه' === $items[0]['label'], 'The first breadcrumb must be the Persian Home label.' );
+parisan_test_breadcrumb_assert( 'Synthetic breadcrumb service' === $items[2]['label'], 'The current breadcrumb must use the service title.' );
+parisan_test_breadcrumb_assert( '' === $items[2]['url'], 'The current breadcrumb must not be a link.' );
+
+ob_start();
+parisan_core_render_breadcrumbs();
+$markup = ob_get_clean();
+parisan_test_breadcrumb_assert( false !== strpos( $markup, '<nav' ), 'Semantic breadcrumb navigation was not rendered.' );
+parisan_test_breadcrumb_assert( false !== strpos( $markup, 'aria-current="page"' ), 'Current breadcrumb is missing aria-current.' );
+parisan_test_breadcrumb_assert( false !== strpos( $markup, 'مسیر صفحه' ), 'Breadcrumb navigation label is not Persian.' );
+
+ob_start();
+parisan_core_output_breadcrumb_schema();
+$schema_markup = ob_get_clean();
+parisan_test_breadcrumb_assert( false !== strpos( $schema_markup, 'BreadcrumbList' ), 'BreadcrumbList JSON-LD was not emitted.' );
+$matches = array();
+preg_match( '/<script type="application\/ld\+json">(.*?)<\/script>/s', $schema_markup, $matches );
+$schema = isset( $matches[1] ) ? json_decode( $matches[1], true ) : null;
+parisan_test_breadcrumb_assert( is_array( $schema ) && 'BreadcrumbList' === $schema['@type'], 'BreadcrumbList JSON-LD is invalid.' );
+parisan_test_breadcrumb_assert( 3 === count( $schema['itemListElement'] ), 'BreadcrumbList positions are incomplete.' );
+parisan_test_breadcrumb_assert( ! isset( $schema['itemListElement'][2]['item'] ), 'The current breadcrumb must not have a destination URL.' );
+
+if ( ! defined( 'RANK_MATH_VERSION' ) ) {
+	define( 'RANK_MATH_VERSION', 'parisan-ci-test' );
+}
+ob_start();
+parisan_core_output_breadcrumb_schema();
+$plugin_owned_schema = ob_get_clean();
+parisan_test_breadcrumb_assert( '' === $plugin_owned_schema, 'Breadcrumb schema must yield when a supported SEO plugin owns metadata/schema output.' );
+
+echo "WordPress breadcrumb navigation and JSON-LD smoke test passed." . PHP_EOL;
