@@ -78,6 +78,11 @@ function parisan_test_litespeed_purge( $post_id ) {
 }
 add_action( 'litespeed_purge_post', 'parisan_test_litespeed_purge', 10, 1 );
 
+$runtime_diagnostics = parisan_core_cache_runtime_diagnostics();
+parisan_test_assert( true === $runtime_diagnostics['provider_adapters']['wp_rocket']['detected'], 'Runtime diagnostics did not report WP Rocket adapter availability.' );
+parisan_test_assert( true === $runtime_diagnostics['provider_adapters']['litespeed_cache']['detected'], 'Runtime diagnostics did not report LiteSpeed adapter availability.' );
+parisan_test_assert( true === $runtime_diagnostics['provider_adapters']['w3_total_cache']['detected'], 'Runtime diagnostics did not report W3 Total Cache adapter availability.' );
+
 $status = parisan_core_cache_adapter_status();
 parisan_test_assert( true === $status['wp_rocket']['detected'], 'WP Rocket adapter detection failed.' );
 parisan_test_assert( true === $status['litespeed_cache']['detected'], 'LiteSpeed adapter detection failed.' );
