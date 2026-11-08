@@ -72,4 +72,27 @@ parisan_core_output_breadcrumb_schema();
 $plugin_owned_schema = ob_get_clean();
 parisan_test_breadcrumb_assert( '' === $plugin_owned_schema, 'Breadcrumb schema must yield when a supported SEO plugin owns metadata/schema output.' );
 
+$invalidated_ids = array();
+add_action(
+	'parisan_core_public_content_cache_invalidated',
+	function ( $post_id ) use ( &$invalidated_ids ) {
+		$invalidated_ids[] = (int) $post_id;
+	},
+	99,
+	1
+);
+$ordinary_id = wp_insert_post(
+	array(
+		'post_type'   => 'post',
+		'post_status' => 'publish',
+		'post_title'  => 'Synthetic unrelated post',
+	),
+	true
+);
+parisan_test_breadcrumb_assert( ! is_wp_error( $ordinary_id ), 'Could not create unrelated synthetic post.' );
+do_action( 'deleted_post', $ordinary_id, get_post( $ordinary_id ) );
+parisan_test_breadcrumb_assert( empty( $invalidated_ids ), 'Unrelated post deletion must not trigger Parisan public cache invalidation.' );
+do_action( 'deleted_post', $service_id, get_post( $service_id ) );
+parisan_test_breadcrumb_assert( array( (int) $service_id ) === $invalidated_ids, 'Deleting a Parisan service must trigger exactly one targeted invalidation event.' );
+
 echo "WordPress breadcrumb navigation and JSON-LD smoke test passed." . PHP_EOL;
