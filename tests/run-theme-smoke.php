@@ -21,8 +21,15 @@ function parisan_theme_smoke_assert( $condition, $message ) {
 parisan_theme_smoke_assert( 'parisan' === get_stylesheet(), 'Parisan theme is active' );
 parisan_theme_smoke_assert( post_type_exists( 'parisan_portfolio' ), 'first-party portfolio content type is registered' );
 parisan_theme_smoke_assert( taxonomy_exists( 'parisan_portfolio_category' ), 'portfolio category taxonomy is registered' );
+parisan_theme_smoke_assert( post_type_exists( 'parisan_faq' ), 'first-party FAQ content type is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_customize_brand_register' ), 'brand and identity customizer is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_output_brand_tokens' ), 'custom brand design tokens are output' );
+parisan_theme_smoke_assert( function_exists( 'parisan_public_setting' ), 'public salon settings helper is registered' );
 parisan_theme_smoke_assert( is_string( get_post_type_archive_link( 'parisan_portfolio' ) ) && '' !== get_post_type_archive_link( 'parisan_portfolio' ), 'portfolio archive URL is available' );
 parisan_theme_smoke_assert( function_exists( 'parisan_primary_menu_fallback' ), 'primary navigation fallback is registered' );
+foreach ( array( 'home.php', 'single.php', 'page-about.php', 'page-contact.php', 'page-faq.php', 'page-privacy-policy.php', 'page-terms.php' ) as $template_file ) {
+	parisan_theme_smoke_assert( file_exists( get_template_directory() . '/' . $template_file ), 'required editorial template exists: ' . $template_file );
+}
 ob_start();
 parisan_primary_menu_fallback();
 $navigation = ob_get_clean();
