@@ -3,7 +3,7 @@
  * Plugin Name: Parisan Core
  * Plugin URI: https://github.com/Tadbir-Sabz/parisan
  * Description: First-party salon operations foundation for the Parisan Beauty theme.
- * Version: 0.21.0
+ * Version: 0.22.0
  * Author: Tadbir-Sabz
  * License: GPL-2.0-or-later
  * Text Domain: parisan-core
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_VERSION', '0.21.0' );
+define( 'PARISAN_CORE_VERSION', '0.22.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PARISAN_CORE_URL', plugin_dir_url( __FILE__ ) );
@@ -61,6 +61,13 @@ function parisan_core_register_post_types() {
 			'icon'     => 'dashicons-format-gallery',
 			'slug'     => 'portfolio',
 		),
+		'parisan_faq' => array(
+			'singular' => __( 'پرسش متداول', 'parisan-core' ),
+			'plural'   => __( 'پرسش‌های متداول', 'parisan-core' ),
+			'icon'     => 'dashicons-editor-help',
+			'slug'     => 'salon-faq',
+		),
+
 	);
 
 	foreach ( $types as $type => $labels ) {
@@ -78,10 +85,11 @@ function parisan_core_register_post_types() {
 					'not_found_in_trash' => __( 'موردی در زباله‌دان نیست.', 'parisan-core' ),
 					'menu_name'          => $labels['plural'],
 				),
-				'public'             => true,
-				'publicly_queryable' => true,
+				'public'             => 'parisan_faq' === $type ? false : true,
+				'publicly_queryable' => 'parisan_faq' === $type ? false : true,
+				'exclude_from_search' => 'parisan_faq' === $type,
 				'show_in_rest'       => true,
-				'has_archive'        => true,
+				'has_archive'        => 'parisan_faq' === $type ? false : true,
 				'rewrite'            => array( 'slug' => $labels['slug'] ),
 				'menu_icon'          => $labels['icon'],
 				'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'custom-fields' ),
@@ -119,9 +127,9 @@ add_action( 'init', 'parisan_core_register_post_types' );
  * @return void
  */
 function parisan_core_maybe_refresh_portfolio_rewrite_rules() {
-	if ( '0.21.0' !== get_option( 'parisan_core_portfolio_rewrite_version' ) ) {
+	if ( '0.22.0' !== get_option( 'parisan_core_portfolio_rewrite_version' ) ) {
 		flush_rewrite_rules( false );
-		update_option( 'parisan_core_portfolio_rewrite_version', '0.21.0', false );
+		update_option( 'parisan_core_portfolio_rewrite_version', '0.22.0', false );
 	}
 }
 add_action( 'init', 'parisan_core_maybe_refresh_portfolio_rewrite_rules', 99 );
