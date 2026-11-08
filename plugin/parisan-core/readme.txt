@@ -45,7 +45,7 @@ The public REST API is disabled by default. The owner must explicitly define `PA
 
 WordPress privacy export includes booking details and associated event notes. Erasure anonymizes terminal bookings and removes their free-form event notes while preserving operational history. Pending and confirmed bookings are retained while needed to fulfil the appointment. Automatic anonymization is disabled by default and requires an administrator to choose a retention period. The site owner remains responsible for selecting a period appropriate to applicable legal and accounting duties, and for backup/processor retention.
 
-Break management, resource schedules, full account-based customer portal/rescheduling, email/SMS, payment, advanced SEO controls (sitemap extensions, robots/noindex UI, redirects, SEO audits), CDN/reverse-proxy purge adapters and real cache diagnostics remain future work. The initial shortcode UI exists, but browser/device/accessibility review is still UNVERIFIED. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
+Break management, resource schedules, full account-based customer portal/rescheduling, email/SMS, payment, advanced SEO controls (sitemap extensions, redirects, SEO audits), CDN/reverse-proxy purge adapters and real cache diagnostics remain future work. The initial shortcode UI exists, but browser/device/accessibility review is still UNVERIFIED. Public API activation is not approved by this code delivery. No live SMS or payment operations are performed.
 
 == Installation ==
 
