@@ -99,6 +99,15 @@ parisan_test_breadcrumb_assert( ! in_array( (int) $noindex_service_id, $sitemap_
 if ( ! defined( 'RANK_MATH_VERSION' ) ) {
 	define( 'RANK_MATH_VERSION', 'parisan-ci-test' );
 }
+$plugin_owned_sitemap_args = array(
+	'post_type'   => 'parisan_service',
+	'post_status' => array( 'publish' ),
+);
+parisan_test_breadcrumb_assert(
+	$plugin_owned_sitemap_args === apply_filters( 'wp_sitemaps_posts_query_args', $plugin_owned_sitemap_args, 'parisan_service' ),
+	'Parisan sitemap filtering must yield when a supported SEO plugin owns metadata output.'
+);
+
 ob_start();
 parisan_core_output_breadcrumb_schema();
 $plugin_owned_schema = ob_get_clean();
