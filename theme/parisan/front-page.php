@@ -27,6 +27,8 @@ $parisan_staff = post_type_exists( 'parisan_staff' ) ? get_posts(
 	)
 ) : array();
 
+$parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
+
 get_header();
 ?>
 <main id="main-content" class="parisan-home">
@@ -43,6 +45,9 @@ get_header();
 				<div class="hero-note"><span class="hero-note-mark" aria-hidden="true">✳</span><span><?php esc_html_e( 'لحظه‌ای برای خودتان؛ تجربه‌ای با توجه به جزئیات', 'parisan' ); ?></span></div>
 			</div>
 			<div class="hero-art" role="img" aria-label="<?php esc_attr_e( 'ترکیب هنری انتزاعی با الهام از زیبایی و ظرافت', 'parisan' ); ?>">
+				<?php if ( $parisan_hero_image ) : ?>
+					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="" loading="eager" decoding="async">
+				<?php endif; ?>
 				<div class="hero-art-orbit hero-art-orbit-one"></div>
 				<div class="hero-art-orbit hero-art-orbit-two"></div>
 				<div class="hero-art-petal hero-art-petal-one"></div>
