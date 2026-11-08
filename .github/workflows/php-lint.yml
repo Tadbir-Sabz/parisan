@@ -48,6 +48,9 @@ jobs:
       - name: Run schedule and availability tests
         run: php tests/run-schedule-tests.php
 
+      - name: Run cache adapter tests
+        run: php tests/run-cache-adapter-tests.php
+
   wordpress-smoke:
     name: WordPress activation smoke test
     runs-on: ubuntu-latest
