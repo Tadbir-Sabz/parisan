@@ -331,6 +331,39 @@ function parisan_core_render_seo_schema_field() {
 	printf( '<label><input type="checkbox" name="%1$s[output_json_ld]" value="1" %2$s> %3$s</label>', esc_attr( PARISAN_CORE_SEO_OPTION ), checked( 1, $s['output_json_ld'], false ), esc_html__( 'برای صفحه اختصاصی هر خدمت، Service JSON-LD تولید شود.', 'parisan-core' ) );
 }
 
+/**
+ * Render safe cache runtime diagnostics without exposing cache keys or secrets.
+ *
+ * @return void
+ */
+function parisan_core_render_cache_diagnostics() {
+	if ( ! function_exists( 'parisan_core_cache_runtime_diagnostics' ) ) {
+		return;
+	}
+
+	$diagnostics = parisan_core_cache_runtime_diagnostics();
+	$provider_labels = array(
+		'wp_rocket'       => 'WP Rocket',
+		'litespeed_cache' => 'LiteSpeed Cache',
+		'w3_total_cache'  => 'W3 Total Cache',
+	);
+
+	echo '<h2>' . esc_html__( 'وضعیت کش در زمان اجرا', 'parisan-core' ) . '</h2>';
+	echo '<table class="widefat striped"><tbody>';
+	echo '<tr><th scope="row">' . esc_html__( 'کش شیء پایدار', 'parisan-core' ) . '</th><td>' . ( $diagnostics['persistent_object_cache_active'] ? esc_html__( 'فعال گزارش شده', 'parisan-core' ) : esc_html__( 'فعال گزارش نشده', 'parisan-core' ) ) . '</td></tr>';
+	echo '<tr><th scope="row">' . esc_html__( 'فایل object-cache.php', 'parisan-core' ) . '</th><td>' . ( $diagnostics['object_cache_dropin_present'] ? esc_html__( 'وجود دارد', 'parisan-core' ) : esc_html__( 'وجود ندارد', 'parisan-core' ) ) . '</td></tr>';
+	foreach ( $provider_labels as $provider => $label ) {
+		$detected = ! empty( $diagnostics['provider_adapters'][ $provider ]['detected'] );
+		printf(
+			'<tr><th scope="row">%1$s</th><td>%2$s</td></tr>',
+			esc_html( $label ),
+			$detected ? esc_html__( 'API پاک‌سازی نوشته شناسایی شد', 'parisan-core' ) : esc_html__( 'API پاک‌سازی نوشته شناسایی نشد', 'parisan-core' )
+		);
+	}
+	echo '</tbody></table>';
+	echo '<p class="description">' . esc_html__( 'این گزارش فقط نشانه‌های قابل مشاهده در زمان اجرا را نشان می‌دهد؛ سلامت اتصال Redis/Memcached، cache hit/miss، پایان پاک‌سازی در CDN یا Reverse Proxy را تأیید نمی‌کند. هیچ کلید کش یا اعتبارنامه‌ای نمایش داده نمی‌شود.', 'parisan-core' ) . '</p>';
+}
+
 /** Render SEO settings page. */
 function parisan_core_render_seo_settings_page() {
 	if ( ! current_user_can( 'manage_options' ) ) {
@@ -342,7 +375,9 @@ function parisan_core_render_seo_settings_page() {
 	settings_fields( 'parisan_core_seo' );
 	do_settings_sections( 'parisan-core-seo' );
 	submit_button( __( 'ذخیره تنظیمات', 'parisan-core' ) );
-	echo '</form></div>';
+	echo '</form>';
+	parisan_core_render_cache_diagnostics();
+	echo '</div>';
 }
 
 /**
