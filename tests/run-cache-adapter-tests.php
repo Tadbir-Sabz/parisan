@@ -10,6 +10,10 @@ define( 'ABSPATH', __DIR__ . '/' );
 $GLOBALS['parisan_test_hooks'] = array();
 $GLOBALS['parisan_test_purges'] = array();
 
+function absint( $value ) {
+	return abs( (int) $value );
+}
+
 function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	$GLOBALS['parisan_test_hooks'][ $hook ][ $priority ][] = array( $callback, $accepted_args );
 }
@@ -43,12 +47,16 @@ parisan_test_assert( false === $empty_status['wp_rocket']['detected'], 'WP Rocke
 parisan_test_assert( false === $empty_status['litespeed_cache']['detected'], 'LiteSpeed must be reported absent without its purge hook.' );
 parisan_test_assert( false === $empty_status['w3_total_cache']['detected'], 'W3 Total Cache must be reported absent before its API is loaded.' );
 
-function rocket_clean_post( $post_id ) {
-	$GLOBALS['parisan_test_purges']['wp_rocket'][] = $post_id;
+if ( ! function_exists( 'rocket_clean_post' ) ) {
+	function rocket_clean_post( $post_id ) {
+		$GLOBALS['parisan_test_purges']['wp_rocket'][] = $post_id;
+	}
 }
 
-function w3tc_flush_post( $post_id, $force = false, $extras = null ) {
-	$GLOBALS['parisan_test_purges']['w3_total_cache'][] = $post_id;
+if ( ! function_exists( 'w3tc_flush_post' ) ) {
+	function w3tc_flush_post( $post_id, $force = false, $extras = null ) {
+		$GLOBALS['parisan_test_purges']['w3_total_cache'][] = $post_id;
+	}
 }
 
 function parisan_test_litespeed_purge( $post_id ) {
@@ -66,6 +74,11 @@ parisan_test_assert( 3 === count( $outcomes ), 'All three detected providers sho
 foreach ( array( 'wp_rocket', 'litespeed_cache', 'w3_total_cache' ) as $provider ) {
 	parisan_test_assert( 'requested' === $outcomes[ $provider ], 'Provider request was not reported for ' . $provider . '.' );
 	parisan_test_assert( array( 42 ) === $GLOBALS['parisan_test_purges'][ $provider ], 'Provider did not receive exactly the requested post ID: ' . $provider . '.' );
+}
+
+do_action( 'parisan_core_public_content_cache_invalidated', 77 );
+foreach ( array( 'wp_rocket', 'litespeed_cache', 'w3_total_cache' ) as $provider ) {
+	parisan_test_assert( array( 42, 77 ) === $GLOBALS['parisan_test_purges'][ $provider ], 'Invalidation event did not dispatch the post ID to ' . $provider . '.' );
 }
 
 $before = $GLOBALS['parisan_test_purges'];
