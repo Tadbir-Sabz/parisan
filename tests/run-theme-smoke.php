@@ -25,6 +25,10 @@ parisan_theme_smoke_assert( post_type_exists( 'parisan_faq' ), 'first-party FAQ 
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_brand_register' ), 'brand and identity customizer is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_output_brand_tokens' ), 'custom brand design tokens are output' );
 parisan_theme_smoke_assert( function_exists( 'parisan_public_setting' ), 'public salon settings helper is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_safe_theme_color' ), 'custom brand colors are validated before CSS output' );
+set_theme_mod( 'parisan_brand_accent', 'red;}</style><script>alert(1)</script>' );
+parisan_theme_smoke_assert( '#6f4657' === parisan_safe_theme_color( 'parisan_brand_accent', '#6f4657' ), 'unsafe brand color falls back to the safe default' );
+remove_theme_mod( 'parisan_brand_accent' );
 parisan_theme_smoke_assert( is_string( get_post_type_archive_link( 'parisan_portfolio' ) ) && '' !== get_post_type_archive_link( 'parisan_portfolio' ), 'portfolio archive URL is available' );
 parisan_theme_smoke_assert( function_exists( 'parisan_primary_menu_fallback' ), 'primary navigation fallback is registered' );
 foreach ( array( 'home.php', 'single.php', 'page-about.php', 'page-contact.php', 'page-faq.php', 'page-privacy-policy.php', 'page-terms.php' ) as $template_file ) {
