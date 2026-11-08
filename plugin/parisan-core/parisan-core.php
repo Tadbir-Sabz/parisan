@@ -3,7 +3,7 @@
  * Plugin Name: Parisan Core
  * Plugin URI: https://github.com/Tadbir-Sabz/parisan
  * Description: First-party salon operations foundation for the Parisan Beauty theme.
- * Version: 0.20.0
+ * Version: 0.21.0
  * Author: Tadbir-Sabz
  * License: GPL-2.0-or-later
  * Text Domain: parisan-core
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_VERSION', '0.20.0' );
+define( 'PARISAN_CORE_VERSION', '0.21.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PARISAN_CORE_URL', plugin_dir_url( __FILE__ ) );
@@ -55,6 +55,12 @@ function parisan_core_register_post_types() {
 			'icon'     => 'dashicons-businesswoman',
 			'slug'     => 'specialists',
 		),
+		'parisan_portfolio' => array(
+			'singular' => __( 'نمونه‌کار', 'parisan-core' ),
+			'plural'   => __( 'نمونه‌کارها', 'parisan-core' ),
+			'icon'     => 'dashicons-format-gallery',
+			'slug'     => 'portfolio',
+		),
 	);
 
 	foreach ( $types as $type => $labels ) {
@@ -82,8 +88,43 @@ function parisan_core_register_post_types() {
 			)
 		);
 	}
+
+	register_taxonomy(
+		'parisan_portfolio_category',
+		array( 'parisan_portfolio' ),
+		array(
+			'labels' => array(
+				'name'          => __( 'دسته‌بندی نمونه‌کارها', 'parisan-core' ),
+				'singular_name' => __( 'دسته‌بندی نمونه‌کار', 'parisan-core' ),
+				'search_items'  => __( 'جستجوی دسته‌بندی‌ها', 'parisan-core' ),
+				'all_items'     => __( 'همه دسته‌بندی‌ها', 'parisan-core' ),
+				'edit_item'     => __( 'ویرایش دسته‌بندی', 'parisan-core' ),
+				'add_new_item'  => __( 'افزودن دسته‌بندی', 'parisan-core' ),
+				'menu_name'     => __( 'دسته‌بندی نمونه‌کارها', 'parisan-core' ),
+			),
+			'hierarchical'      => true,
+			'public'            => true,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'show_in_rest'      => true,
+			'rewrite'           => array( 'slug' => 'portfolio-category' ),
+		)
+	);
 }
 add_action( 'init', 'parisan_core_register_post_types' );
+
+/**
+ * Refresh rewrite rules once when the portfolio route is introduced.
+ *
+ * @return void
+ */
+function parisan_core_maybe_refresh_portfolio_rewrite_rules() {
+	if ( '0.21.0' !== get_option( 'parisan_core_portfolio_rewrite_version' ) ) {
+		flush_rewrite_rules( false );
+		update_option( 'parisan_core_portfolio_rewrite_version', '0.21.0', false );
+	}
+}
+add_action( 'init', 'parisan_core_maybe_refresh_portfolio_rewrite_rules', 99 );
 
 /**
  * Add service pricing and duration fields.
