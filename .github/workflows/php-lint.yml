@@ -228,6 +228,8 @@ jobs:
           test -f "$WP_PATH/wp-content/themes/parisan/front-page.php"
           test -f "$WP_PATH/wp-content/themes/parisan/archive-parisan_service.php"
           test -f "$WP_PATH/wp-content/themes/parisan/single-parisan_service.php"
+          test -f "$WP_PATH/wp-content/themes/parisan/archive-parisan_portfolio.php"
+          test -f "$WP_PATH/wp-content/themes/parisan/single-parisan_portfolio.php"
 
       - name: Verify transactional booking service
         env:
