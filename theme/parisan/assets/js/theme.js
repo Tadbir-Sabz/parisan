@@ -22,8 +22,8 @@
 		if (toggle) {
 			toggle.hidden = false;
 			toggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-			toggle.setAttribute('aria-label', isDark ? 'فعال‌سازی حالت روشن' : 'فعال‌سازی حالت تیره');
-			toggle.textContent = isDark ? 'حالت روشن' : 'حالت تیره';
+			toggle.setAttribute('aria-label', isDark ? 'فعال‌سازی طرح روز' : 'فعال‌سازی طرح شب');
+			toggle.textContent = isDark ? '☀ طرح روز' : '☾ طرح شب';
 		}
 		if (persist) {
 			try { window.localStorage.setItem(storageKey, isDark ? 'dark' : 'light'); } catch (error) { /* Storage is optional. */ }
