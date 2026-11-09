@@ -97,6 +97,17 @@ jobs:
           }
           PHP
           php "$WP_PATH/create-fixtures.php"
+          SERVICE_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="پاکسازی و آبرسانی پوست" --post_excerpt="مراقبت تخصصی برای طراوت و شادابی پوست." --post_content="یک تجربه مراقبتی با توجه به نوع پوست و نیازهای شما." --porcelain)
+          wp post meta update "$SERVICE_ID" _parisan_duration 60 --path="$WP_PATH"
+          wp post meta update "$SERVICE_ID" _parisan_price 850000 --path="$WP_PATH"
+          wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="طراحی و فرم‌دهی ابرو" --post_excerpt="فرم‌دهی متناسب با چهره با دقت و ظرافت." --post_content="مشاوره و اجرای فرم دلخواه با توجه به تناسب چهره." --porcelain
+          STAFF_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="نگار احمدی" --post_excerpt="متخصص مراقبت و زیبایی پوست." --post_content="با تمرکز بر تجربه‌ای آرام و انتخاب آگاهانه خدمات." --porcelain)
+          wp post meta update "$STAFF_ID" _parisan_staff_role "متخصص مراقبت پوست" --path="$WP_PATH"
+          STAFF_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="سارا محمدی" --post_excerpt="متخصص طراحی و زیبایی ابرو." --post_content="توجه به جزئیات و تناسب طبیعی، بخشی از رویکرد کاری اوست." --porcelain)
+          wp post meta update "$STAFF_ID" _parisan_staff_role "متخصص زیبایی" --path="$WP_PATH"
+          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="درخشش طبیعی" --post_excerpt="نمونه‌ای از زیبایی ساده و متناسب." --post_content="نمونه‌کار نمایشی برای آزمون چیدمان گالری." --porcelain
+          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="جزئیات ظریف" --post_excerpt="توجه به جزئیات در اجرای خدمات." --post_content="نمونه‌کار نمایشی دوم برای آزمون گالری." --porcelain
+          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="سبک هماهنگ" --post_excerpt="هماهنگی سبک و سلیقه شخصی." --post_content="نمونه‌کار نمایشی سوم برای آزمون گالری." --porcelain
           SERVICE_ID=$(wp post list --path="$WP_PATH" --post_type=parisan_service --field=ID --format=ids | awk '{print $1}')
           wp media import "$WP_PATH/service-skin.png" --post_id="$SERVICE_ID" --featured_image --path="$WP_PATH" --quiet
           SERVICE_ID=$(wp post list --path="$WP_PATH" --post_type=parisan_service --field=ID --format=ids | awk '{print $2}')
@@ -115,17 +126,6 @@ jobs:
           done
           POST_ID=$(wp post list --path="$WP_PATH" --post_type=post --field=ID --format=ids | awk '{print $1}')
           wp media import "$WP_PATH/journal.png" --post_id="$POST_ID" --featured_image --path="$WP_PATH" --quiet
-          SERVICE_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="پاکسازی و آبرسانی پوست" --post_excerpt="مراقبت تخصصی برای طراوت و شادابی پوست." --post_content="یک تجربه مراقبتی با توجه به نوع پوست و نیازهای شما." --porcelain)
-          wp post meta update "$SERVICE_ID" _parisan_duration 60 --path="$WP_PATH"
-          wp post meta update "$SERVICE_ID" _parisan_price 850000 --path="$WP_PATH"
-          wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="طراحی و فرم‌دهی ابرو" --post_excerpt="فرم‌دهی متناسب با چهره با دقت و ظرافت." --post_content="مشاوره و اجرای فرم دلخواه با توجه به تناسب چهره." --porcelain
-          STAFF_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="نگار احمدی" --post_excerpt="متخصص مراقبت و زیبایی پوست." --post_content="با تمرکز بر تجربه‌ای آرام و انتخاب آگاهانه خدمات." --porcelain)
-          wp post meta update "$STAFF_ID" _parisan_staff_role "متخصص مراقبت پوست" --path="$WP_PATH"
-          STAFF_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="سارا محمدی" --post_excerpt="متخصص طراحی و زیبایی ابرو." --post_content="توجه به جزئیات و تناسب طبیعی، بخشی از رویکرد کاری اوست." --porcelain)
-          wp post meta update "$STAFF_ID" _parisan_staff_role "متخصص زیبایی" --path="$WP_PATH"
-          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="درخشش طبیعی" --post_excerpt="نمونه‌ای از زیبایی ساده و متناسب." --post_content="نمونه‌کار نمایشی برای آزمون چیدمان گالری." --porcelain
-          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="جزئیات ظریف" --post_excerpt="توجه به جزئیات در اجرای خدمات." --post_content="نمونه‌کار نمایشی دوم برای آزمون گالری." --porcelain
-          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="سبک هماهنگ" --post_excerpt="هماهنگی سبک و سلیقه شخصی." --post_content="نمونه‌کار نمایشی سوم برای آزمون گالری." --porcelain
           cat > "$WP_PATH/router.php" <<'PHP'
           <?php
           $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
