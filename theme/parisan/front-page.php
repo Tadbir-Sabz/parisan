@@ -153,7 +153,8 @@ get_header();
 		<div class="container">
 			<div class="section-heading">
 				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'journal_eyebrow', 'THE PARISAN JOURNAL' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'journal_title', 'تازه‌هایی برای زیبایی و آرامش' ) ); ?></h2></div>
-				<a class="text-link" href="<?php echo esc_url( parisan_blog_index_url() ); ?>"><?php esc_html_e( 'همه مطالب مجله', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
+				<?php $parisan_blog_url = parisan_blog_index_url(); ?>
+				<?php if ( $parisan_blog_url ) : ?><a class="text-link" href="<?php echo esc_url( $parisan_blog_url ); ?>"><?php esc_html_e( 'همه مطالب مجله', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
 			<?php if ( $parisan_articles ) : ?><div class="post-grid">
 				<?php foreach ( $parisan_articles as $parisan_article ) : ?>
