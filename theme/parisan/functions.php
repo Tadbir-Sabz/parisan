@@ -83,8 +83,64 @@ function parisan_customize_register( $wp_customize ) {
 			)
 		)
 	);
+
+	// Prefer attachment IDs so WordPress can provide responsive srcsets and media-library alt text.
+	$wp_customize->add_setting(
+		'parisan_hero_image_id',
+		array(
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Media_Control(
+			$wp_customize,
+			'parisan_hero_image_id',
+			array(
+				'label'       => esc_html__( 'تصویر اصلی از کتابخانه رسانه', 'parisan' ),
+				'description' => esc_html__( 'برای بارگذاری تصویر اختصاصی، از کتابخانه رسانه انتخاب کنید.', 'parisan' ),
+				'mime_type'   => 'image',
+				'section'     => 'parisan_homepage',
+			)
+		)
+	);
+
+	foreach ( array(
+		'parisan_hero_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه', 'parisan' ) ),
+		'parisan_hero_position_y' => array( 34, esc_html__( 'جایگاه عمودی سوژه', 'parisan' ) ),
+	) as $setting_id => $definition ) {
+		$wp_customize->add_setting(
+			$setting_id,
+			array(
+				'default'           => $definition[0],
+				'sanitize_callback' => 'parisan_sanitize_hero_position',
+				'transport'         => 'refresh',
+			)
+		);
+		$wp_customize->add_control(
+			$setting_id,
+			array(
+				'label'       => $definition[1],
+				'description' => esc_html__( 'با تغییر این مقدار، نقطه تمرکز تصویر در قاب جابه‌جا می‌شود (۰ تا ۱۰۰).', 'parisan' ),
+				'section'     => 'parisan_homepage',
+				'type'        => 'range',
+				'input_attrs' => array( 'min' => 0, 'max' => 100, 'step' => 1 ),
+			)
+		);
+	}
 }
 add_action( 'customize_register', 'parisan_customize_register' );
+
+/**
+ * Clamp the hero image focal point to a percentage.
+ *
+ * @param mixed $value Raw Customizer value.
+ * @return int
+ */
+function parisan_sanitize_hero_position( $value ) {
+	return max( 0, min( 100, absint( $value ) ) );
+}
 
 /**
  * Register brand, contact, editorial, and global layout controls.
