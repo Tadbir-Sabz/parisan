@@ -492,3 +492,35 @@ html[data-parisan-theme="dark"] .parisan-journal-section { background: #211a25; 
 	.header-inner { column-gap: 10px; }
 	.header-booking { margin-inline-start: auto; }
 }
+
+
+/* Browser-QA refinement: strengthen small-screen hierarchy and prevent compressed header text. */
+.site-branding { flex: 0 0 auto; min-width: 0; }
+.site-title { display: inline-block; white-space: nowrap; font-size: clamp(20px, 1.7vw, 25px); }
+.primary-navigation { min-width: 0; }
+.menu-list { gap: clamp(12px, 1.35vw, 20px); }
+.menu-list a { font-size: 13px; }
+.hero-note, .hero-bottomline, .service-card-meta, .post-meta { font-size: 13px; }
+.parisan-empty-state, .parisan-booking-unavailable { font-size: 15px; line-height: 1.9; }
+@media (max-width: 600px) {
+  .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+  }
+  .site-branding { grid-column: 1; grid-row: 1; }
+  .site-title { font-size: 21px; }
+  .parisan-theme-toggle { grid-column: 3; grid-row: 1; }
+  .parisan-mobile-menu-toggle { grid-column: 2; grid-row: 2; justify-self: start; }
+  .header-booking { grid-column: 3; grid-row: 2; margin: 0; justify-self: end; }
+  .primary-navigation { grid-column: 1 / -1; grid-row: 3; }
+  .intro-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: start; }
+  .intro-copy { max-width: none; }
+  .intro-grid h2 { max-width: 18ch; font-size: clamp(29px, 8vw, 36px); }
+  .intro-copy p { font-size: 15px; line-height: 2; }
+  .hero-description { font-size: 16px; }
+  .hero-note, .hero-bottomline { font-size: 13px; line-height: 1.8; }
+  .footer-menu a, .footer-contact a, .footer-contact span { font-size: 14px; }
+  .copyright { font-size: 13px; }
+}
