@@ -7,7 +7,16 @@ const { chromium } = require('playwright');
 	try {
 		const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
 		const errors = [];
-		page.on('pageerror', error => errors.push(error.message));
+		const consoleErrors = [];
+		const failedRequests = [];
+		function collectBrowserDiagnostics(targetPage) {
+			targetPage.on('pageerror', error => errors.push(error.message));
+			targetPage.on('console', message => {
+				if (message.type() === 'error') consoleErrors.push(message.text());
+			});
+			targetPage.on('requestfailed', request => failedRequests.push(request.method() + ' ' + request.url() + ': ' + (request.failure() ? request.failure().errorText : 'unknown failure')));
+		}
+		collectBrowserDiagnostics(page);
 		await page.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
 		// Force native lazy-loaded fixture thumbnails to load before asserting and capturing evidence.
 		const cardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
@@ -31,7 +40,6 @@ const { chromium } = require('playwright');
 		assert.equal(await page.locator('.primary-navigation a').count(), 9, 'fallback navigation destinations render on desktop');
 
 		await page.setViewportSize({ width: 390, height: 844 });
-		await page.waitForTimeout(100);
 		assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'mobile homepage has no horizontal page overflow');
 		assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.intro-grid')).gridTemplateColumns.split(' ').length), 1, 'mobile intro content uses a single readable column');
 		assert.ok(await page.locator('.site-title').evaluate(el => getComputedStyle(el).whiteSpace) === 'nowrap', 'mobile site title remains on one line');
@@ -49,18 +57,44 @@ const { chromium } = require('playwright');
 		assert.equal(await navigation.isVisible(), false, 'Escape collapses mobile navigation');
 		assert.equal(await menuToggle.evaluate(el => document.activeElement === el), true, 'Escape restores focus to menu control');
 		const mobileBooking = page.locator('.parisan-mobile-booking');
-		await page.waitForTimeout(150);
+		await page.waitForFunction(() => document.querySelector('.parisan-mobile-booking').hidden, null, { timeout: 5000 });
 		assert.equal(await mobileBooking.isVisible(), false, 'mobile booking shortcut stays out of the hero artwork');
-		await page.evaluate(() => window.scrollTo(0, document.querySelector('.hero-section').getBoundingClientRect().bottom + window.scrollY + 100));
-		await page.waitForTimeout(150);
-		assert.equal(await mobileBooking.isVisible(), true, 'mobile booking shortcut appears after leaving the hero');
+		await page.locator('#services').scrollIntoViewIfNeeded();
+		await page.waitForFunction(() => !document.querySelector('.parisan-mobile-booking').hidden, null, { timeout: 5000 });
+		assert.equal(await mobileBooking.isVisible(), true, 'mobile booking shortcut appears in the intervening content area');
+		await page.locator('#booking').scrollIntoViewIfNeeded();
+		await page.waitForFunction(() => document.querySelector('.parisan-mobile-booking').hidden, null, { timeout: 5000 });
+		assert.equal(await page.locator('#booking').isVisible(), true, 'booking section remains visible and usable');
+		assert.equal(await page.locator('#booking a.button').isVisible(), true, 'disabled booking state retains its direct salon contact action');
+		assert.equal(await mobileBooking.isVisible(), false, 'mobile booking shortcut stays hidden while booking section is visible');
+		await page.locator('#services').scrollIntoViewIfNeeded();
+		await page.waitForFunction(() => !document.querySelector('.parisan-mobile-booking').hidden, null, { timeout: 5000 });
+		assert.equal(await mobileBooking.isVisible(), true, 'mobile booking shortcut returns after leaving the booking section');
 		await page.evaluate(() => window.scrollTo(0, 0));
-		await page.waitForTimeout(150);
-		assert.equal(await mobileBooking.isVisible(), false, 'mobile booking shortcut hides again at the top');
+		await page.waitForFunction(() => document.querySelector('.parisan-mobile-booking').hidden, null, { timeout: 5000 });
 		await page.screenshot({ path: 'artifacts/parisan-mobile.png', fullPage: true });
 
+		const fallbackContext = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+		const fallbackPage = await fallbackContext.newPage();
+		collectBrowserDiagnostics(fallbackPage);
+		await fallbackPage.addInitScript(() => {
+			try { delete window.IntersectionObserver; } catch (error) {
+				Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: undefined });
+			}
+		});
+		await fallbackPage.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
+		assert.equal(await fallbackPage.locator('.parisan-mobile-booking').isVisible(), false, 'no-observer fallback never displays a floating overlay');
+		assert.equal(await fallbackPage.locator('#booking').isVisible(), true, 'booking/contact section remains available without IntersectionObserver');
+		assert.equal(await fallbackPage.locator('#booking a.button').isVisible(), true, 'salon contact action remains available without IntersectionObserver');
+		const fallbackMenu = fallbackPage.locator('.parisan-mobile-menu-toggle');
+		await fallbackMenu.click();
+		assert.equal(await fallbackPage.locator('.primary-navigation').isVisible(), true, 'main navigation remains available without IntersectionObserver');
+		await fallbackContext.close();
+
 		assert.deepEqual(errors, [], 'browser reports no uncaught JavaScript errors');
-		console.log('PASS: seeded service/portfolio/team/journal content, desktop/mobile layout, disabled booking state, responsive navigation, keyboard/Escape, focus, and browser console.');
+		assert.deepEqual(consoleErrors, [], 'browser reports no console errors');
+		assert.deepEqual(failedRequests, [], 'browser reports no failed page requests');
+		console.log('PASS: seeded content, desktop/mobile layout, booking shortcut over hero/intervening/booking sections, no-observer fallback, navigation, and browser diagnostics.');
 	} finally {
 		await browser.close();
 	}
