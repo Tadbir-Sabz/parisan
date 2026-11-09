@@ -135,6 +135,7 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking
 parisan_theme_smoke_assert( wp_script_is( 'parisan-theme', 'enqueued' ), 'theme interaction script is enqueued' );
 
 
+parisan_theme_smoke_assert( function_exists( 'parisan_core_public_booking_admin_notice' ), 'booking owner-readiness notice is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_seo_settings' ), 'first-party SEO settings module is loaded' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_output_seo_metadata' ), 'SEO metadata renderer is loaded' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_request_is_private_or_booking' ), 'privacy-aware cache guard is loaded' );
