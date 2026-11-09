@@ -1524,3 +1524,39 @@ html[data-parisan-theme="dark"] .hero-art:not(:has(.hero-art-photo))::before {
     background: linear-gradient(180deg, rgba(5,8,19,0) 4%, rgba(5,8,19,.34) 32%, rgba(5,8,19,.98) 66%, #050813 100%);
   }
 }
+
+
+/* Keep the no-photo hero intentional and proportionate on compact screens. */
+@media (max-width: 680px) {
+  .hero-section { padding-top: 18px; }
+  .hero-grid { gap: 22px; }
+  .hero-art {
+    width: min(100%, 340px);
+    min-height: 248px;
+    margin: 0 auto;
+    border-radius: 170px 170px 22px 22px;
+    box-shadow: 0 22px 48px rgba(77,48,69,.14);
+  }
+  .hero-art::before {
+    inset: 8% 13%;
+    border-width: 1px;
+    transform: rotate(-16deg) scaleX(.82);
+  }
+  .hero-art::after {
+    width: 54%;
+    inset: 18% 23% auto auto;
+    box-shadow: 0 0 0 18px rgba(255,255,255,.045), 0 0 0 38px rgba(255,255,255,.03);
+  }
+  .hero-art-orbit-one { width: 78%; height: 120%; inset: -8% 10% auto auto; }
+  .hero-art-orbit-two { width: 48%; height: 76%; inset: 10% auto auto 12%; }
+  .hero-art-label { inset: auto 10% 12% auto; }
+  .hero-art-index { inset: 9% auto auto 10%; }
+  .hero-art-seal { width: 42px; inset: 11% 11% auto auto; }
+}
+@media (max-width: 380px) {
+  .hero-art { min-height: 218px; width: min(100%, 310px); }
+  .hero-grid { gap: 18px; }
+}
+html[data-parisan-theme="dark"] .hero-art {
+  box-shadow: 0 0 34px rgba(0,190,255,.12), 0 0 64px rgba(255,69,215,.10);
+}
