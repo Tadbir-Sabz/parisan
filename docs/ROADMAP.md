@@ -1,8 +1,8 @@
 # Parisan Delivery Roadmap
 
 **Canonical branch:** main  
-**Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, reusable request throttling, and a gated public booking/customer-token API, and token-scoped customer rescheduling are implemented on the feature branch. Public activation remains disabled by default; end-to-end customer UX and deployment-specific security validation remain incomplete.  
+**Active implementation branch:** `feat/parisan-product-completion`  
+**Roadmap status:** The theme/catalogue and booking foundation are merged into main. Product-completion work is in progress on feat/parisan-product-completion: mobile navigation, editable homepage messaging, reliable blog routing, and owner-facing booking readiness guidance. Public booking remains disabled by default; browser/accessibility and deployment-specific security validation remain incomplete.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -46,7 +46,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
 - [~] Build public templates: dynamic editorial homepage and service/staff catalogue archive/detail foundations are implemented; gallery, blog, contact, FAQ, policies, and remaining content templates are pending. Browser rendering and responsive visual review remain UNVERIFIED.
 - [~] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action; the mobile booking shortcut is implemented and hides while the booking section is visible, while gallery/testimonial components and browser/device validation remain pending.
-- [ ] Validate content editing and Elementor coexistence/fallback.
+- [~] Validate content editing and Elementor coexistence/fallback; homepage brand messaging and CTA settings are now owner-editable through the Customizer, with browser validation pending.
 - [ ] Create visual regression baselines for key viewports.
 
 **Gate P1:** polished responsive public-site shell; RTL/LTR and dark/light reviewed; no console errors; accessibility baseline.
@@ -207,3 +207,11 @@ As of the active implementation branch:
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
+
+
+## Product completion follow-up — 2026-11-09
+
+- [~] Resolve review findings H1/M1/M2/M3: safe booking remains off by default with a Persian admin readiness checklist; homepage CTAs reflect disabled booking; blog links use the configured posts page or a non-404 home fallback; mobile navigation has a keyboard-operable toggle with Escape handling and a no-JavaScript fallback; key homepage copy and CTA URLs are owner-editable.
+- [ ] Add and execute browser-based visual/accessibility checks at desktop/tablet/mobile viewports.
+- [ ] Verify contrast with default and owner-selected palettes; no custom palette is claimed WCAG-compliant without measurement.
+- [ ] Run exact-SHA CI and independent review on the implementation branch before merge.
