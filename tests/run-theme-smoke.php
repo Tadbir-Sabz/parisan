@@ -123,6 +123,10 @@ $wp_query = new WP_Query(
 $post = null;
 
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_register' ), 'homepage image customization is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_sanitize_hero_position' ), 'hero focal-point sanitizer is registered' );
+parisan_theme_smoke_assert( 0 === parisan_sanitize_hero_position( -20 ) && 100 === parisan_sanitize_hero_position( 140 ) && 37 === parisan_sanitize_hero_position( '37' ), 'hero focal-point values are clamped to 0–100' );
+set_theme_mod( 'parisan_hero_position_x', 63 );
+set_theme_mod( 'parisan_hero_position_y', 28 );
 set_theme_mod( 'parisan_hero_image', 'https://example.test/parisan-hero.jpg' );
 ob_start();
 include get_template_directory() . '/front-page.php';
@@ -130,6 +134,8 @@ $homepage = ob_get_clean();
 $wp_query = $original_wp_query;
 $post = $original_post;
 remove_theme_mod( 'parisan_hero_image' );
+remove_theme_mod( 'parisan_hero_position_x' );
+remove_theme_mod( 'parisan_hero_position_y' );
 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیباییِ شما، با امضای ظرافت' ), 'editorial Persian hero default renders' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Service' ), 'homepage renders real published service content' );
@@ -139,7 +145,8 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="portfolio"' ), 'ho
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'THE PARISAN JOURNAL' ), 'homepage renders the editorial journal section' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false !== strpos( $homepage, 'برای هماهنگی نوبت با سالن تماس بگیرید' ), 'disabled booking state explains how to contact the salon' );
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'legacy owner-selected hero image URL remains backward-compatible' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'object-position:63% 28%;' ), 'owner-selected hero focal point is applied to the image crop' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-theme-toggle' ), 'accessible light/dark theme control renders in the site header' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking' ), 'mobile booking shortcut renders in the site footer' );
 parisan_theme_smoke_assert( wp_script_is( 'parisan-theme', 'enqueued' ), 'theme interaction script is enqueued' );
