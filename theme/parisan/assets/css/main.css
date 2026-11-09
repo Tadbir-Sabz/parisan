@@ -465,3 +465,30 @@ html[data-parisan-theme="dark"] .parisan-contact-card, html[data-parisan-theme="
 
 .parisan-journal-section { padding-block: clamp(64px, 8vw, 96px); background: var(--parisan-paper); }
 html[data-parisan-theme="dark"] .parisan-journal-section { background: #211a25; }
+
+
+/* Accessible mobile navigation enhancement; the full menu remains available without JavaScript. */
+.parisan-mobile-menu-toggle {
+	display: none;
+	min-height: 42px;
+	padding: 8px 14px;
+	border: 1px solid var(--parisan-line);
+	border-radius: 999px;
+	background: var(--parisan-surface);
+	color: var(--parisan-plum-dark);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 700;
+	cursor: pointer;
+}
+.parisan-mobile-menu-toggle[hidden] { display: none !important; }
+@media (max-width: 600px) {
+	.parisan-mobile-menu-toggle:not([hidden]) { display: inline-flex; align-items: center; justify-content: center; }
+	.primary-navigation { order: 4; width: 100%; overflow: visible; }
+	.menu-list { width: 100%; flex-wrap: wrap; gap: 8px 18px; }
+	.menu-list a { display: inline-flex; min-height: 42px; align-items: center; padding-block: 6px; }
+	html.parisan-mobile-nav-ready .primary-navigation { display: none; }
+	html.parisan-mobile-nav-ready .primary-navigation.is-open { display: block; }
+	.header-inner { column-gap: 10px; }
+	.header-booking { margin-inline-start: auto; }
+}
