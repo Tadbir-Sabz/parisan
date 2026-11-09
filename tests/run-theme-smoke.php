@@ -25,6 +25,20 @@ parisan_theme_smoke_assert( post_type_exists( 'parisan_faq' ), 'first-party FAQ 
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_brand_register' ), 'brand and identity customizer is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_output_brand_tokens' ), 'custom brand design tokens are output' );
 parisan_theme_smoke_assert( function_exists( 'parisan_public_setting' ), 'public salon settings helper is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_home_content' ), 'owner-editable homepage content helper is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_blog_index_url' ), 'blog index URL resolver is registered' );
+$original_posts_page = get_option( 'page_for_posts' );
+update_option( 'page_for_posts', 0 );
+parisan_theme_smoke_assert( home_url( '/' ) === parisan_blog_index_url(), 'blog fallback uses the real home URL when no posts page is configured' );
+$posts_page_id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Synthetic Posts Index' ), true );
+parisan_theme_smoke_assert( ! is_wp_error( $posts_page_id ), 'synthetic posts index page is created' );
+update_option( 'page_for_posts', $posts_page_id );
+parisan_theme_smoke_assert( get_permalink( $posts_page_id ) === parisan_blog_index_url(), 'blog resolver uses the configured WordPress posts page' );
+update_option( 'page_for_posts', $original_posts_page );
+set_theme_mod( 'parisan_home_hero_title', 'عنوان اختصاصی سالن آزمایشی' );
+parisan_theme_smoke_assert( 'عنوان اختصاصی سالن آزمایشی' === parisan_home_content( 'hero_title', 'fallback' ), 'homepage content setting returns the owner-selected value' );
+remove_theme_mod( 'parisan_home_hero_title' );
+
 parisan_theme_smoke_assert( function_exists( 'parisan_safe_theme_color' ), 'custom brand colors are validated before CSS output' );
 set_theme_mod( 'parisan_brand_accent', 'red;}</style><script>alert(1)</script>' );
 parisan_theme_smoke_assert( '#6f4657' === parisan_safe_theme_color( 'parisan_brand_accent', '#6f4657' ), 'unsafe brand color falls back to the safe default' );
@@ -32,6 +46,11 @@ remove_theme_mod( 'parisan_brand_accent' );
 parisan_theme_smoke_assert( is_string( get_post_type_archive_link( 'parisan_portfolio' ) ) && '' !== get_post_type_archive_link( 'parisan_portfolio' ), 'portfolio archive URL is available' );
 parisan_theme_smoke_assert( function_exists( 'parisan_primary_menu_fallback' ), 'primary navigation fallback is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_footer_menu_fallback' ), 'footer navigation fallback is registered' );
+$header_source = file_get_contents( get_template_directory() . '/header.php' );
+parisan_theme_smoke_assert( false !== strpos( $header_source, 'parisan-mobile-menu-toggle' ) && false !== strpos( $header_source, 'aria-controls="primary-navigation"' ), 'header renders a labelled mobile navigation control with an explicit target' );
+$theme_script = file_get_contents( get_template_directory() . '/assets/js/theme.js' );
+parisan_theme_smoke_assert( false !== strpos( $theme_script, "event.key === 'Escape'" ) && false !== strpos( $theme_script, "setAttribute('aria-expanded'" ), 'mobile navigation supports Escape and expanded state' );
+
 foreach ( array( 'home.php', 'single.php', 'page-about.php', 'page-contact.php', 'page-faq.php', 'page-privacy-policy.php', 'page-terms.php' ) as $template_file ) {
 	parisan_theme_smoke_assert( file_exists( get_template_directory() . '/' . $template_file ), 'required editorial template exists: ' . $template_file );
 }
@@ -42,6 +61,7 @@ parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#services
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#team' ) ), 'fallback navigation links to the team section' );
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#portfolio' ) ), 'fallback navigation links to the portfolio section' );
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#booking' ) ), 'fallback navigation links to booking from every page' );
+parisan_theme_smoke_assert( false !== strpos( $navigation, parisan_blog_index_url() ), 'fallback navigation links to the resolved blog index' );
 
 $service_id = wp_insert_post(
 	array(
@@ -101,14 +121,14 @@ $wp_query = $original_wp_query;
 $post = $original_post;
 remove_theme_mod( 'parisan_hero_image' );
 
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیباییِ شما، با امضای ظرافت' ), 'editorial Persian hero renders' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیباییِ شما، با امضای ظرافت' ), 'editorial Persian hero default renders' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Service' ), 'homepage renders real published service content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Specialist' ), 'homepage renders real published specialist content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Portfolio Work' ), 'homepage renders published portfolio work' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="portfolio"' ), 'homepage exposes the portfolio section' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'THE PARISAN JOURNAL' ), 'homepage renders the editorial journal section' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ), 'disabled booking shortcode displays its safe disabled state' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false !== strpos( $homepage, 'برای هماهنگی نوبت با سالن تماس بگیرید' ), 'disabled booking state explains how to contact the salon' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'owner-selected hero image is rendered in the homepage art frame' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-theme-toggle' ), 'accessible light/dark theme control renders in the site header' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking' ), 'mobile booking shortcut renders in the site footer' );
