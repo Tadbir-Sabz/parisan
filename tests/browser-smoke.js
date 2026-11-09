@@ -48,6 +48,7 @@ const { chromium } = require('playwright');
 		await page.reload({ waitUntil: 'networkidle' });
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day/night selection persists after reload');
 		assert.equal(await page.locator('main#main-content').count(), 1, 'homepage main landmark renders');
+		assert.match(await page.locator('.site-title').innerText(), /پاریسان/, 'browser demo uses Persian salon branding');
 		assert.equal(await page.locator('.hero-copy h1').count(), 1, 'homepage hero heading renders');
 		assert.equal(await page.locator('.parisan-home-service-grid .service-card').count(), 2, 'homepage renders seeded service cards');
 		assert.equal(await page.locator('.parisan-portfolio-grid .portfolio-card').count(), 3, 'homepage renders seeded portfolio cards');
