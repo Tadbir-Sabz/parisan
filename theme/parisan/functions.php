@@ -369,12 +369,6 @@ function parisan_footer_menu_fallback() {
  */
 function parisan_enqueue_assets() {
 	wp_enqueue_style(
-		'parisan-vazirmatn',
-		'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-Variable-font-face.css',
-		array(),
-		'33.003'
-	);
-	wp_enqueue_style(
 		'parisan-main',
 		PARISAN_THEME_URI . '/assets/css/main.css',
 		array(),
