@@ -1346,3 +1346,117 @@ html[data-parisan-theme="dark"] .hero-art {
     0 0 30px rgba(255, 63, 207, .20),
     0 0 64px rgba(28, 174, 255, .12) !important;
 }
+
+
+
+/* Final reference-led polish: remove decorative copy collisions and unify the mobile header. */
+.hero-art-label,
+.hero-art-index,
+.hero-art-seal { display: none !important; }
+
+.hero-art-orbit {
+  opacity: .22;
+}
+.hero-art-petal {
+  opacity: .18;
+}
+.hero-copy {
+  max-width: 650px;
+}
+.hero-copy h1 {
+  text-wrap: balance;
+}
+.hero-description {
+  text-wrap: pretty;
+}
+
+@media (max-width: 680px) {
+  .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "brand menu theme"
+      "booking booking booking"
+      "nav nav nav";
+    align-items: center;
+    gap: 9px 10px;
+    padding: 10px 12px;
+    min-height: 0;
+  }
+  .site-branding { grid-area: brand; min-width: 0; }
+  .site-title {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 19px;
+  }
+  .parisan-mobile-menu-toggle {
+    grid-area: menu;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid rgba(112,34,71,.22);
+    border-radius: 999px;
+    background: rgba(255,255,255,.7);
+    color: #702247;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .parisan-theme-toggle {
+    grid-area: theme;
+    width: 50px;
+    min-width: 50px;
+    height: 30px;
+    min-height: 30px;
+  }
+  .header-booking {
+    grid-area: booking;
+    justify-self: stretch;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    margin: 0;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+  }
+  .primary-navigation {
+    grid-area: nav;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .primary-navigation::-webkit-scrollbar { display: none; }
+  .menu-list {
+    width: max-content;
+    min-width: 100%;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 5px 2px 7px;
+  }
+  .menu-list a { font-size: 12px; }
+  .hero-section {
+    min-height: 650px;
+    padding-block: 180px 26px;
+  }
+  .hero-art-orbit,
+  .hero-art-petal { opacity: .12; }
+  .hero-copy { padding-block: 285px 22px; }
+  .hero-copy h1 { font-size: clamp(33px, 8.8vw, 43px); line-height: 1.55; }
+  .hero-description { font-size: 16px; line-height: 1.95; }
+  html[data-parisan-theme="dark"] .parisan-mobile-menu-toggle {
+    border-color: rgba(255,75,220,.45);
+    background: rgba(15,10,25,.88);
+    color: #fff2ff;
+    box-shadow: 0 0 14px rgba(194,35,255,.14);
+  }
+}
