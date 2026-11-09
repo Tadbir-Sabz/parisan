@@ -151,7 +151,7 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'legacy owner-selected hero image URL remains backward-compatible' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'object-position:63% 28%;' ), 'owner-selected hero focal point is applied to the image crop' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'alt="تصویر فضای داخلی استودیوی پاریسان"' ), 'owner-provided alternative text is rendered on the hero image' );
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art" role="img"' ) === false, 'selected photography is not redundantly exposed as a generic image role' );
+parisan_theme_smoke_assert( false === strpos( $homepage, 'hero-art" role="img"' ), 'selected photography is not redundantly exposed as a generic image role' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-theme-toggle' ), 'accessible light/dark theme control renders in the site header' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking' ), 'mobile booking shortcut renders in the site footer' );
 parisan_theme_smoke_assert( wp_script_is( 'parisan-theme', 'enqueued' ), 'theme interaction script is enqueued' );
