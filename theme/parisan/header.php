@@ -29,7 +29,8 @@ defined( 'ABSPATH' ) || exit;
 				</a>
 			<?php endif; ?>
 		</div>
-		<nav class="primary-navigation" aria-label="<?php esc_attr_e( 'منوی اصلی', 'parisan' ); ?>">
+		<button class="parisan-mobile-menu-toggle" type="button" aria-controls="primary-navigation" aria-expanded="false" hidden><?php esc_html_e( 'باز کردن منو', 'parisan' ); ?></button>
+		<nav id="primary-navigation" class="primary-navigation" aria-label="<?php esc_attr_e( 'منوی اصلی', 'parisan' ); ?>">
 			<?php
 			wp_nav_menu(
 				array(
@@ -41,7 +42,7 @@ defined( 'ABSPATH' ) || exit;
 			);
 			?>
 		</nav>
-		<a class="button button-small header-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php esc_html_e( 'دریافت نوبت', 'parisan' ); ?></a>
+		<a class="button button-small header-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php echo esc_html( function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled() ? 'دریافت نوبت' : 'هماهنگی نوبت' ); ?></a>
 		<button class="parisan-theme-toggle" type="button" aria-label="<?php esc_attr_e( 'فعال‌سازی حالت تیره', 'parisan' ); ?>" aria-pressed="false" hidden><?php esc_html_e( 'حالت تیره', 'parisan' ); ?></button>
 	</div>
 </header>
