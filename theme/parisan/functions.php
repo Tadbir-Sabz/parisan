@@ -198,7 +198,7 @@ function parisan_customize_homepage_content_register( $wp_customize ) {
 		$wp_customize->add_control(
 			$id,
 			array(
-				'label'   => esc_html__( $label, 'parisan' ),
+				'label'   => esc_html( $label ),
 				'section' => 'parisan_homepage_content',
 				'type'    => 'url' === $type ? 'url' : ( 'textarea' === $type ? 'textarea' : 'text' ),
 			)
@@ -284,7 +284,8 @@ function parisan_public_setting( $key ) {
  */
 function parisan_home_content( $key, $default = '' ) {
 	$value = get_theme_mod( 'parisan_home_' . sanitize_key( $key ), $default );
-	return is_string( $value ) ? trim( $value ) : $default;
+	$value = is_string( $value ) ? trim( $value ) : '';
+	return '' !== $value ? $value : $default;
 }
 
 /**
