@@ -1460,3 +1460,67 @@ html[data-parisan-theme="dark"] .hero-art {
     box-shadow: 0 0 14px rgba(194,35,255,.14);
   }
 }
+
+
+/* RTL reference alignment: brand on the right, actions on the left. */
+html[dir="rtl"] .header-inner {
+  direction: rtl;
+}
+html[dir="rtl"] .primary-navigation,
+html[dir="rtl"] .menu-list {
+  direction: rtl;
+}
+html[dir="rtl"] .menu-list {
+  justify-content: center;
+}
+@media (max-width: 680px) {
+  html[dir="rtl"] .header-inner {
+    direction: rtl;
+  }
+  html[dir="rtl"] .menu-list {
+    direction: rtl;
+    justify-content: space-between;
+  }
+}
+
+/* A deliberate fallback composition when the owner has not selected hero photography. */
+.hero-art:not(:has(.hero-art-photo)) {
+  background:
+    radial-gradient(ellipse at 18% 48%, rgba(194,105,139,.42) 0%, transparent 38%),
+    radial-gradient(ellipse at 42% 22%, rgba(255,255,255,.82) 0%, transparent 30%),
+    linear-gradient(118deg, #e8c4d0 0%, #f7e4e5 44%, #fff5f1 100%);
+}
+.hero-art:not(:has(.hero-art-photo))::before {
+  background:
+    linear-gradient(90deg, rgba(255,245,241,0) 18%, rgba(255,246,243,.34) 43%, rgba(255,246,243,.97) 69%, #fff5f1 100%),
+    radial-gradient(ellipse at 18% 50%, transparent 0 25%, rgba(255,255,255,.28) 25.3% 25.7%, transparent 26%);
+}
+html[data-parisan-theme="dark"] .hero-art:not(:has(.hero-art-photo)) {
+  background:
+    radial-gradient(ellipse at 18% 48%, rgba(0,190,255,.28) 0%, transparent 40%),
+    radial-gradient(ellipse at 42% 22%, rgba(255,69,215,.20) 0%, transparent 34%),
+    linear-gradient(118deg, #071c2c 0%, #111027 54%, #090815 100%);
+}
+html[data-parisan-theme="dark"] .hero-art:not(:has(.hero-art-photo))::before {
+  background:
+    linear-gradient(90deg, rgba(5,12,24,0) 18%, rgba(5,10,22,.34) 43%, rgba(5,8,19,.97) 69%, #050813 100%),
+    radial-gradient(ellipse at 18% 50%, transparent 0 25%, rgba(75,222,255,.24) 25.3% 25.7%, transparent 26%);
+}
+@media (max-width: 680px) {
+  .hero-art:not(:has(.hero-art-photo)) {
+    background:
+      radial-gradient(ellipse at 50% 16%, rgba(194,105,139,.35), transparent 48%),
+      linear-gradient(180deg, #f3dce3 0%, #fff5f1 100%);
+  }
+  .hero-art:not(:has(.hero-art-photo))::before {
+    background: linear-gradient(180deg, rgba(255,245,241,0) 4%, rgba(255,246,243,.30) 32%, rgba(255,246,243,.98) 66%, #fff5f1 100%);
+  }
+  html[data-parisan-theme="dark"] .hero-art:not(:has(.hero-art-photo)) {
+    background:
+      radial-gradient(ellipse at 50% 16%, rgba(0,190,255,.28), transparent 48%),
+      linear-gradient(180deg, #071c2c 0%, #090815 100%);
+  }
+  html[data-parisan-theme="dark"] .hero-art:not(:has(.hero-art-photo))::before {
+    background: linear-gradient(180deg, rgba(5,8,19,0) 4%, rgba(5,8,19,.34) 32%, rgba(5,8,19,.98) 66%, #050813 100%);
+  }
+}
