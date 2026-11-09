@@ -59,7 +59,7 @@ function parisan_customize_register( $wp_customize ) {
 		'parisan_homepage',
 		array(
 			'title'       => esc_html__( 'پاریسان — صفحه اصلی', 'parisan' ),
-			'description' => esc_html__( 'تصویر اصلی صفحه نخست را انتخاب کنید. در صورت خالی‌بودن، طرح هنری پیش‌فرض نمایش داده می‌شود.', 'parisan' ),
+			'description' => esc_html__( 'تصویر اصلی را از کتابخانه رسانه انتخاب کنید و جایگاه سوژه را برای برش قاب تنظیم کنید. در صورت خالی‌بودن، طرح هنری پیش‌فرض نمایش داده می‌شود.', 'parisan' ),
 			'priority'    => 35,
 		)
 	);
@@ -73,16 +73,6 @@ function parisan_customize_register( $wp_customize ) {
 		)
 	);
 
-	$wp_customize->add_control(
-		new WP_Customize_Image_Control(
-			$wp_customize,
-			'parisan_hero_image',
-			array(
-				'label'   => esc_html__( 'تصویر بخش اصلی صفحه نخست', 'parisan' ),
-				'section' => 'parisan_homepage',
-			)
-		)
-	);
 
 	// Prefer attachment IDs so WordPress can provide responsive srcsets and media-library alt text.
 	$wp_customize->add_setting(
