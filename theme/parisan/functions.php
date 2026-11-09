@@ -96,6 +96,24 @@ function parisan_customize_register( $wp_customize ) {
 		)
 	);
 
+	$wp_customize->add_setting(
+		'parisan_hero_image_alt',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'parisan_hero_image_alt',
+		array(
+			'label'       => esc_html__( 'متن جایگزین تصویر اصلی', 'parisan' ),
+			'description' => esc_html__( 'توضیح کوتاهی برای کاربران صفحه‌خوان بنویسید؛ اگر خالی باشد، متن جایگزین ثبت‌شده در کتابخانه رسانه استفاده می‌شود.', 'parisan' ),
+			'section'     => 'parisan_homepage',
+			'type'        => 'text',
+		)
+	);
+
 	foreach ( array(
 		'parisan_hero_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه', 'parisan' ) ),
 		'parisan_hero_position_y' => array( 34, esc_html__( 'جایگاه عمودی سوژه', 'parisan' ) ),
