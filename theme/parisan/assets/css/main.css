@@ -1337,3 +1337,12 @@ html[data-parisan-theme="dark"] .hero-actions .button {
     background:linear-gradient(180deg,rgba(5,8,19,0) 10%,rgba(5,8,19,.12) 34%,rgba(5,8,19,.96) 61%,#050813 100%);
   }
 }
+
+
+
+/* Keep the neon edge on the hero artwork itself; browser smoke verifies this surface. */
+html[data-parisan-theme="dark"] .hero-art {
+  box-shadow:
+    0 0 30px rgba(255, 63, 207, .20),
+    0 0 64px rgba(28, 174, 255, .12);
+}
