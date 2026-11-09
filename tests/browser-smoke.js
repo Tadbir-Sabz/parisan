@@ -9,6 +9,10 @@ const { chromium } = require('playwright');
 		const errors = [];
 		page.on('pageerror', error => errors.push(error.message));
 		await page.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
+		// Force native lazy-loaded fixture thumbnails to load before asserting and capturing evidence.
+		const cardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
+		await cardImages.evaluateAll(images => images.forEach(image => { image.loading = 'eager'; }));
+		await cardImages.evaluateAll(images => Promise.all(images.map(image => image.decode().catch(() => null))));
 		await page.screenshot({ path: 'artifacts/parisan-desktop.png', fullPage: true });
 		assert.equal(await page.locator('main#main-content').count(), 1, 'homepage main landmark renders');
 		assert.equal(await page.locator('.hero-copy h1').count(), 1, 'homepage hero heading renders');
