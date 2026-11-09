@@ -18,8 +18,12 @@ const { chromium } = require('playwright');
 		}
 		collectBrowserDiagnostics(page);
 		await page.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
-		await page.evaluate(async () => { await document.fonts.load('16px Vazirmatn'); await document.fonts.ready; });
-		assert.equal(await page.evaluate(() => document.fonts.check('16px Vazirmatn')), true, 'bundled Vazirmatn font loads successfully');
+		const fontDiagnostics = await page.evaluate(async () => {
+			try { await document.fonts.load('16px Vazirmatn'); await document.fonts.ready; }
+			catch (error) { return { error: error.message, faces: Array.from(document.fonts, face => ({ family: face.family, status: face.status, weight: face.weight })) }; }
+			return { loaded: document.fonts.check('16px Vazirmatn'), faces: Array.from(document.fonts, face => ({ family: face.family, status: face.status, weight: face.weight })) };
+		});
+		assert.equal(fontDiagnostics.loaded, true, 'bundled Vazirmatn font loads successfully: ' + JSON.stringify(fontDiagnostics));
 		assert.equal(await page.evaluate(() => performance.getEntriesByType('resource').some(entry => entry.name.includes('/assets/fonts/Vazirmatn'))), true, 'Vazirmatn is served from the theme package, not an external CDN');
 		assert.match(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily), /Vazirmatn/, 'Persian-first Vazirmatn font is applied');
 		const themeToggle = page.locator('.parisan-theme-toggle');
