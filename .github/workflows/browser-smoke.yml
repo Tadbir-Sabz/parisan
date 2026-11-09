@@ -51,7 +51,7 @@ jobs:
 
       - name: Install disposable WordPress
         env:
-          WP_PATH: \${{ runner.temp }}/parisan-browser-wordpress
+          WP_PATH: ${{ runner.temp }}/parisan-browser-wordpress
         run: |
           set -euo pipefail
           wp core download --path="$WP_PATH" --quiet
@@ -74,7 +74,7 @@ jobs:
 
       - name: Start disposable WordPress HTTP server
         env:
-          WP_PATH: \${{ runner.temp }}/parisan-browser-wordpress
+          WP_PATH: ${{ runner.temp }}/parisan-browser-wordpress
         run: |
           php -S 127.0.0.1:8080 -t "$WP_PATH" "$WP_PATH/router.php" > "$RUNNER_TEMP/parisan-php-server.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/parisan-php-server.pid"
@@ -102,5 +102,5 @@ jobs:
           name: parisian-browser-evidence
           path: |
             artifacts/
-            \${{ runner.temp }}/parisan-php-server.log
+            ${{ runner.temp }}/parisan-php-server.log
           if-no-files-found: warn
