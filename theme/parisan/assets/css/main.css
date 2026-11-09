@@ -1560,6 +1560,3 @@ html[data-parisan-theme="dark"] .hero-art:not(:has(.hero-art-photo))::before {
 html[data-parisan-theme="dark"] .hero-art {
   box-shadow: 0 0 34px rgba(0,190,255,.12), 0 0 64px rgba(255,69,215,.10);
 }
-
-/* Owner-controlled focal point is shared by desktop and responsive image crops. */
-.hero-art-photo { object-position: var(--parisan-hero-object-position, center 34%); }
