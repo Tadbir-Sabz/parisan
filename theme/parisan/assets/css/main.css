@@ -952,3 +952,67 @@ html[data-parisan-theme="dark"] input:not([type="checkbox"]):not([type="radio"])
 html[data-parisan-theme="dark"] a:focus-visible, html[data-parisan-theme="dark"] button:focus-visible, html[data-parisan-theme="dark"] input:focus-visible, html[data-parisan-theme="dark"] select:focus-visible, html[data-parisan-theme="dark"] textarea:focus-visible { outline-color: #ff62d2; box-shadow: 0 0 0 4px rgba(255,98,210,.18); }
 @media (max-width: 600px) { .parisan-journal-section { padding-block: 58px; } .post-card-content { padding: 18px; } }
 @media (prefers-reduced-motion: reduce) { .post-card, .post-card-image img { transition: none; } }
+
+
+/* Parisan visual refinement — real hero photography takes precedence over abstract ornament. */
+.hero-art {
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(112,71,95,.16);
+  border-radius: 28px 28px 120px 28px;
+  box-shadow: 0 28px 72px rgba(63,39,57,.16);
+}
+.hero-art-photo {
+  z-index: 0;
+  opacity: 1;
+  filter: brightness(.76) saturate(1.08) contrast(1.04);
+  object-position: center 34%;
+}
+.hero-art-photo ~ .hero-art-orbit,
+.hero-art-photo ~ .hero-art-petal,
+.hero-art-photo ~ .hero-art-seal { display: none; }
+.hero-art-photo ~ .hero-art-label {
+  inset: auto 8% 9% auto;
+  max-width: min(78%, 360px);
+  padding: 18px 22px;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(31,18,30,.58), rgba(31,18,30,.2));
+  backdrop-filter: blur(12px);
+  text-shadow: 0 2px 18px rgba(0,0,0,.4);
+}
+.hero-art-photo ~ .hero-art-index {
+  inset: 7% auto auto 7%;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px;
+  background: rgba(25,16,27,.32);
+  color: #fff;
+  backdrop-filter: blur(10px);
+}
+html[data-parisan-theme="dark"] .hero-art {
+  border-color: rgba(255,98,210,.45);
+  box-shadow: 0 0 34px rgba(255,70,205,.16), 0 28px 72px rgba(0,0,0,.38);
+}
+html[data-parisan-theme="dark"] .hero-art-photo {
+  filter: brightness(.68) saturate(1.12) contrast(1.08);
+}
+html[data-parisan-theme="dark"] .hero-art-photo ~ .hero-art-label {
+  border-color: rgba(255,112,220,.42);
+  background: linear-gradient(135deg, rgba(23,10,29,.72), rgba(27,15,38,.32));
+  box-shadow: 0 0 24px rgba(255,74,208,.14);
+}
+@media (max-width: 600px) {
+  .hero-art {
+    min-height: 390px;
+    border-radius: 190px 190px 24px 24px;
+  }
+  .hero-art-photo { object-position: center 28%; }
+  .hero-art-photo ~ .hero-art-label {
+    inset-inline: 7%;
+    inset-block-end: 7%;
+    max-width: none;
+    padding: 14px 16px;
+  }
+  .hero-art-photo ~ .hero-art-label strong { font-size: 27px; }
+}
