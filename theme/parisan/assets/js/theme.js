@@ -76,10 +76,18 @@
 			applyTheme(root.getAttribute('data-parisan-theme') === 'dark' ? 'light' : 'dark', true);
 		});
 	}
-	if (mobileBooking && bookingSection && 'IntersectionObserver' in window) {
+	var heroSection = document.querySelector('.hero-section');
+	if (mobileBooking && 'IntersectionObserver' in window) {
+		var heroIsVisible = false;
+		var bookingIsVisible = false;
 		var observer = new IntersectionObserver(function (entries) {
-			entries.forEach(function (entry) { mobileBooking.hidden = entry.isIntersecting; });
+			entries.forEach(function (entry) {
+				if (entry.target === heroSection) { heroIsVisible = entry.isIntersecting; }
+				if (entry.target === bookingSection) { bookingIsVisible = entry.isIntersecting; }
+			});
+			mobileBooking.hidden = heroIsVisible || bookingIsVisible;
 		}, { root: null, threshold: 0.08 });
-		observer.observe(bookingSection);
+		if (heroSection) { observer.observe(heroSection); }
+		if (bookingSection) { observer.observe(bookingSection); }
 	}
 }());
