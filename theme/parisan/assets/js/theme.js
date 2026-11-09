@@ -29,6 +29,47 @@
 			try { window.localStorage.setItem(storageKey, isDark ? 'dark' : 'light'); } catch (error) { /* Storage is optional. */ }
 		}
 	}
+
+	var menuToggle = document.querySelector('.parisan-mobile-menu-toggle');
+	var primaryNavigation = document.querySelector('.primary-navigation');
+
+	if (menuToggle && primaryNavigation) {
+		menuToggle.hidden = false;
+		root.classList.add('parisan-mobile-nav-ready');
+
+		function closePrimaryNavigation(returnFocus) {
+			menuToggle.setAttribute('aria-expanded', 'false');
+			menuToggle.textContent = 'باز کردن منو';
+			primaryNavigation.classList.remove('is-open');
+			if (returnFocus) { menuToggle.focus(); }
+		}
+
+		menuToggle.addEventListener('click', function () {
+			var isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+			if (isOpen) {
+				closePrimaryNavigation(false);
+				return;
+			}
+			menuToggle.setAttribute('aria-expanded', 'true');
+			menuToggle.textContent = 'بستن منو';
+			primaryNavigation.classList.add('is-open');
+			var firstLink = primaryNavigation.querySelector('a');
+			if (firstLink) { firstLink.focus(); }
+		});
+
+		primaryNavigation.addEventListener('click', function (event) {
+			if (event.target && event.target.closest && event.target.closest('a')) {
+				closePrimaryNavigation(false);
+			}
+		});
+
+		document.addEventListener('keydown', function (event) {
+			if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') {
+				closePrimaryNavigation(true);
+			}
+		});
+	}
+
 	applyTheme(readPreference() || systemPreference(), false);
 	if (toggle) {
 		toggle.addEventListener('click', function () {
