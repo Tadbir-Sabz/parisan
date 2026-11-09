@@ -77,17 +77,24 @@
 		});
 	}
 	var heroSection = document.querySelector('.hero-section');
-	if (mobileBooking && 'IntersectionObserver' in window) {
-		var heroIsVisible = false;
-		var bookingIsVisible = false;
-		var observer = new IntersectionObserver(function (entries) {
+	if (mobileBooking) {
+		// Start hidden to prevent a first-paint overlap before the observer's initial callback.
+		mobileBooking.hidden = true;
+		if (typeof window.IntersectionObserver === 'function') {
+			var heroIsVisible = false;
+			var bookingIsVisible = false;
+			var observer = new window.IntersectionObserver(function (entries) {
 			entries.forEach(function (entry) {
 				if (entry.target === heroSection) { heroIsVisible = entry.isIntersecting; }
 				if (entry.target === bookingSection) { bookingIsVisible = entry.isIntersecting; }
 			});
 			mobileBooking.hidden = heroIsVisible || bookingIsVisible;
 		}, { root: null, threshold: 0.08 });
-		if (heroSection) { observer.observe(heroSection); }
-		if (bookingSection) { observer.observe(bookingSection); }
+			if (heroSection) { observer.observe(heroSection); }
+			if (bookingSection) { observer.observe(bookingSection); }
+		} else {
+			// Without reliable visibility tracking, prefer no floating overlay to covering content.
+			mobileBooking.hidden = true;
+		}
 	}
 }());
