@@ -43,7 +43,7 @@ get_header();
 				<h1><?php echo esc_html( parisan_home_content( 'hero_title', 'زیباییِ شما، با امضای ظرافت' ) ); ?></h1>
 				<p class="hero-description"><?php echo esc_html( parisan_home_content( 'hero_description', 'از لحظه‌ای که وارد می‌شوید تا آخرین جزئیات خدمات، همه‌چیز برای یک تجربه دلنشین، دقیق و شایسته شما طراحی شده است.' ) ); ?></p>
 				<div class="hero-actions">
-					<a class="button" href="<?php echo esc_url( parisan_home_content( 'hero_primary_url', '#booking' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_label', 'انتخاب زمان و رزرو' ) : 'هماهنگی نوبت' ); ?></a>
+					<a class="button" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_label', 'انتخاب زمان و رزرو' ) : 'هماهنگی نوبت' ); ?></a>
 					<a class="text-link" href="<?php echo esc_url( parisan_home_content( 'hero_secondary_url', '#services' ) ); ?>"><?php echo esc_html( parisan_home_content( 'hero_secondary_label', 'آشنایی با خدمات' ) ); ?></a>
 				</div>
 				<div class="hero-note"><span class="hero-note-mark" aria-hidden="true">✳</span><span><?php esc_html_e( 'لحظه‌ای برای خودتان؛ تجربه‌ای با توجه به جزئیات', 'parisan' ); ?></span></div>
