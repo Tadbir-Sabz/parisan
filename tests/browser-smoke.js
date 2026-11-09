@@ -18,7 +18,9 @@ const { chromium } = require('playwright');
 		}
 		collectBrowserDiagnostics(page);
 		await page.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
-		await page.evaluate(() => document.fonts.ready);
+		await page.evaluate(async () => { await document.fonts.load('16px Vazirmatn'); await document.fonts.ready; });
+		assert.equal(await page.evaluate(() => document.fonts.check('16px Vazirmatn')), true, 'bundled Vazirmatn font loads successfully');
+		assert.equal(await page.evaluate(() => performance.getEntriesByType('resource').some(entry => entry.name.includes('/assets/fonts/Vazirmatn'))), true, 'Vazirmatn is served from the theme package, not an external CDN');
 		assert.match(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily), /Vazirmatn/, 'Persian-first Vazirmatn font is applied');
 		const themeToggle = page.locator('.parisan-theme-toggle');
 		assert.equal(await themeToggle.isVisible(), true, 'day/night theme control is available');
