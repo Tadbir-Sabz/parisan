@@ -106,6 +106,6 @@ mobile.observerCallback([{ target: mobile.bookingSection, isIntersecting: false 
 assert.equal(mobile.mobileBooking.hidden, false, 'sticky CTA returns outside hero and booking section');
 
 const noObserver = runTheme({ observer: false });
-assert.equal(noObserver.mobileBooking.hidden, false, 'mobile shortcut remains usable without IntersectionObserver');
+assert.equal(noObserver.mobileBooking.hidden, true, 'mobile shortcut stays hidden without IntersectionObserver to prevent content overlap');
 
 console.log('PASS: theme preference, persistence, accessible toggle state, and mobile booking visibility.');
