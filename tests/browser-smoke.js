@@ -56,6 +56,9 @@ const { chromium } = require('playwright');
 		assert.equal(await page.locator('.parisan-home-team-grid .specialist-card img').count(), 2, 'specialist cards have featured images');
 		assert.equal(await page.locator('.post-grid .post-card-image img').count(), 1, 'journal card has a featured image');
 		const allCardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
+		// Reload resets native lazy-loading state; force all fixture images eager before the assertion.
+		await allCardImages.evaluateAll(images => images.forEach(image => { image.loading = 'eager'; }));
+		await allCardImages.evaluateAll(images => Promise.all(images.map(image => image.decode().catch(() => null))));
 		await page.waitForFunction(() => {
 			const images = Array.from(document.querySelectorAll('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img'));
 			return images.length === 8 && images.every(image => image.complete && image.naturalWidth > 0);
