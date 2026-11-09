@@ -19,6 +19,10 @@ const { chromium } = require('playwright');
 
 		await page.setViewportSize({ width: 390, height: 844 });
 		await page.waitForTimeout(100);
+		assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'mobile homepage has no horizontal page overflow');
+		assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.intro-grid')).gridTemplateColumns.split(' ').length), 1, 'mobile intro content uses a single readable column');
+		assert.ok(await page.locator('.site-title').evaluate(el => getComputedStyle(el).whiteSpace) === 'nowrap', 'mobile site title remains on one line');
+		assert.ok(await page.locator('.hero-description').evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16), 'mobile body copy remains comfortably readable');
 		const menuToggle = page.locator('.parisan-mobile-menu-toggle');
 		const navigation = page.locator('.primary-navigation');
 		assert.equal(await menuToggle.isVisible(), true, 'mobile menu control is visible');
