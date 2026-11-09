@@ -49,7 +49,13 @@ const { chromium } = require('playwright');
 		assert.equal(await page.locator('.parisan-portfolio-grid .portfolio-card img').count(), 3, 'portfolio cards have featured images');
 		assert.equal(await page.locator('.parisan-home-team-grid .specialist-card img').count(), 2, 'specialist cards have featured images');
 		assert.equal(await page.locator('.post-grid .post-card-image img').count(), 1, 'journal card has a featured image');
-		assert.equal(await page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true, 'all seeded card images load successfully');
+		const allCardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
+		await page.waitForFunction(() => {
+			const images = Array.from(document.querySelectorAll('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img'));
+			return images.length === 8 && images.every(image => image.complete && image.naturalWidth > 0);
+		}, null, { timeout: 15000 });
+		assert.equal(await allCardImages.count(), 8, 'all eight seeded card images are present');
+		assert.equal(await allCardImages.evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true, 'all seeded card images load successfully');
 		assert.equal(await page.locator('.parisan-booking-notice').count(), 1, 'disabled booking notice renders');
 		assert.match(await page.locator('.parisan-booking-notice').innerText(), /رزرو آنلاین در حال حاضر فعال نیست/, 'booking remains visibly disabled by default');
 		assert.equal(await page.locator('.parisan-mobile-menu-toggle').isVisible(), false, 'mobile menu toggle is hidden on desktop');
