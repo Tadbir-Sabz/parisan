@@ -925,3 +925,30 @@ html[data-parisan-theme="dark"] .parisan-announcement { background:#26122e; colo
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; }
 }
+
+
+/* Product-completion polish: complete editorial surfaces and keyboard states in both themes. */
+:root { --parisan-font: "Vazirmatn", Tahoma, "Segoe UI", sans-serif; }
+body, button, input, select, textarea { font-family: var(--parisan-font); }
+.parisan-journal-section { padding-block: clamp(68px, 8vw, 104px); background: #f7f0f1; }
+.post-card { border: 1px solid rgba(112,71,95,.12); border-radius: 20px; background: var(--parisan-surface); box-shadow: 0 12px 32px rgba(48,34,47,.045); transition: transform .25s ease, box-shadow .25s ease; }
+.post-card:hover { transform: translateY(-4px); box-shadow: var(--parisan-shadow); }
+.post-card-image { aspect-ratio: 5 / 4; }
+.post-card-image img { transition: transform .45s ease; }
+.post-card:hover .post-card-image img { transform: scale(1.035); }
+.post-card-content h2, .post-card-content h3 { color: var(--parisan-ink); line-height: 1.65; }
+.post-card-content h2 a, .post-card-content h3 a { text-decoration: none; }
+.post-card-content .post-meta { color: var(--parisan-plum); font-size: 12px; }
+.standard-entry .entry-content, .portfolio-detail-content { color: var(--parisan-muted); }
+.standard-entry .entry-content blockquote { margin-inline: 0; padding: 18px 22px; border-inline-start: 3px solid var(--parisan-gold); border-radius: 0 14px 14px 0; background: rgba(112,71,95,.055); }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea { border-color: var(--parisan-line); border-radius: 12px; background: var(--parisan-surface); color: var(--parisan-ink); }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--parisan-gold); outline-offset: 3px; }
+html[data-parisan-theme="dark"] .parisan-journal-section { background: #211521; }
+html[data-parisan-theme="dark"] .post-card, html[data-parisan-theme="dark"] .standard-content, html[data-parisan-theme="dark"] .portfolio-detail, html[data-parisan-theme="dark"] .specialist-detail { color: var(--parisan-ink); }
+html[data-parisan-theme="dark"] .post-card { border-color: #57364f; background: #2b1d30; box-shadow: 0 16px 42px rgba(0,0,0,.24); }
+html[data-parisan-theme="dark"] .post-card-content h2, html[data-parisan-theme="dark"] .post-card-content h3, html[data-parisan-theme="dark"] .standard-entry .entry-content h2, html[data-parisan-theme="dark"] .standard-entry .entry-content h3, html[data-parisan-theme="dark"] .portfolio-detail-heading h1, html[data-parisan-theme="dark"] .specialist-detail-copy h1 { color: #ffe8f8; }
+html[data-parisan-theme="dark"] .standard-entry .entry-content blockquote { border-color: #ff62d2; background: rgba(255,76,211,.08); }
+html[data-parisan-theme="dark"] input:not([type="checkbox"]):not([type="radio"]), html[data-parisan-theme="dark"] select, html[data-parisan-theme="dark"] textarea { border-color: #62425d; background: #211827; color: #fff0fa; }
+html[data-parisan-theme="dark"] a:focus-visible, html[data-parisan-theme="dark"] button:focus-visible, html[data-parisan-theme="dark"] input:focus-visible, html[data-parisan-theme="dark"] select:focus-visible, html[data-parisan-theme="dark"] textarea:focus-visible { outline-color: #ff62d2; box-shadow: 0 0 0 4px rgba(255,98,210,.18); }
+@media (max-width: 600px) { .parisan-journal-section { padding-block: 58px; } .post-card-content { padding: 18px; } }
+@media (prefers-reduced-motion: reduce) { .post-card, .post-card-image img { transition: none; } }
