@@ -35,6 +35,13 @@ $parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
 $parisan_hero_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_x', 50 ) );
 $parisan_hero_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_y', 34 ) );
 $parisan_hero_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_position_x, $parisan_hero_position_y );
+$parisan_has_hero_attachment = $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id );
+$parisan_has_hero_image = $parisan_has_hero_attachment || ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image );
+$parisan_hero_image_alt = sanitize_text_field( get_theme_mod( 'parisan_hero_image_alt', '' ) );
+if ( '' === $parisan_hero_image_alt && $parisan_has_hero_attachment ) {
+	$parisan_hero_image_alt = sanitize_text_field( get_post_meta( $parisan_hero_image_id, '_wp_attachment_image_alt', true ) );
+}
+
 $parisan_booking_enabled = function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled();
 
 get_header();
@@ -52,11 +59,11 @@ get_header();
 				</div>
 				<div class="hero-note"><span class="hero-note-mark" aria-hidden="true">✳</span><span><?php esc_html_e( 'لحظه‌ای برای خودتان؛ تجربه‌ای با توجه به جزئیات', 'parisan' ); ?></span></div>
 			</div>
-			<div class="hero-art" role="img" aria-label="<?php echo esc_attr( ($parisan_hero_image_id || $parisan_hero_image) ? __( 'تصویر منتخب سالن زیبایی', 'parisan' ) : __( 'تصویر منتخب استودیوی زیبایی پاریسان', 'parisan' ) ); ?>">
+			<div class="hero-art"<?php if ( ! $parisan_has_hero_image ) : ?> role="img" aria-label="<?php esc_attr_e( 'ترکیب هنری استودیوی زیبایی پاریسان', 'parisan' ); ?>"<?php endif; ?>>
 				<?php if ( $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id ) ) : ?>
-					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo', 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
+					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo', 'alt' => $parisan_hero_image_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
 				<?php elseif ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image ) : ?>
-					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
+					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php endif; ?>
 				<div class="hero-art-orbit hero-art-orbit-one"></div>
 				<div class="hero-art-orbit hero-art-orbit-two"></div>
