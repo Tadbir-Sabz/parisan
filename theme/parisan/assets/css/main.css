@@ -1344,5 +1344,5 @@ html[data-parisan-theme="dark"] .hero-actions .button {
 html[data-parisan-theme="dark"] .hero-art {
   box-shadow:
     0 0 30px rgba(255, 63, 207, .20),
-    0 0 64px rgba(28, 174, 255, .12);
+    0 0 64px rgba(28, 174, 255, .12) !important;
 }
