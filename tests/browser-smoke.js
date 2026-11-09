@@ -78,9 +78,7 @@ const { chromium } = require('playwright');
 		const fallbackPage = await fallbackContext.newPage();
 		collectBrowserDiagnostics(fallbackPage);
 		await fallbackPage.addInitScript(() => {
-			try { delete window.IntersectionObserver; } catch (error) {
-				Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: undefined });
-			}
+			Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: undefined });
 		});
 		await fallbackPage.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
 		assert.equal(await fallbackPage.locator('.parisan-mobile-booking').isVisible(), false, 'no-observer fallback never displays a floating overlay');
