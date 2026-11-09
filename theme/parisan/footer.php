@@ -35,7 +35,7 @@ defined( 'ABSPATH' ) || exit;
 		<p class="copyright">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?></p>
 	</div>
 </footer>
-<a class="parisan-mobile-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php esc_html_e( 'رزرو نوبت', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
+<a class="parisan-mobile-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php echo esc_html( function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled() ? 'رزرو نوبت' : 'تماس با سالن' ); ?> <span aria-hidden="true">←</span></a>
 <?php wp_footer(); ?>
 </body>
 </html>
