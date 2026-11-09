@@ -26,6 +26,7 @@ parisan_theme_smoke_assert( function_exists( 'parisan_customize_brand_register' 
 parisan_theme_smoke_assert( function_exists( 'parisan_output_brand_tokens' ), 'custom brand design tokens are output' );
 parisan_theme_smoke_assert( function_exists( 'parisan_public_setting' ), 'public salon settings helper is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_home_content' ), 'owner-editable homepage content helper is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_customize_homepage_content_register' ), 'homepage copy controls are registered in the Customizer' );
 parisan_theme_smoke_assert( function_exists( 'parisan_blog_index_url' ), 'blog index URL resolver is registered' );
 $original_posts_page = get_option( 'page_for_posts' );
 update_option( 'page_for_posts', 0 );
