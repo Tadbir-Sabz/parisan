@@ -42,6 +42,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Run theme JavaScript unit tests
+        run: node tests/run-theme-js-tests.js
+
       - name: Install WP-CLI
         run: |
           curl -fsSLo wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
