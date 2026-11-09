@@ -20,6 +20,27 @@ function parisan_core_public_booking_enabled() {
 }
 
 /**
+ * Explain the safe booking launch gate to site administrators.
+ *
+ * @return void
+ */
+function parisan_core_public_booking_admin_notice() {
+	if ( parisan_core_public_booking_enabled() || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'رزرو عمومی پاریسان هنوز غیرفعال است.', 'parisan-core' ) . '</strong> ';
+	echo esc_html__( 'این وضعیت پیش‌فرض امن است. پیش از فعال‌سازی، این موارد را بررسی کنید:', 'parisan-core' );
+	echo '</p><ul style="list-style:disc;margin-inline-start:2em">';
+	echo '<li>' . esc_html__( 'HTTPS معتبر و استقرار هم‌مبدأ سایت و API', 'parisan-core' ) . '</li>';
+	echo '<li>' . esc_html__( 'تشخیص IP واقعی کاربر و محدودسازی درخواست‌ها در reverse proxy', 'parisan-core' ) . '</li>';
+	echo '<li>' . esc_html__( 'حذف توکن‌ها و اطلاعات مشتری از لاگ‌ها و هدرهای ثبت‌شده', 'parisan-core' ) . '</li>';
+	echo '<li>' . esc_html__( 'تست مرورگر، دسترس‌پذیری، رزرو هم‌زمان و بازیابی خطا', 'parisan-core' ) . '</li>';
+	echo '</ul><p>' . esc_html__( 'پس از تکمیل بررسی‌ها، مالک سایت می‌تواند با تعریف PARISAN_PUBLIC_BOOKING_ENABLED به مقدار boolean true در wp-config.php قابلیت را آگاهانه فعال کند. این اعلان به‌تنهایی مجوز فعال‌سازی نیست.', 'parisan-core' ) . '</p></div>';
+}
+add_action( 'admin_notices', 'parisan_core_public_booking_admin_notice' );
+
+
+/**
  * Hash a customer access token with the site's authentication salt.
  *
  * @param string $token Raw high-entropy token.
@@ -751,7 +772,7 @@ add_action( 'wp_enqueue_scripts', 'parisan_core_maybe_enqueue_public_booking_ass
  */
 function parisan_core_booking_shortcode() {
 	if ( ! parisan_core_public_booking_enabled() ) {
-		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'رزرو آنلاین در حال حاضر فعال نیست.', 'parisan-core' ) . '</p></section>';
+		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'رزرو آنلاین در حال حاضر فعال نیست. برای هماهنگی نوبت با سالن تماس بگیرید.', 'parisan-core' ) . '</p></section>';
 	}
 
 	$services = get_posts(
