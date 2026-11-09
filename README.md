@@ -2,9 +2,9 @@
 
 > Product vision, architecture, delivery roadmap, and mandatory contributor instructions.
 
-**Project status:** Internal booking operations, privacy lifecycle, gated public booking API with token-scoped customer rescheduling, and a refreshed Persian RTL theme homepage are implemented on the feature branch; public activation and release readiness remain blocked pending browser/accessibility and infrastructure validation  
+**Project status:** Parisan's theme and core booking foundation are merged into main. Product-completion work is in progress on feat/parisan-product-completion; booking remains disabled by default and production readiness remains UNVERIFIED pending browser/accessibility and infrastructure validation.  
 **Canonical branch:** main  
-**Active implementation branch:** `feature/service-catalog-foundation`
+**Active implementation branch:** `feat/parisan-product-completion`
 
 ## Mandatory reading for every agent
 
@@ -45,7 +45,8 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 ## Current implementation status
 
 - [x] Product plan, roadmap, and mandatory agent rules.
-- [x] Theme bootstrap, semantic header/footer, responsive RTL design system, dynamic editorial homepage, service/specialist preview cards, booking section, accessible fallback navigation, and owner-selectable homepage hero image through the WordPress Customizer. Browser visual review remains UNVERIFIED.
+- [x] Theme bootstrap, semantic header/footer, responsive RTL design system, dynamic editorial homepage, service/specialist preview cards, booking section, accessible fallback navigation, and owner-selectable homepage hero image and editable homepage messaging/CTA controls through the WordPress Customizer. Browser visual review remains UNVERIFIED.
+- [~] Accessible mobile navigation toggle with keyboard/Escape handling and a no-JavaScript menu fallback; browser/device validation remains UNVERIFIED.
 - [~] Accessible light/dark preference toggle (system default + saved user choice) and mobile sticky booking shortcut that yields while the booking section is visible; browser/device and assistive-technology validation remain UNVERIFIED.
 - [x] Service catalogue archive and detail templates.
 - [~] First-party portfolio content type, categories, homepage showcase, archive filters, and detail template are implemented; visual/browser validation remains UNVERIFIED.
