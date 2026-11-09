@@ -59,7 +59,7 @@ get_header();
 				</div>
 				<div class="hero-note"><span class="hero-note-mark" aria-hidden="true">✳</span><span><?php esc_html_e( 'لحظه‌ای برای خودتان؛ تجربه‌ای با توجه به جزئیات', 'parisan' ); ?></span></div>
 			</div>
-			<div class="hero-art"<?php if ( ! $parisan_has_hero_image ) : ?> role="img" aria-label="<?php esc_attr_e( 'ترکیب هنری استودیوی زیبایی پاریسان', 'parisan' ); ?>"<?php endif; ?>>
+			<div class="hero-art">
 				<?php if ( $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id ) ) : ?>
 					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo', 'alt' => $parisan_hero_image_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
 				<?php elseif ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image ) : ?>
