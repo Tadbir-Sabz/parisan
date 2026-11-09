@@ -215,3 +215,6 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [ ] Add and execute browser-based visual/accessibility checks at desktop/tablet/mobile viewports.
 - [ ] Verify contrast with default and owner-selected palettes; no custom palette is claimed WCAG-compliant without measurement.
 - [ ] Run exact-SHA CI and independent review on the implementation branch before merge.
+
+
+- [~] Hero photography controls now use the WordPress media library with responsive attachment output and owner-adjustable horizontal/vertical focal point; exact-SHA browser/PHP CI is pending for commit `57f264aea4bfcdcdc0462bdecada61f6fb4b887f`. Existing saved hero image URLs remain supported.
