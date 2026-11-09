@@ -48,6 +48,15 @@ const { chromium } = require('playwright');
 		assert.equal(await menuToggle.getAttribute('aria-expanded'), 'false', 'Escape closes mobile navigation');
 		assert.equal(await navigation.isVisible(), false, 'Escape collapses mobile navigation');
 		assert.equal(await menuToggle.evaluate(el => document.activeElement === el), true, 'Escape restores focus to menu control');
+		const mobileBooking = page.locator('.parisan-mobile-booking');
+		await page.waitForTimeout(150);
+		assert.equal(await mobileBooking.isVisible(), false, 'mobile booking shortcut stays out of the hero artwork');
+		await page.evaluate(() => window.scrollTo(0, document.querySelector('.hero-section').getBoundingClientRect().bottom + window.scrollY + 100));
+		await page.waitForTimeout(150);
+		assert.equal(await mobileBooking.isVisible(), true, 'mobile booking shortcut appears after leaving the hero');
+		await page.evaluate(() => window.scrollTo(0, 0));
+		await page.waitForTimeout(150);
+		assert.equal(await mobileBooking.isVisible(), false, 'mobile booking shortcut hides again at the top');
 		await page.screenshot({ path: 'artifacts/parisan-mobile.png', fullPage: true });
 
 		assert.deepEqual(errors, [], 'browser reports no uncaught JavaScript errors');
