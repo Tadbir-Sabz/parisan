@@ -64,6 +64,8 @@ get_header();
 					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo', 'alt' => $parisan_hero_image_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
 				<?php elseif ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image ) : ?>
 					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
+				<?php else : ?>
+					<img class="hero-art-photo hero-art-demo-photo" src="https://images.unsplash.com/photo-1771254240529-dbe324f0a401?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=1400" alt="<?php esc_attr_e( 'تصویر نمونه از تجربه آرایش و زیبایی در فضای استودیو', 'parisan' ); ?>" loading="eager" decoding="async" fetchpriority="high" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php endif; ?>
 				<div class="hero-art-orbit hero-art-orbit-one"></div>
 				<div class="hero-art-orbit hero-art-orbit-two"></div>
@@ -113,7 +115,7 @@ get_header();
 								<?php if ( has_post_thumbnail( $parisan_service ) ) : ?>
 									<?php echo get_the_post_thumbnail( $parisan_service, 'large', array( 'loading' => 'lazy' ) ); ?>
 								<?php else : ?>
-									<span class="service-card-placeholder" aria-hidden="true">✳</span>
+									<img src="https://images.unsplash.com/photo-1675034743339-0b0747047727?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async">
 								<?php endif; ?>
 							</a>
 							<div class="service-card-content">
@@ -147,7 +149,7 @@ get_header();
 							<a class="portfolio-card-media" href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'مشاهده نمونه‌کار %s', 'parisan' ), get_the_title( $parisan_work ) ) ); ?>">
 								<?php if ( has_post_thumbnail( $parisan_work ) ) : ?>
 									<?php echo get_the_post_thumbnail( $parisan_work, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?><span aria-hidden="true">✳</span><?php endif; ?>
+								<?php else : ?><img src="https://images.unsplash.com/photo-1699207012725-72af224cca65?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?>
 							</a>
 							<div class="portfolio-card-content">
 								<h3><a href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>"><?php echo esc_html( get_the_title( $parisan_work ) ); ?></a></h3>
@@ -172,7 +174,7 @@ get_header();
 			<?php if ( $parisan_articles ) : ?><div class="post-grid">
 				<?php foreach ( $parisan_articles as $parisan_article ) : ?>
 					<article class="post-card">
-						<?php if ( has_post_thumbnail( $parisan_article ) ) : ?><a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo get_the_post_thumbnail( $parisan_article, 'large', array( 'loading' => 'lazy' ) ); ?></a><?php endif; ?>
+						<a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php if ( has_post_thumbnail( $parisan_article ) ) : ?><?php echo get_the_post_thumbnail( $parisan_article, 'large', array( 'loading' => 'lazy' ) ); ?><?php else : ?><img src="https://images.unsplash.com/photo-1675034743339-0b0747047727?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?></a>
 						<div class="post-card-content"><p class="post-meta"><?php echo esc_html( get_the_date( '', $parisan_article ) ); ?></p><h3><a href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo esc_html( get_the_title( $parisan_article ) ); ?></a></h3><p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_article ), 18 ) ); ?></p></div>
 					</article>
 				<?php endforeach; ?>
@@ -201,7 +203,7 @@ get_header();
 							<a class="specialist-card-image" href="<?php echo esc_url( get_permalink( $parisan_member ) ); ?>" tabindex="-1" aria-hidden="true">
 								<?php if ( has_post_thumbnail( $parisan_member ) ) : ?>
 									<?php echo get_the_post_thumbnail( $parisan_member, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?><span aria-hidden="true">✳</span><?php endif; ?>
+								<?php else : ?><img src="https://images.unsplash.com/photo-1771254240529-dbe324f0a401?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?>
 							</a>
 							<div class="specialist-card-content">
 								<?php $parisan_role = get_post_meta( $parisan_member->ID, '_parisan_staff_role', true ); ?>
