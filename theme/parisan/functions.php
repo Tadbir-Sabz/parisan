@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_THEME_VERSION', '0.6.0' );
+define( 'PARISAN_THEME_VERSION', '0.7.0' );
 define( 'PARISAN_THEME_DIR', get_template_directory() );
 define( 'PARISAN_THEME_URI', get_template_directory_uri() );
 
@@ -106,7 +106,7 @@ function parisan_customize_brand_register( $wp_customize ) {
 		'parisan_brand_gold' => array( '#b69a70', 'color', __( 'رنگ تأکیدی و جزئیات', 'parisan' ) ),
 		'parisan_brand_dark_accent' => array( '#e0b7ca', 'color', __( 'رنگ اصلی در حالت تاریک', 'parisan' ) ),
 		'parisan_brand_dark_accent_dark' => array( '#f0d6e2', 'color', __( 'رنگ تیترها در حالت تاریک', 'parisan' ) ),
-		'parisan_brand_font' => array( 'tahoma', 'select', __( 'فونت رابط فارسی', 'parisan' ) ),
+		'parisan_brand_font' => array( 'vazirmatn', 'select', __( 'فونت رابط فارسی', 'parisan' ) ),
 		'parisan_brand_font_scale' => array( '16px', 'select', __( 'اندازه پایه متن', 'parisan' ) ),
 		'parisan_announcement_text' => array( '', 'text', __( 'متن نوار اطلاع‌رسانی', 'parisan' ) ),
 		'parisan_announcement_url' => array( '', 'url', __( 'پیوند نوار اطلاع‌رسانی', 'parisan' ) ),
@@ -124,7 +124,7 @@ function parisan_customize_brand_register( $wp_customize ) {
 		$wp_customize->add_setting( $id, array( 'default' => $default, 'sanitize_callback' => $sanitize, 'transport' => 'refresh' ) );
 		$args = array( 'label' => $label, 'section' => 'parisan_brand' );
 		if ( 'parisan_brand_font' === $id ) {
-			$args['choices'] = array( 'tahoma' => 'Tahoma', 'arial' => 'Arial', 'system' => 'System UI' );
+			$args['choices'] = array( 'vazirmatn' => 'Vazirmatn', 'system' => 'System UI' );
 		}
 		if ( 'parisan_brand_font_scale' === $id ) {
 			$args['choices'] = array( '15px' => 'کوچک', '16px' => 'استاندارد', '17px' => 'درشت' );
@@ -239,12 +239,11 @@ function parisan_output_brand_tokens() {
 	$font_size  = get_theme_mod( 'parisan_brand_font_scale', '16px' );
 	$font_size  = is_string( $font_size ) && in_array( $font_size, $font_sizes, true ) ? $font_size : '16px';
 	$fonts      = array(
-		'tahoma' => 'Tahoma, Segoe UI, sans-serif',
-		'arial'  => 'Arial, Tahoma, sans-serif',
-		'system' => 'system-ui, Tahoma, sans-serif',
+		'vazirmatn' => 'Vazirmatn, sans-serif',
+		'system'    => 'Vazirmatn, system-ui, sans-serif',
 	);
-	$font = get_theme_mod( 'parisan_brand_font', 'tahoma' );
-	$font = is_string( $font ) && isset( $fonts[ $font ] ) ? $font : 'tahoma';
+	$font = get_theme_mod( 'parisan_brand_font', 'vazirmatn' );
+	$font = is_string( $font ) && isset( $fonts[ $font ] ) ? $font : 'vazirmatn';
 	$tokens = array(
 		'--parisan-plum'           => parisan_safe_theme_color( 'parisan_brand_accent', '#6f4657' ),
 		'--parisan-plum-dark'      => parisan_safe_theme_color( 'parisan_brand_accent_dark', '#573443' ),
@@ -369,6 +368,12 @@ function parisan_footer_menu_fallback() {
  * @return void
  */
 function parisan_enqueue_assets() {
+	wp_enqueue_style(
+		'parisan-vazirmatn',
+		'https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-Variable-font-face.css',
+		array(),
+		'33.003'
+	);
 	wp_enqueue_style(
 		'parisan-main',
 		PARISAN_THEME_URI . '/assets/css/main.css',
