@@ -30,6 +30,13 @@ const { chromium } = require('playwright');
 		assert.equal(await themeToggle.isVisible(), true, 'day/night theme control is available');
 		if (await page.locator('html').getAttribute('data-parisan-theme') !== 'light') await themeToggle.click();
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day theme can be activated');
+		const desktopHeroGeometry = await page.evaluate(() => {
+			const art = document.querySelector('.hero-art').getBoundingClientRect();
+			const copy = document.querySelector('.hero-copy').getBoundingClientRect();
+			return { artRight: art.right, copyLeft: copy.left, artWidth: art.width, copyWidth: copy.width };
+		});
+		assert.ok(desktopHeroGeometry.artWidth > 400 && desktopHeroGeometry.copyWidth > 360, 'desktop hero keeps both columns substantial: ' + JSON.stringify(desktopHeroGeometry));
+		assert.ok(desktopHeroGeometry.artRight <= desktopHeroGeometry.copyLeft + 2, 'desktop hero copy never overlaps the photograph: ' + JSON.stringify(desktopHeroGeometry));
 		// Force native lazy-loaded fixture thumbnails to load before asserting and capturing evidence.
 		const cardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
 		await cardImages.evaluateAll(images => images.forEach(image => { image.loading = 'eager'; }));
@@ -38,7 +45,7 @@ const { chromium } = require('playwright');
 		await page.screenshot({ path: 'artifacts/parisan-desktop-viewport.png', fullPage: false });
 		await themeToggle.click();
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'dark', 'neon night theme can be activated');
-		assert.equal(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(13, 10, 18)', 'night theme uses the deep aubergine canvas');
+		assert.equal(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(23, 19, 30)', 'night theme uses the deep aubergine canvas');
 		assert.match(await page.locator('.button').first().evaluate(el => getComputedStyle(el).backgroundImage), /linear-gradient/, 'night theme uses the neon accent treatment');
 		assert.match(await page.locator('.hero-art').evaluate(el => getComputedStyle(el).boxShadow), /rgba\(255, 63, 207/, 'night hero artwork has a restrained neon glow');
 		await page.screenshot({ path: 'artifacts/parisan-desktop-night.png', fullPage: true });
