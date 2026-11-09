@@ -30,7 +30,11 @@ $parisan_staff = post_type_exists( 'parisan_staff' ) ? get_posts(
 $parisan_portfolio = post_type_exists( 'parisan_portfolio' ) ? get_posts( array( 'post_type' => 'parisan_portfolio', 'post_status' => 'publish', 'posts_per_page' => 6, 'orderby' => 'date', 'order' => 'DESC' ) ) : array();
 $parisan_articles = get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 3, 'orderby' => 'date', 'order' => 'DESC' ) );
 
+$parisan_hero_image_id = absint( get_theme_mod( 'parisan_hero_image_id', 0 ) );
 $parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
+$parisan_hero_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_x', 50 ) );
+$parisan_hero_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_y', 34 ) );
+$parisan_hero_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_position_x, $parisan_hero_position_y );
 $parisan_booking_enabled = function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled();
 
 get_header();
@@ -48,9 +52,11 @@ get_header();
 				</div>
 				<div class="hero-note"><span class="hero-note-mark" aria-hidden="true">✳</span><span><?php esc_html_e( 'لحظه‌ای برای خودتان؛ تجربه‌ای با توجه به جزئیات', 'parisan' ); ?></span></div>
 			</div>
-			<div class="hero-art" role="img" aria-label="<?php echo esc_attr( $parisan_hero_image ? __( 'تصویر منتخب سالن زیبایی', 'parisan' ) : __( 'تصویر منتخب استودیوی زیبایی پاریسان', 'parisan' ) ); ?>">
-				<?php if ( $parisan_hero_image ) : ?>
-					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="" loading="eager" decoding="async">
+			<div class="hero-art" role="img" aria-label="<?php echo esc_attr( ($parisan_hero_image_id || $parisan_hero_image) ? __( 'تصویر منتخب سالن زیبایی', 'parisan' ) : __( 'تصویر منتخب استودیوی زیبایی پاریسان', 'parisan' ) ); ?>">
+				<?php if ( $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id ) ) : ?>
+					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo', 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
+				<?php elseif ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image ) : ?>
+					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php endif; ?>
 				<div class="hero-art-orbit hero-art-orbit-one"></div>
 				<div class="hero-art-orbit hero-art-orbit-two"></div>
