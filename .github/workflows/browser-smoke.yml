@@ -34,7 +34,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
-          extensions: mysqli, curl, mbstring, zip
+          extensions: mysqli, curl, mbstring, zip, gd
           coverage: none
 
       - name: Set up Node
@@ -66,6 +66,55 @@ jobs:
           # Replace WordPress's generic starter content with deterministic Persian salon fixtures.
           wp post delete 1 --force --path="$WP_PATH"
           wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="راهنمای انتخاب خدمات مراقبت پوست" --post_excerpt="چطور خدمات متناسب با نیاز پوست خود را آگاهانه انتخاب کنیم؟" --post_content="در این راهنما با چند نکته کاربردی برای انتخاب خدمات مراقبت پوست آشنا می‌شوید." --porcelain
+          # Generate local abstract thumbnails so browser evidence tests populated cards, not empty placeholders.
+          cat > "$WP_PATH/create-fixtures.php" <<'PHP'
+          <?php
+          $items = array(
+              'service-skin' => array( 224, 190, 199 ),
+              'service-brow' => array( 178, 133, 155 ),
+              'portfolio-one' => array( 194, 155, 174 ),
+              'portfolio-two' => array( 207, 176, 185 ),
+              'portfolio-three' => array( 158, 119, 143 ),
+              'staff-one' => array( 211, 183, 167 ),
+              'staff-two' => array( 183, 145, 164 ),
+              'journal' => array( 225, 203, 193 ),
+          );
+          foreach ( $items as $name => $rgb ) {
+              $image = imagecreatetruecolor( 1200, 900 );
+              for ( $y = 0; $y < 900; $y++ ) {
+                  $mix = $y / 900;
+                  $color = imagecolorallocate( $image, (int) ( $rgb[0] + ( 247 - $rgb[0] ) * $mix ), (int) ( $rgb[1] + ( 235 - $rgb[1] ) * $mix ), (int) ( $rgb[2] + ( 232 - $rgb[2] ) * $mix ) );
+                  imageline( $image, 0, $y, 1200, $y, $color );
+              }
+              $ring = imagecolorallocatealpha( $image, 255, 248, 241, 65 );
+              $soft = imagecolorallocatealpha( $image, 255, 248, 241, 82 );
+              imageellipse( $image, 600, 450, 560, 560, $ring );
+              imageellipse( $image, 600, 450, 420, 420, $soft );
+              imagefilledellipse( $image, 600, 450, 230, 230, $soft );
+              imagefilledellipse( $image, 740, 340, 90, 90, $ring );
+              imagepng( $image, __DIR__ . '/' . $name . '.png' );
+              imagedestroy( $image );
+          }
+          PHP
+          php "$WP_PATH/create-fixtures.php"
+          SERVICE_ID=$(wp post list --path="$WP_PATH" --post_type=parisan_service --field=ID --format=ids | awk '{print $1}')
+          wp media import "$WP_PATH/service-skin.png" --post_id="$SERVICE_ID" --featured_image --path="$WP_PATH" --quiet
+          SERVICE_ID=$(wp post list --path="$WP_PATH" --post_type=parisan_service --field=ID --format=ids | awk '{print $2}')
+          wp media import "$WP_PATH/service-brow.png" --post_id="$SERVICE_ID" --featured_image --path="$WP_PATH" --quiet
+          INDEX=0
+          for ID in $(wp post list --path="$WP_PATH" --post_type=parisan_portfolio --field=ID --format=ids); do
+            INDEX=$((INDEX + 1))
+            case "$INDEX" in 1) IMAGE=portfolio-one;; 2) IMAGE=portfolio-two;; *) IMAGE=portfolio-three;; esac
+            wp media import "$WP_PATH/$IMAGE.png" --post_id="$ID" --featured_image --path="$WP_PATH" --quiet
+          done
+          INDEX=0
+          for ID in $(wp post list --path="$WP_PATH" --post_type=parisan_staff --field=ID --format=ids); do
+            INDEX=$((INDEX + 1))
+            if [ "$INDEX" -eq 1 ]; then IMAGE=staff-one; else IMAGE=staff-two; fi
+            wp media import "$WP_PATH/$IMAGE.png" --post_id="$ID" --featured_image --path="$WP_PATH" --quiet
+          done
+          POST_ID=$(wp post list --path="$WP_PATH" --post_type=post --field=ID --format=ids | awk '{print $1}')
+          wp media import "$WP_PATH/journal.png" --post_id="$POST_ID" --featured_image --path="$WP_PATH" --quiet
           SERVICE_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="پاکسازی و آبرسانی پوست" --post_excerpt="مراقبت تخصصی برای طراوت و شادابی پوست." --post_content="یک تجربه مراقبتی با توجه به نوع پوست و نیازهای شما." --porcelain)
           wp post meta update "$SERVICE_ID" _parisan_duration 60 --path="$WP_PATH"
           wp post meta update "$SERVICE_ID" _parisan_price 850000 --path="$WP_PATH"
