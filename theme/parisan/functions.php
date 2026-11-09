@@ -140,6 +140,75 @@ function parisan_customize_brand_register( $wp_customize ) {
 add_action( 'customize_register', 'parisan_customize_brand_register', 20 );
 
 /**
+ * Register editable homepage messaging and conversion controls.
+ *
+ * @param WP_Customize_Manager $wp_customize Customizer manager.
+ * @return void
+ */
+function parisan_customize_homepage_content_register( $wp_customize ) {
+	$wp_customize->add_section(
+		'parisan_homepage_content',
+		array(
+			'title'       => esc_html__( 'پاریسان — محتوای صفحه اصلی', 'parisan' ),
+			'description' => esc_html__( 'متن‌ها و پیوندهای اصلی صفحه نخست را بدون ویرایش کد تغییر دهید.', 'parisan' ),
+			'priority'    => 37,
+		)
+	);
+
+	$fields = array(
+		'hero_eyebrow' => array( 'PARISAN BEAUTY STUDIO · زیبایی با آرامش', 'text', 'متن کوچک بالای عنوان اصلی' ),
+		'hero_title' => array( 'زیباییِ شما، با امضای ظرافت', 'text', 'عنوان اصلی صفحه نخست' ),
+		'hero_description' => array( 'از لحظه‌ای که وارد می‌شوید تا آخرین جزئیات خدمات، همه‌چیز برای یک تجربه دلنشین، دقیق و شایسته شما طراحی شده است.', 'textarea', 'توضیح بخش اصلی' ),
+		'hero_primary_label' => array( 'انتخاب زمان و رزرو', 'text', 'عنوان دکمه اصلی' ),
+		'hero_primary_url' => array( '#booking', 'url', 'پیوند دکمه اصلی' ),
+		'hero_secondary_label' => array( 'آشنایی با خدمات', 'text', 'عنوان پیوند دوم' ),
+		'hero_secondary_url' => array( '#services', 'url', 'پیوند دوم' ),
+		'intro_eyebrow' => array( 'A MORE PERSONAL EXPERIENCE', 'text', 'متن کوچک معرفی سالن' ),
+		'intro_title' => array( 'زیبایی، وقتی دلنشین‌تر است که برای شما معنا داشته باشد.', 'text', 'عنوان معرفی سالن' ),
+		'intro_description' => array( 'پاریسان فضایی برای انتخاب آگاهانه و مراقبت حرفه‌ای است؛ جایی که می‌توانید خدمات را با جزئیات ببینید، متخصص مناسب را بشناسید و با خیال آسوده برای زمان دلخواهتان برنامه‌ریزی کنید.', 'textarea', 'توضیح معرفی سالن' ),
+		'services_eyebrow' => array( 'THE SERVICE EDIT', 'text', 'متن کوچک بخش خدمات' ),
+		'services_title' => array( 'خدماتی برای حالِ بهتر شما', 'text', 'عنوان بخش خدمات' ),
+		'portfolio_eyebrow' => array( 'THE PARISAN PORTFOLIO', 'text', 'متن کوچک نمونه‌کارها' ),
+		'portfolio_title' => array( 'ظرافت را در جزئیات ببینید', 'text', 'عنوان نمونه‌کارها' ),
+		'journal_eyebrow' => array( 'THE PARISAN JOURNAL', 'text', 'متن کوچک مجله' ),
+		'journal_title' => array( 'تازه‌هایی برای زیبایی و آرامش', 'text', 'عنوان مجله' ),
+		'editorial_eyebrow' => array( 'YOUR TIME, YOUR STYLE', 'text', 'متن کوچک نوار تبلیغاتی' ),
+		'editorial_title' => array( 'قرار نیست فقط زیباتر شوید؛ قرار است از این لحظه لذت ببرید.', 'textarea', 'متن نوار تبلیغاتی' ),
+		'editorial_button_label' => array( 'شروع تجربه من', 'text', 'عنوان دکمه نوار تبلیغاتی' ),
+		'editorial_button_url' => array( '#booking', 'url', 'پیوند دکمه نوار تبلیغاتی' ),
+		'team_eyebrow' => array( 'THE PEOPLE BEHIND THE CARE', 'text', 'متن کوچک متخصصان' ),
+		'team_title' => array( 'هنر، در دستان متخصصان ما', 'text', 'عنوان متخصصان' ),
+		'booking_eyebrow' => array( 'MAKE TIME FOR YOURSELF', 'text', 'متن کوچک بخش رزرو' ),
+		'booking_title' => array( 'زمانی برای خودتان کنار بگذارید.', 'text', 'عنوان بخش رزرو' ),
+		'booking_description' => array( 'خدمت و متخصص دلخواهتان را انتخاب کنید و زمان‌های در دسترس را ببینید.', 'textarea', 'توضیح بخش رزرو' ),
+	);
+
+	foreach ( $fields as $key => $definition ) {
+		list( $default, $type, $label ) = $definition;
+		$id = 'parisan_home_' . $key;
+		$sanitize = 'url' === $type ? 'esc_url_raw' : ( 'textarea' === $type ? 'sanitize_textarea_field' : 'sanitize_text_field' );
+		$wp_customize->add_setting(
+			$id,
+			array(
+				'default'           => $default,
+				'sanitize_callback' => $sanitize,
+				'transport'         => 'refresh',
+			)
+		);
+		$wp_customize->add_control(
+			$id,
+			array(
+				'label'   => esc_html__( $label, 'parisan' ),
+				'section' => 'parisan_homepage_content',
+				'type'    => 'url' === $type ? 'url' : ( 'textarea' === $type ? 'textarea' : 'text' ),
+			)
+		);
+	}
+}
+add_action( 'customize_register', 'parisan_customize_homepage_content_register', 25 );
+
+
+/**
  * Output sanitized theme design tokens.
  *
  * @return void
@@ -206,6 +275,35 @@ function parisan_public_setting( $key ) {
 	return is_string( $value ) ? trim( $value ) : '';
 }
 
+/**
+ * Read an editable homepage content setting with a safe default.
+ *
+ * @param string $key Homepage content key.
+ * @param string $default Default text or URL.
+ * @return string
+ */
+function parisan_home_content( $key, $default = '' ) {
+	$value = get_theme_mod( 'parisan_home_' . sanitize_key( $key ), $default );
+	return is_string( $value ) ? trim( $value ) : $default;
+}
+
+/**
+ * Resolve the actual WordPress posts index without assuming a /blog/ route.
+ *
+ * @return string
+ */
+function parisan_blog_index_url() {
+	$posts_page = absint( get_option( 'page_for_posts' ) );
+	if ( $posts_page ) {
+		$url = get_permalink( $posts_page );
+		if ( is_string( $url ) && '' !== $url ) {
+			return $url;
+		}
+	}
+	return home_url( '/' );
+}
+
+
 
 
 /**
@@ -220,7 +318,7 @@ function parisan_primary_menu_fallback() {
 		array( home_url( '/#services' ), __( 'خدمات', 'parisan' ) ),
 		array( home_url( '/#team' ), __( 'متخصصان', 'parisan' ) ),
 		array( home_url( '/#portfolio' ), __( 'نمونه‌کارها', 'parisan' ) ),
-		array( get_option( 'page_for_posts' ) ? get_permalink( get_option( 'page_for_posts' ) ) : home_url( '/blog/' ), __( 'مجله', 'parisan' ) ),
+		array( parisan_blog_index_url(), __( 'مجله', 'parisan' ) ),
 		array( home_url( '/about/' ), __( 'درباره ما', 'parisan' ) ),
 		array( home_url( '/contact/' ), __( 'تماس با ما', 'parisan' ) ),
 		array( home_url( '/faq/' ), __( 'سؤالات متداول', 'parisan' ) ),
