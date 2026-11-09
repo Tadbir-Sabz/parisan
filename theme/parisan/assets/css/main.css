@@ -2116,3 +2116,22 @@ html[data-parisan-theme="dark"] button:focus-visible { outline-color: var(--pari
   .hero-art { height: 430px !important; min-height: 430px !important; }
   .hero-copy h1 { font-size: clamp(34px, 4.6vw, 46px); }
 }
+
+
+/* Restore the reference header's desktop RTL composition: brand right,
+   navigation centered, and theme/booking actions grouped on the left. */
+@media (min-width: 681px) {
+  .header-inner {
+    display: grid !important;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-areas: "booking theme nav brand";
+    align-items: center;
+    gap: clamp(14px, 2vw, 28px);
+    direction: ltr;
+  }
+  .header-booking { grid-area: booking; justify-self: start; margin: 0; }
+  .parisan-theme-toggle { grid-area: theme; justify-self: start; }
+  .primary-navigation { grid-area: nav; min-width: 0; justify-self: stretch; }
+  .menu-list { justify-content: center; flex-wrap: nowrap; }
+  .site-branding { grid-area: brand; justify-self: end; }
+}
