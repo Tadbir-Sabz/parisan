@@ -301,7 +301,9 @@ function parisan_blog_index_url() {
 			return $url;
 		}
 	}
-	return home_url( '/' );
+
+	// The site front page is the posts index only in the default "latest posts" mode.
+	return 'posts' === get_option( 'show_on_front', 'posts' ) ? home_url( '/' ) : '';
 }
 
 
@@ -319,11 +321,19 @@ function parisan_primary_menu_fallback() {
 		array( home_url( '/#services' ), __( 'خدمات', 'parisan' ) ),
 		array( home_url( '/#team' ), __( 'متخصصان', 'parisan' ) ),
 		array( home_url( '/#portfolio' ), __( 'نمونه‌کارها', 'parisan' ) ),
-		array( parisan_blog_index_url(), __( 'مجله', 'parisan' ) ),
-		array( home_url( '/about/' ), __( 'درباره ما', 'parisan' ) ),
-		array( home_url( '/contact/' ), __( 'تماس با ما', 'parisan' ) ),
-		array( home_url( '/faq/' ), __( 'سؤالات متداول', 'parisan' ) ),
-		array( home_url( '/#booking' ), __( 'رزرو نوبت', 'parisan' ) ),
+	);
+	$blog_url = parisan_blog_index_url();
+	if ( $blog_url ) {
+		$items[] = array( $blog_url, __( 'مجله', 'parisan' ) );
+	}
+	$items = array_merge(
+		$items,
+		array(
+			array( home_url( '/about/' ), __( 'درباره ما', 'parisan' ) ),
+			array( home_url( '/contact/' ), __( 'تماس با ما', 'parisan' ) ),
+			array( home_url( '/faq/' ), __( 'سؤالات متداول', 'parisan' ) ),
+			array( home_url( '/#booking' ), __( 'رزرو نوبت', 'parisan' ) ),
+		)
 	);
 	foreach ( $items as $item ) {
 		printf( '<li><a href="%1$s">%2$s</a></li>', esc_url( $item[0] ), esc_html( $item[1] ) );
