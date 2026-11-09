@@ -31,6 +31,7 @@ function runTheme(options) {
 	const navClasses = new Set();
 	const primaryNavigation = { addEventListener(name, callback) { menuListeners['nav:' + name] = callback; }, querySelector(selector) { return selector === 'a' ? firstLink : null; }, classList: { add(name) { navClasses.add(name); }, remove(name) { navClasses.delete(name); } } };
 	const bookingSection = {};
+	const heroSection = {};
 	let observerCallback = null;
 	class MockIntersectionObserver {
 		constructor(callback) { observerCallback = callback; }
@@ -46,6 +47,7 @@ function runTheme(options) {
 		querySelector(selector) {
 			if (selector === '.parisan-theme-toggle') return toggle;
 			if (selector === '.parisan-mobile-booking') return mobileBooking;
+			if (selector === '.hero-section') return heroSection;
 			if (selector === '.parisan-mobile-menu-toggle') return options.navigation ? menuToggle : null;
 			if (selector === '.primary-navigation') return options.navigation ? primaryNavigation : null;
 			return null;
@@ -63,7 +65,7 @@ function runTheme(options) {
 		window.IntersectionObserver = MockIntersectionObserver;
 	}
 	vm.runInNewContext(source, context, { filename: 'theme.js' });
-	return { attrs, listeners, storage, toggle, mobileBooking, observerCallback, document, menuToggle, menuListeners, documentListeners, classes, navClasses, firstLink };
+	return { attrs, listeners, storage, toggle, mobileBooking, observerCallback, document, menuToggle, menuListeners, documentListeners, classes, navClasses, firstLink, heroSection, bookingSection };
 }
 
 
@@ -94,10 +96,14 @@ const savedChoice = runTheme({ saved: 'light', systemDark: true });
 assert.equal(savedChoice.attrs['data-parisan-theme'], 'light', 'saved preference overrides operating-system preference');
 
 const mobile = runTheme({ observer: true });
-mobile.observerCallback([{ isIntersecting: true }]);
+mobile.observerCallback([{ target: mobile.heroSection, isIntersecting: true }]);
+assert.equal(mobile.mobileBooking.hidden, true, 'sticky CTA hides while hero artwork is visible');
+mobile.observerCallback([{ target: mobile.heroSection, isIntersecting: false }]);
+assert.equal(mobile.mobileBooking.hidden, false, 'sticky CTA appears after leaving the hero');
+mobile.observerCallback([{ target: mobile.bookingSection, isIntersecting: true }]);
 assert.equal(mobile.mobileBooking.hidden, true, 'sticky CTA hides while booking section is visible');
-mobile.observerCallback([{ isIntersecting: false }]);
-assert.equal(mobile.mobileBooking.hidden, false, 'sticky CTA returns outside booking section');
+mobile.observerCallback([{ target: mobile.bookingSection, isIntersecting: false }]);
+assert.equal(mobile.mobileBooking.hidden, false, 'sticky CTA returns outside hero and booking section');
 
 const noObserver = runTheme({ observer: false });
 assert.equal(noObserver.mobileBooking.hidden, false, 'mobile shortcut remains usable without IntersectionObserver');
