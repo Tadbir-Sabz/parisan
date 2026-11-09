@@ -898,7 +898,7 @@ html[data-parisan-theme="dark"] .parisan-announcement { background:#26122e; colo
   .hero-section { padding:46px 0 30px; }
   .hero-grid { grid-template-columns:1fr; gap:28px; }
   .hero-copy h1 { max-width:14ch; font-size:clamp(37px,10vw,48px); line-height:1.5; }
-  .hero-description { margin:16px 0 22px; font-size:15px; }
+  .hero-description { margin:16px 0 22px; font-size:16px; }
   .hero-art { min-height:390px; width:min(100%,390px); margin-inline:auto; border-radius:190px 190px 24px 24px; }
   .hero-bottomline { flex-wrap:wrap; justify-content:center; gap:8px 20px; margin-top:32px; font-size:12px; }
   .intro-grid { grid-template-columns:1fr; gap:16px; }
