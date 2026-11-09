@@ -85,7 +85,7 @@ const systemDark = runTheme({ systemDark: true });
 assert.equal(systemDark.attrs['data-parisan-theme'], 'dark');
 assert.equal(systemDark.toggle.hidden, false);
 assert.equal(systemDark.toggle.attributes['aria-pressed'], 'true');
-assert.equal(systemDark.toggle.textContent, 'حالت روشن');
+assert.equal(systemDark.toggle.textContent, '☀ طرح روز');
 
 systemDark.listeners.click();
 assert.equal(systemDark.attrs['data-parisan-theme'], 'light');
