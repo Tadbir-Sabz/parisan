@@ -139,7 +139,8 @@ add_action( 'customize_register', 'parisan_customize_register' );
  * @return int
  */
 function parisan_sanitize_hero_position( $value ) {
-	return max( 0, min( 100, absint( $value ) ) );
+	$value = is_numeric( $value ) ? (int) $value : 0;
+	return max( 0, min( 100, $value ) );
 }
 
 /**
