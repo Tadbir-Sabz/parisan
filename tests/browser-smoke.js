@@ -18,11 +18,23 @@ const { chromium } = require('playwright');
 		}
 		collectBrowserDiagnostics(page);
 		await page.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
+		await page.evaluate(() => document.fonts.ready);
+		assert.match(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily), /Vazirmatn/, 'Persian-first Vazirmatn font is applied');
+		const themeToggle = page.locator('.parisan-theme-toggle');
+		assert.equal(await themeToggle.isVisible(), true, 'day/night theme control is available');
+		if (await page.locator('html').getAttribute('data-parisan-theme') !== 'light') await themeToggle.click();
+		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day theme can be activated');
 		// Force native lazy-loaded fixture thumbnails to load before asserting and capturing evidence.
 		const cardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
 		await cardImages.evaluateAll(images => images.forEach(image => { image.loading = 'eager'; }));
 		await cardImages.evaluateAll(images => Promise.all(images.map(image => image.decode().catch(() => null))));
 		await page.screenshot({ path: 'artifacts/parisan-desktop.png', fullPage: true });
+		await themeToggle.click();
+		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'dark', 'neon night theme can be activated');
+		assert.match(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor), /rgb\(/, 'night theme has a computed page background');
+		await page.screenshot({ path: 'artifacts/parisan-desktop-night.png', fullPage: true });
+		await themeToggle.click();
+		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day theme can be restored');
 		assert.equal(await page.locator('main#main-content').count(), 1, 'homepage main landmark renders');
 		assert.equal(await page.locator('.hero-copy h1').count(), 1, 'homepage hero heading renders');
 		assert.equal(await page.locator('.parisan-home-service-grid .service-card').count(), 2, 'homepage renders seeded service cards');
@@ -73,6 +85,11 @@ const { chromium } = require('playwright');
 		await page.evaluate(() => window.scrollTo(0, 0));
 		await page.waitForFunction(() => document.querySelector('.parisan-mobile-booking').hidden, null, { timeout: 5000 });
 		await page.screenshot({ path: 'artifacts/parisan-mobile.png', fullPage: true });
+		await themeToggle.click();
+		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'dark', 'mobile night theme can be activated');
+		assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'mobile night theme has no horizontal overflow');
+		await page.screenshot({ path: 'artifacts/parisan-mobile-night.png', fullPage: true });
+		await themeToggle.click();
 
 		const fallbackContext = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
 		const fallbackPage = await fallbackContext.newPage();
