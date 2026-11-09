@@ -12,6 +12,10 @@ const { chromium } = require('playwright');
 		await page.screenshot({ path: 'artifacts/parisan-desktop.png', fullPage: true });
 		assert.equal(await page.locator('main#main-content').count(), 1, 'homepage main landmark renders');
 		assert.equal(await page.locator('.hero-copy h1').count(), 1, 'homepage hero heading renders');
+		assert.equal(await page.locator('.parisan-home-service-grid .service-card').count(), 2, 'homepage renders seeded service cards');
+		assert.equal(await page.locator('.parisan-portfolio-grid .portfolio-card').count(), 3, 'homepage renders seeded portfolio cards');
+		assert.equal(await page.locator('.parisan-home-team-grid .specialist-card').count(), 2, 'homepage renders seeded specialist cards');
+		assert.equal(await page.locator('.post-grid .post-card').count(), 1, 'homepage renders seeded journal article without WordPress starter content');
 		assert.equal(await page.locator('.parisan-booking-notice').count(), 1, 'disabled booking notice renders');
 		assert.match(await page.locator('.parisan-booking-notice').innerText(), /رزرو آنلاین در حال حاضر فعال نیست/, 'booking remains visibly disabled by default');
 		assert.equal(await page.locator('.parisan-mobile-menu-toggle').isVisible(), false, 'mobile menu toggle is hidden on desktop');
@@ -38,7 +42,7 @@ const { chromium } = require('playwright');
 		await page.screenshot({ path: 'artifacts/parisan-mobile.png', fullPage: true });
 
 		assert.deepEqual(errors, [], 'browser reports no uncaught JavaScript errors');
-		console.log('PASS: desktop/mobile homepage, disabled booking state, responsive navigation, keyboard/Escape, focus, and browser console.');
+		console.log('PASS: seeded service/portfolio/team/journal content, desktop/mobile layout, disabled booking state, responsive navigation, keyboard/Escape, focus, and browser console.');
 	} finally {
 		await browser.close();
 	}
