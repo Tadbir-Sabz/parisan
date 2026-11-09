@@ -19,7 +19,7 @@
 
 Parisan is a premium, Persian-first WordPress experience for women's beauty salons, combined with a dependable salon operations platform:
 
-- Responsive, accessible RTL website and brand-quality public pages.
+- Responsive, accessible RTL website and brand-quality public pages, with bundled Vazirmatn typography and verified Chromium desktop/mobile day/night smoke coverage.
 - First-party salon catalogue, booking engine, staff scheduling, customer portal, and operations dashboard.
 - First-party SEO metadata, forms, performance/caching controls, and privacy-conscious settings.
 - Adapter-based Melipayamak SMS integration.
@@ -45,7 +45,7 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 ## Current implementation status
 
 - [x] Product plan, roadmap, and mandatory agent rules.
-- [x] Theme bootstrap, semantic header/footer, responsive RTL design system, dynamic editorial homepage, service/specialist preview cards, booking section, accessible fallback navigation, and owner-selectable homepage hero image and editable homepage messaging/CTA controls through the WordPress Customizer. Browser visual review remains UNVERIFIED.
+- [x] Theme bootstrap, semantic header/footer, responsive RTL design system, dynamic editorial homepage, service/specialist preview cards, booking section, accessible fallback navigation, and owner-selectable homepage hero image and editable homepage messaging/CTA controls through the WordPress Customizer. Automated Chromium screenshots for desktop/mobile day/night have been captured and inspected; final brand photography and cross-browser/assistive-technology acceptance remain pending.
 - [~] Accessible mobile navigation toggle with keyboard/Escape handling and a no-JavaScript menu fallback; browser/device validation remains UNVERIFIED.
 - [~] Accessible light/dark preference toggle (system default + saved user choice) and mobile sticky booking shortcut that yields while the booking section is visible; browser/device and assistive-technology validation remain UNVERIFIED.
 - [x] Service catalogue archive and detail templates.
