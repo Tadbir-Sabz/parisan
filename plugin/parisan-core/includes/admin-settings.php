@@ -172,6 +172,12 @@ function parisan_core_render_settings_hub() {
 	$booking_enabled = function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled();
 	$cards = array(
 		array(
+			__( 'شروع کار و آمادگی سایت', 'parisan-core' ),
+			__( 'وضعیت پوسته، صفحه نخست، منطقه زمانی، خدمات، متخصصان، برنامه کاری و ایمنی رزرو را یکجا بررسی کنید.', 'parisan-core' ),
+			admin_url( 'edit.php?post_type=parisan_staff&page=parisan-setup-readiness' ),
+			__( 'چک‌لیست فقط‌خواندنی است و هیچ تنظیمی را خودکار تغییر نمی‌دهد.', 'parisan-core' ),
+		),
+		array(
 			__( 'هویت بصری و رنگ‌بندی', 'parisan-core' ),
 			__( 'رنگ‌های حالت روز و شب، فونت، اندازه متن و اطلاعات تماس عمومی سالن را مدیریت کنید.', 'parisan-core' ),
 			admin_url( 'customize.php?autofocus[section]=parisan_brand' ),
