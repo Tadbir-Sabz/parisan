@@ -9,8 +9,12 @@ permissions:
 
 jobs:
   browser-smoke:
-    name: WordPress desktop/mobile browser smoke
+    name: WordPress desktop/mobile (${{ matrix.browser }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
     services:
       mariadb:
         image: mariadb:11
@@ -135,9 +139,11 @@ jobs:
       - name: Install Playwright Chromium
         run: |
           npm install --no-save playwright axe-core
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium firefox webkit
 
       - name: Verify desktop and mobile experience
+        env:
+          PARISAN_BROWSER: ${{ matrix.browser }}
         run: |
           mkdir -p artifacts
           node tests/browser-smoke.js
@@ -146,7 +152,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: parisian-browser-evidence
+          name: parisian-browser-evidence-${{ matrix.browser }}
           path: |
             artifacts/
             ${{ runner.temp }}/parisan-php-server.log
