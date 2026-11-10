@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  * @return void
  */
 function parisan_core_enqueue_settings_admin_assets( $hook_suffix ) {
-	if ( false === strpos( (string) $hook_suffix, 'parisan-settings' ) && false === strpos( (string) $hook_suffix, 'parisan-booking-settings' ) && false === strpos( (string) $hook_suffix, 'parisan-setup-readiness' ) ) {
+	if ( false === strpos( (string) $hook_suffix, 'parisan-settings' ) && false === strpos( (string) $hook_suffix, 'parisan-booking-settings' ) && false === strpos( (string) $hook_suffix, 'parisan-setup-readiness' ) && false === strpos( (string) $hook_suffix, 'parisan-bookings' ) ) {
 		return;
 	}
 	wp_enqueue_style(
