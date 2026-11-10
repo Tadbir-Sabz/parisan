@@ -97,6 +97,44 @@ function parisan_customize_register( $wp_customize ) {
 	);
 
 	$wp_customize->add_setting(
+		'parisan_hero_image_night_id',
+		array(
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		new WP_Customize_Media_Control(
+			$wp_customize,
+			'parisan_hero_image_night_id',
+			array(
+				'label'       => esc_html__( 'تصویر اصلی مخصوص حالت شب', 'parisan' ),
+				'description' => esc_html__( 'برای حالت شب تصویر جداگانه انتخاب کنید؛ اگر خالی بماند، تصویر شب پیش‌فرض استفاده می‌شود.', 'parisan' ),
+				'mime_type'   => 'image',
+				'section'     => 'parisan_homepage',
+			)
+		)
+	);
+	$wp_customize->add_setting(
+		'parisan_hero_image_night_alt',
+		array(
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+			'transport'         => 'refresh',
+		)
+	);
+	$wp_customize->add_control(
+		'parisan_hero_image_night_alt',
+		array(
+			'label'       => esc_html__( 'متن جایگزین تصویر حالت شب', 'parisan' ),
+			'description' => esc_html__( 'برای دسترس‌پذیری، تصویر شب را نیز به‌صورت کوتاه توصیف کنید.', 'parisan' ),
+			'section'     => 'parisan_homepage',
+			'type'        => 'text',
+		)
+	);
+
+	$wp_customize->add_setting(
 		'parisan_hero_image_alt',
 		array(
 			'default'           => '',
@@ -115,8 +153,10 @@ function parisan_customize_register( $wp_customize ) {
 	);
 
 	foreach ( array(
-		'parisan_hero_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه', 'parisan' ) ),
-		'parisan_hero_position_y' => array( 34, esc_html__( 'جایگاه عمودی سوژه', 'parisan' ) ),
+		'parisan_hero_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه در حالت روز', 'parisan' ) ),
+		'parisan_hero_position_y' => array( 34, esc_html__( 'جایگاه عمودی سوژه در حالت روز', 'parisan' ) ),
+		'parisan_hero_night_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه در حالت شب', 'parisan' ) ),
+		'parisan_hero_night_position_y' => array( 34, esc_html__( 'جایگاه عمودی سوژه در حالت شب', 'parisan' ) ),
 	) as $setting_id => $definition ) {
 		$wp_customize->add_setting(
 			$setting_id,
