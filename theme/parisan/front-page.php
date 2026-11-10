@@ -85,19 +85,19 @@ get_header();
 		<div class="container hero-bottomline" aria-label="<?php esc_attr_e( 'مزیت‌های سالن پاریسان', 'parisan' ); ?>">
 			<div class="hero-benefit">
 				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 5 43 17 24 43 5 17 24 5Z M5 17h38 M17 17l7 26 7-26 M17 17l7-12 7 12"/></svg></span>
-				<strong><?php esc_html_e( 'خدمات لوکس', 'parisan' ); ?></strong><small><?php esc_html_e( 'با بالاترین کیفیت', 'parisan' ); ?></small>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_4_title', 'خدمات لوکس' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_4_description', 'با بالاترین کیفیت' ) ); ?></small>
 			</div>
 			<div class="hero-benefit">
 				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><path d="M24 13v12l9 6"/></svg></span>
-				<strong><?php esc_html_e( 'پشتیبانی حرفه‌ای', 'parisan' ); ?></strong><small><?php esc_html_e( 'همیشه در کنار شما', 'parisan' ); ?></small>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_2_title', 'پشتیبانی حرفه‌ای' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_2_description', 'همیشه در کنار شما' ) ); ?></small>
 			</div>
 			<div class="hero-benefit">
 				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 26v-5a17 17 0 0 1 34 0v5 M7 25h7v13H9a2 2 0 0 1-2-2V25Z M41 25h-7v13h5a2 2 0 0 0 2-2V25Z M34 38c-2 4-6 5-11 5"/></svg></span>
-				<strong><?php esc_html_e( 'وقت‌دهی آسان', 'parisan' ); ?></strong><small><?php esc_html_e( 'آنلاین و سریع', 'parisan' ); ?></small>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_3_title', 'وقت‌دهی آسان' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_3_description', 'آنلاین و سریع' ) ); ?></small>
 			</div>
 			<div class="hero-benefit">
 				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 4 41 11v12c0 11-7 17-17 21C14 40 7 34 7 23V11L24 4Z M16 24l6 6 11-13"/></svg></span>
-				<strong><?php esc_html_e( 'محیط امن و بهداشتی', 'parisan' ); ?></strong><small><?php esc_html_e( 'با رعایت کامل استانداردها', 'parisan' ); ?></small>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_1_title', 'محیط امن و بهداشتی' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_1_description', 'با رعایت کامل استانداردها' ) ); ?></small>
 			</div>
 		</div>
 	</section>
