@@ -71,7 +71,7 @@ get_header();
 				<div class="hero-art-orbit hero-art-orbit-two"></div>
 				<div class="hero-art-petal hero-art-petal-one"></div>
 				<div class="hero-art-petal hero-art-petal-two"></div>
-				<div class="hero-art-label"><span><?php esc_html_e( 'THE ART OF', 'parisan' ); ?></span><strong><?php esc_html_e( 'BEING YOU', 'parisan' ); ?></strong></div>
+				<div class="hero-art-label"><span><?php esc_html_e( 'هنرِ', 'parisan' ); ?></span><strong><?php esc_html_e( 'خودِ واقعی شما', 'parisan' ); ?></strong></div>
 				<div class="hero-art-index">P / 01</div>
 				<div class="hero-art-seal" aria-hidden="true">P</div>
 			</div>
@@ -86,7 +86,7 @@ get_header();
 	<section class="intro-section parisan-home-intro">
 		<div class="container intro-grid">
 			<div>
-				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'intro_eyebrow', 'A MORE PERSONAL EXPERIENCE' ) ); ?></p>
+				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'intro_eyebrow', 'تجربه‌ای متناسب با شما' ) ); ?></p>
 				<h2><?php echo esc_html( parisan_home_content( 'intro_title', 'زیبایی، وقتی دلنشین‌تر است که برای شما معنا داشته باشد.' ) ); ?></h2>
 			</div>
 			<div class="intro-copy">
@@ -99,7 +99,7 @@ get_header();
 	<section class="parisan-services-section" id="services">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'services_eyebrow', 'THE SERVICE EDIT' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'services_title', 'خدماتی برای حالِ بهتر شما' ) ); ?></h2></div>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'services_eyebrow', 'خدمات منتخب' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'services_title', 'خدماتی برای حالِ بهتر شما' ) ); ?></h2></div>
 				<a class="text-link" href="<?php echo esc_url( post_type_exists( 'parisan_service' ) ? get_post_type_archive_link( 'parisan_service' ) : home_url( '/#booking' ) ); ?>"><?php esc_html_e( 'مشاهده همه خدمات', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
 			</div>
 			<?php if ( $parisan_services ) : ?>
@@ -139,7 +139,7 @@ get_header();
 	<section class="parisan-portfolio-section" id="portfolio">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'portfolio_eyebrow', 'THE PARISAN PORTFOLIO' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'portfolio_title', 'ظرافت را در جزئیات ببینید' ) ); ?></h2></div>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'portfolio_eyebrow', 'نمونه‌کارهای پاریسان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'portfolio_title', 'ظرافت را در جزئیات ببینید' ) ); ?></h2></div>
 				<?php if ( post_type_exists( 'parisan_portfolio' ) ) : ?><a class="text-link" href="<?php echo esc_url( get_post_type_archive_link( 'parisan_portfolio' ) ); ?>"><?php esc_html_e( 'مشاهده همه نمونه‌کارها', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
 			<?php if ( $parisan_portfolio ) : ?>
@@ -167,7 +167,7 @@ get_header();
 	<section class="parisan-journal-section">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'journal_eyebrow', 'THE PARISAN JOURNAL' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'journal_title', 'تازه‌هایی برای زیبایی و آرامش' ) ); ?></h2></div>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'journal_eyebrow', 'مجلهٔ پاریسان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'journal_title', 'تازه‌هایی برای زیبایی و آرامش' ) ); ?></h2></div>
 				<?php $parisan_blog_url = parisan_blog_index_url(); ?>
 				<?php if ( $parisan_blog_url ) : ?><a class="text-link" href="<?php echo esc_url( $parisan_blog_url ); ?>"><?php esc_html_e( 'همه مطالب مجله', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
@@ -185,7 +185,7 @@ get_header();
 	<section class="parisan-editorial-band">
 		<div class="container editorial-band-inner">
 			<div class="editorial-mark" aria-hidden="true">P.</div>
-			<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'editorial_eyebrow', 'YOUR TIME, YOUR STYLE' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'editorial_title', 'قرار نیست فقط زیباتر شوید؛ قرار است از این لحظه لذت ببرید.' ) ); ?></h2></div>
+			<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'editorial_eyebrow', 'زمانی برای خودتان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'editorial_title', 'قرار نیست فقط زیباتر شوید؛ قرار است از این لحظه لذت ببرید.' ) ); ?></h2></div>
 			<a class="button button-light" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_label', 'شروع تجربه من' ) : 'تماس با سالن' ); ?></a>
 		</div>
 	</section>
@@ -193,7 +193,7 @@ get_header();
 	<section class="parisan-team-section" id="team">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'team_eyebrow', 'THE PEOPLE BEHIND THE CARE' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'team_title', 'هنر، در دستان متخصصان ما' ) ); ?></h2></div>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'team_eyebrow', 'تیم متخصص پاریسان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'team_title', 'هنر، در دستان متخصصان ما' ) ); ?></h2></div>
 				<?php if ( post_type_exists( 'parisan_staff' ) ) : ?><a class="text-link" href="<?php echo esc_url( get_post_type_archive_link( 'parisan_staff' ) ); ?>"><?php esc_html_e( 'آشنایی با تیم', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
 			<?php if ( $parisan_staff ) : ?>
