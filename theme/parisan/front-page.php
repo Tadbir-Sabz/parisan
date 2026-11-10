@@ -51,13 +51,12 @@ get_header();
 		<div class="container hero-grid">
 			<div class="hero-copy">
 				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'hero_eyebrow', 'استودیوی زیبایی پاریسان · زیبایی با آرامش' ) ); ?></p>
-				<h1><?php echo esc_html( parisan_home_content( 'hero_title', 'زیباییِ شما، با امضای ظرافت' ) ); ?></h1>
-				<p class="hero-description"><?php echo esc_html( parisan_home_content( 'hero_description', 'از لحظه‌ای که وارد می‌شوید تا آخرین جزئیات خدمات، همه‌چیز برای یک تجربه دلنشین، دقیق و شایسته شما طراحی شده است.' ) ); ?></p>
+				<h1><?php echo esc_html( parisan_home_content( 'hero_title', 'زیبایی، با امضای ظرافت' ) ); ?></h1>
+				<p class="hero-description"><?php echo esc_html( parisan_home_content( 'hero_description', 'تجربه‌ای متفاوت از زیبایی و آرامش در سالن زیبایی پاریسان؛ با بهترین خدمات و حرفه‌ای‌ترین تیم متخصص.' ) ); ?></p>
 				<div class="hero-actions">
-					<a class="button" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_label', 'انتخاب زمان و رزرو' ) : 'هماهنگی نوبت' ); ?></a>
-					<a class="text-link" href="<?php echo esc_url( parisan_home_content( 'hero_secondary_url', '#services' ) ); ?>"><?php echo esc_html( parisan_home_content( 'hero_secondary_label', 'آشنایی با خدمات' ) ); ?></a>
+					<a class="button" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_label', 'مشاهده خدمات' ) : 'هماهنگی نوبت' ); ?></a>
+					<a class="text-link" href="<?php echo esc_url( parisan_home_content( 'hero_secondary_url', home_url( '/about/' ) ) ); ?>"><?php echo esc_html( parisan_home_content( 'hero_secondary_label', 'درباره ما' ) ); ?></a>
 				</div>
-				<div class="hero-note"><span class="hero-note-mark" aria-hidden="true">✳</span><span><?php esc_html_e( 'لحظه‌ای برای خودتان؛ تجربه‌ای با توجه به جزئیات', 'parisan' ); ?></span></div>
 			</div>
 			<div class="hero-art">
 				<?php if ( $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id ) ) : ?>
@@ -67,19 +66,26 @@ get_header();
 				<?php else : ?>
 					<img class="hero-art-photo hero-art-demo-photo" src="https://images.unsplash.com/photo-1771254240529-dbe324f0a401?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=1400" alt="<?php esc_attr_e( 'تصویر نمونه از تجربه آرایش و زیبایی در فضای استودیو', 'parisan' ); ?>" loading="eager" decoding="async" fetchpriority="high" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php endif; ?>
-				<div class="hero-art-orbit hero-art-orbit-one"></div>
-				<div class="hero-art-orbit hero-art-orbit-two"></div>
-				<div class="hero-art-petal hero-art-petal-one"></div>
-				<div class="hero-art-petal hero-art-petal-two"></div>
-				<div class="hero-art-label"><span><?php esc_html_e( 'هنرِ', 'parisan' ); ?></span><strong><?php esc_html_e( 'خودِ واقعی شما', 'parisan' ); ?></strong></div>
-				<div class="hero-art-index">P / 01</div>
-				<div class="hero-art-seal" aria-hidden="true">P</div>
+
 			</div>
 		</div>
-		<div class="container hero-bottomline" aria-label="<?php esc_attr_e( 'ویژگی‌های تجربه پاریسان', 'parisan' ); ?>">
-			<span><?php esc_html_e( 'توجه به جزئیات', 'parisan' ); ?></span>
-			<span><?php esc_html_e( 'انتخاب آگاهانه خدمات', 'parisan' ); ?></span>
-			<span><?php esc_html_e( 'آرامش در تمام مراحل', 'parisan' ); ?></span>
+		<div class="container hero-bottomline" aria-label="<?php esc_attr_e( 'مزیت‌های سالن پاریسان', 'parisan' ); ?>">
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 5 43 17 24 43 5 17 24 5Z M5 17h38 M17 17l7 26 7-26 M17 17l7-12 7 12"/></svg></span>
+				<strong><?php esc_html_e( 'خدمات لوکس', 'parisan' ); ?></strong><small><?php esc_html_e( 'با بالاترین کیفیت', 'parisan' ); ?></small>
+			</div>
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><path d="M24 13v12l9 6"/></svg></span>
+				<strong><?php esc_html_e( 'پشتیبانی حرفه‌ای', 'parisan' ); ?></strong><small><?php esc_html_e( 'همیشه در کنار شما', 'parisan' ); ?></small>
+			</div>
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 26v-5a17 17 0 0 1 34 0v5 M7 25h7v13H9a2 2 0 0 1-2-2V25Z M41 25h-7v13h5a2 2 0 0 0 2-2V25Z M34 38c-2 4-6 5-11 5"/></svg></span>
+				<strong><?php esc_html_e( 'وقت‌دهی آسان', 'parisan' ); ?></strong><small><?php esc_html_e( 'آنلاین و سریع', 'parisan' ); ?></small>
+			</div>
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 4 41 11v12c0 11-7 17-17 21C14 40 7 34 7 23V11L24 4Z M16 24l6 6 11-13"/></svg></span>
+				<strong><?php esc_html_e( 'محیط امن و بهداشتی', 'parisan' ); ?></strong><small><?php esc_html_e( 'با رعایت کامل استانداردها', 'parisan' ); ?></small>
+			</div>
 		</div>
 	</section>
 
