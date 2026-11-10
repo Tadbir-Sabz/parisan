@@ -166,6 +166,21 @@ parisan_theme_smoke_assert( function_exists( 'parisan_core_sanitize_booking_buff
 parisan_theme_smoke_assert( 15 === parisan_core_sanitize_booking_interval( 15 ) && 15 === parisan_core_sanitize_booking_interval( 17 ) && 60 === parisan_core_sanitize_booking_interval( 60 ), 'booking interval accepts supported increments and safely defaults invalid values' );
 parisan_theme_smoke_assert( 0 === parisan_core_sanitize_booking_buffer( -5 ) && 240 === parisan_core_sanitize_booking_buffer( 999 ), 'booking buffers are clamped to the supported 0–240 minute range' );
 parisan_theme_smoke_assert( false !== has_action( 'admin_menu', 'parisan_core_register_settings_pages' ), 'settings workspace and booking rules pages are registered in WordPress admin' );
+$settings_admin = get_user_by( 'login', 'parisan-ci' );
+parisan_theme_smoke_assert( $settings_admin instanceof WP_User, 'disposable WordPress administrator is available for settings-screen smoke coverage' );
+wp_set_current_user( $settings_admin->ID );
+ob_start();
+parisan_core_render_settings_hub();
+$settings_hub_html = ob_get_clean();
+parisan_theme_smoke_assert( false !== strpos( $settings_hub_html, 'تنظیمات پاریسان' ) && false !== strpos( $settings_hub_html, 'customize.php?autofocus' ) && false !== strpos( $settings_hub_html, 'parisan-booking-settings' ), 'settings workspace renders its Persian title and real configuration links' );
+parisan_theme_smoke_assert( false !== strpos( $settings_hub_html, 'غیرفعال است' ) && false !== strpos( $settings_hub_html, 'از این صفحه قابل فعال‌سازی نیست' ), 'settings workspace keeps the public booking safety gate visible and non-editable' );
+parisan_core_register_booking_settings();
+ob_start();
+parisan_core_render_booking_settings_page();
+$booking_settings_html = ob_get_clean();
+parisan_theme_smoke_assert( false !== strpos( $booking_settings_html, 'parisan_booking_slot_interval_minutes' ) && false !== strpos( $booking_settings_html, 'parisan_booking_buffer_before_minutes' ) && false !== strpos( $booking_settings_html, 'parisan_booking_buffer_after_minutes' ), 'booking settings page renders all three availability-engine controls' );
+wp_set_current_user( 0 );
+
 parisan_theme_smoke_assert( function_exists( 'parisan_core_public_booking_admin_notice' ), 'booking owner-readiness notice is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_seo_settings' ), 'first-party SEO settings module is loaded' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_output_seo_metadata' ), 'SEO metadata renderer is loaded' );
