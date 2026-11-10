@@ -33,7 +33,7 @@ $parisan_articles = get_posts( array( 'post_type' => 'post', 'post_status' => 'p
 $parisan_hero_image_id = absint( get_theme_mod( 'parisan_hero_image_id', 0 ) );
 $parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
 $parisan_hero_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_x', 50 ) );
-$parisan_hero_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_y', 42 ) );
+$parisan_hero_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_y', 28 ) );
 $parisan_hero_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_position_x, $parisan_hero_position_y );
 $parisan_has_hero_attachment = $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id );
 $parisan_has_hero_image = $parisan_has_hero_attachment || ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image );
@@ -44,7 +44,7 @@ if ( '' === $parisan_hero_image_alt && $parisan_has_hero_attachment ) {
 
 $parisan_hero_image_night_id = absint( get_theme_mod( 'parisan_hero_image_night_id', 0 ) );
 $parisan_hero_night_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_x', 50 ) );
-$parisan_hero_night_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_y', 42 ) );
+$parisan_hero_night_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_y', 28 ) );
 $parisan_hero_night_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_night_position_x, $parisan_hero_night_position_y );
 $parisan_hero_image_night_alt = sanitize_text_field( get_theme_mod( 'parisan_hero_image_night_alt', '' ) );
 if ( '' === $parisan_hero_image_night_alt && $parisan_hero_image_night_id && wp_attachment_is_image( $parisan_hero_image_night_id ) ) {
@@ -73,12 +73,12 @@ get_header();
 				<?php elseif ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image ) : ?>
 					<img class="hero-art-photo hero-art-photo-day" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php else : ?>
-					<img class="hero-art-photo hero-art-photo-day" src="https://images.unsplash.com/photo-1763192902738-a3e17d5f9015?auto=format&amp;fit=crop&amp;crop=faces&amp;fm=jpg&amp;q=82&amp;w=1400" alt="<?php esc_attr_e( 'پرتره زیبایی با آرایش ظریف و گل‌های صورتی', 'parisan' ); ?>" loading="eager" decoding="async" fetchpriority="high" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
+					<img class="hero-art-photo hero-art-photo-day" src="<?php echo esc_url( parisan_hero_fallback_image_url( 'day' ) ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ? $parisan_hero_image_alt : __( 'پرتره زیبایی با آرایش ظریف و گل‌های صورتی', 'parisan' ) ); ?>" loading="eager" decoding="async" fetchpriority="high" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php endif; ?>
 				<?php if ( $parisan_hero_image_night_id && wp_attachment_is_image( $parisan_hero_image_night_id ) ) : ?>
 					<?php echo wp_get_attachment_image( $parisan_hero_image_night_id, 'full', false, array( 'class' => 'hero-art-photo hero-art-photo-night', 'alt' => $parisan_hero_image_night_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_night_image_style ) ); ?>
 				<?php else : ?>
-					<img class="hero-art-photo hero-art-photo-night" src="https://images.unsplash.com/photo-1599753558482-08ac12195069?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=1400" alt="<?php echo esc_attr( $parisan_hero_image_night_alt ? $parisan_hero_image_night_alt : __( 'پرتره هنری با آرایش صورتی و بنفش در نورپردازی شب', 'parisan' ) ); ?>" loading="eager" decoding="async">
+					<img class="hero-art-photo hero-art-photo-night" src="<?php echo esc_url( parisan_hero_fallback_image_url( 'night' ) ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_night_alt ? $parisan_hero_image_night_alt : __( 'پرتره هنری با آرایش صورتی و بنفش در نورپردازی شب', 'parisan' ) ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_night_image_style ); ?>">
 				<?php endif; ?>
 			</div>
 		</div>
@@ -123,7 +123,7 @@ get_header();
 			</div>
 			<?php if ( $parisan_services ) : ?>
 				<div class="service-grid parisan-home-service-grid">
-					<?php foreach ( $parisan_services as $parisan_service ) : ?>
+					<?php foreach ( $parisan_services as $parisan_service_index => $parisan_service ) : ?>
 						<?php
 						$parisan_duration = absint( get_post_meta( $parisan_service->ID, '_parisan_duration', true ) );
 						$parisan_price = absint( get_post_meta( $parisan_service->ID, '_parisan_price', true ) );
@@ -131,11 +131,7 @@ get_header();
 						?>
 						<article class="service-card">
 							<a class="service-card-media" href="<?php echo esc_url( get_permalink( $parisan_service ) ); ?>" tabindex="-1" aria-hidden="true">
-								<?php if ( has_post_thumbnail( $parisan_service ) ) : ?>
-									<?php echo get_the_post_thumbnail( $parisan_service, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?>
-									<img src="https://images.unsplash.com/photo-1771254240529-dbe324f0a401?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=900" alt="" loading="lazy" decoding="async">
-								<?php endif; ?>
+								<?php echo parisan_card_image_html( $parisan_service, 'services', $parisan_service_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</a>
 							<div class="service-card-content">
 								<div class="service-card-meta">
@@ -163,14 +159,13 @@ get_header();
 			</div>
 			<?php if ( $parisan_portfolio ) : ?>
 				<div class="parisan-portfolio-grid">
-					<?php foreach ( $parisan_portfolio as $parisan_work ) : ?>
+					<?php foreach ( $parisan_portfolio as $parisan_portfolio_index => $parisan_work ) : ?>
 						<article class="portfolio-card">
-							<a class="portfolio-card-media" href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'مشاهده نمونه‌کار %s', 'parisan' ), get_the_title( $parisan_work ) ) ); ?>">
-								<?php if ( has_post_thumbnail( $parisan_work ) ) : ?>
-									<?php echo get_the_post_thumbnail( $parisan_work, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?><img src="https://images.unsplash.com/photo-1763192902738-a3e17d5f9015?auto=format&amp;fit=crop&amp;crop=faces&amp;fm=jpg&amp;q=82&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?>
+							<a class="portfolio-card-media" href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>" tabindex="-1" aria-hidden="true">
+								<?php echo parisan_card_image_html( $parisan_work, 'portfolio', $parisan_portfolio_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</a>
 							<div class="portfolio-card-content">
+								<?php the_terms( $parisan_work->ID, 'parisan_portfolio_category', '<p class="portfolio-card-category">', '، ', '</p>' ); ?>
 								<h3><a href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>"><?php echo esc_html( get_the_title( $parisan_work ) ); ?></a></h3>
 								<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_work ), 16 ) ); ?></p>
 							</div>
@@ -191,13 +186,20 @@ get_header();
 				<?php if ( $parisan_blog_url ) : ?><a class="text-link" href="<?php echo esc_url( $parisan_blog_url ); ?>"><?php esc_html_e( 'همه مطالب مجله', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
 			<?php if ( $parisan_articles ) : ?><div class="post-grid">
-				<?php foreach ( $parisan_articles as $parisan_article ) : ?>
+				<?php foreach ( $parisan_articles as $parisan_article_index => $parisan_article ) : ?>
 					<article class="post-card">
-						<a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php if ( has_post_thumbnail( $parisan_article ) ) : ?><?php echo get_the_post_thumbnail( $parisan_article, 'large', array( 'loading' => 'lazy' ) ); ?><?php else : ?><img src="https://images.unsplash.com/photo-1599753558482-08ac12195069?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?></a>
-						<div class="post-card-content"><p class="post-meta"><?php echo esc_html( get_the_date( '', $parisan_article ) ); ?></p><h3><a href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo esc_html( get_the_title( $parisan_article ) ); ?></a></h3><p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_article ), 18 ) ); ?></p></div>
+						<a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>" tabindex="-1" aria-hidden="true">
+							<?php echo parisan_card_image_html( $parisan_article, 'journal', $parisan_article_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</a>
+						<div class="post-card-content">
+							<p class="post-meta"><?php echo esc_html( get_the_date( '', $parisan_article ) ); ?></p>
+							<h3><a href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo esc_html( get_the_title( $parisan_article ) ); ?></a></h3>
+							<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_article ), 18 ) ); ?></p>
+							<a class="service-card-link" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php esc_html_e( 'ادامه مطلب', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
+						</div>
 					</article>
 				<?php endforeach; ?>
-			</div><?php else : ?><p class="catalog-empty"><?php esc_html_e( 'مطالب مجله به‌زودی منتشر می‌شوند.', 'parisan' ); ?></p><?php endif; ?>
+			</div><?php else : ?><div class="catalog-empty parisan-empty-state"><span aria-hidden="true">✳</span><p><?php esc_html_e( 'مطالب مجله به‌زودی منتشر می‌شوند.', 'parisan' ); ?></p></div><?php endif; ?>
 		</div>
 	</section>
 
@@ -217,12 +219,10 @@ get_header();
 			</div>
 			<?php if ( $parisan_staff ) : ?>
 				<div class="specialist-grid parisan-home-team-grid">
-					<?php foreach ( $parisan_staff as $parisan_member ) : ?>
+					<?php foreach ( $parisan_staff as $parisan_staff_index => $parisan_member ) : ?>
 						<article class="specialist-card">
 							<a class="specialist-card-image" href="<?php echo esc_url( get_permalink( $parisan_member ) ); ?>" tabindex="-1" aria-hidden="true">
-								<?php if ( has_post_thumbnail( $parisan_member ) ) : ?>
-									<?php echo get_the_post_thumbnail( $parisan_member, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?><img src="https://images.unsplash.com/photo-1771254240529-dbe324f0a401?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?>
+								<?php echo parisan_card_image_html( $parisan_member, 'staff', $parisan_staff_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</a>
 							<div class="specialist-card-content">
 								<?php $parisan_role = get_post_meta( $parisan_member->ID, '_parisan_staff_role', true ); ?>
@@ -258,15 +258,19 @@ get_header();
 		</div>
 	</section>
 
-	<?php if ( have_posts() ) : ?>
-		<section class="container content-loop parisan-home-content">
-			<?php while ( have_posts() ) : the_post(); ?>
-				<article <?php post_class( 'content-card' ); ?>>
-					<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
-					<?php the_excerpt(); ?>
-				</article>
-			<?php endwhile; ?>
-		</section>
+	<?php if ( is_page() && have_posts() ) : ?>
+		<?php
+		$parisan_static_content = trim( wp_strip_all_tags( get_post_field( 'post_content', get_queried_object_id() ) ) );
+		?>
+		<?php if ( '' !== $parisan_static_content ) : ?>
+			<section class="container content-loop parisan-home-content">
+				<?php while ( have_posts() ) : the_post(); ?>
+					<article <?php post_class( 'content-card' ); ?>>
+						<div class="entry-content"><?php the_content(); ?></div>
+					</article>
+				<?php endwhile; ?>
+			</section>
+		<?php endif; ?>
 	<?php endif; ?>
 </main>
 <?php get_footer(); ?>

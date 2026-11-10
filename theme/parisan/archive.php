@@ -16,13 +16,19 @@ get_header();
 	</header>
 	<div class="container post-grid">
 		<?php if ( have_posts() ) : ?>
+			<?php $parisan_index = 0; ?>
 			<?php while ( have_posts() ) : the_post(); ?>
 				<article <?php post_class( 'post-card' ); ?>>
-					<?php if ( has_post_thumbnail() ) : ?><a class="post-card-image" href="<?php the_permalink(); ?>"><?php the_post_thumbnail( 'large', array( 'loading' => 'lazy' ) ); ?></a><?php endif; ?>
-					<div class="post-card-content"><p class="eyebrow"><?php echo esc_html( get_the_date() ); ?></p><h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2><?php the_excerpt(); ?><a class="service-card-link" href="<?php the_permalink(); ?>"><?php esc_html_e( 'ادامه مطلب', 'parisan' ); ?> <span aria-hidden="true">←</span></a></div>
+					<a class="post-card-image" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
+						<?php echo parisan_card_image_html( get_the_ID(), 'journal', $parisan_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</a>
+					<div class="post-card-content"><p class="post-meta"><?php echo esc_html( get_the_date() ); ?></p><h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2><?php the_excerpt(); ?><a class="service-card-link" href="<?php the_permalink(); ?>"><?php esc_html_e( 'ادامه مطلب', 'parisan' ); ?> <span aria-hidden="true">←</span></a></div>
 				</article>
+				<?php $parisan_index++; ?>
 			<?php endwhile; ?>
-		<?php else : ?><p class="catalog-empty"><?php esc_html_e( 'مطلبی برای نمایش وجود ندارد.', 'parisan' ); ?></p><?php endif; ?>
+		<?php else : ?>
+			<div class="catalog-empty parisan-empty-state"><span aria-hidden="true">✳</span><p><?php esc_html_e( 'مطلبی برای نمایش وجود ندارد.', 'parisan' ); ?></p></div>
+		<?php endif; ?>
 	</div>
 	<div class="container catalog-pagination"><?php the_posts_pagination(); ?></div>
 </main>

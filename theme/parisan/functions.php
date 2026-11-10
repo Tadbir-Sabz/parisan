@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_THEME_VERSION', '0.7.0' );
+define( 'PARISAN_THEME_VERSION', '0.7.1' );
 define( 'PARISAN_THEME_DIR', get_template_directory() );
 define( 'PARISAN_THEME_URI', get_template_directory_uri() );
 
@@ -154,9 +154,9 @@ function parisan_customize_register( $wp_customize ) {
 
 	foreach ( array(
 		'parisan_hero_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه در حالت روز', 'parisan' ) ),
-		'parisan_hero_position_y' => array( 42, esc_html__( 'جایگاه عمودی سوژه در حالت روز', 'parisan' ) ),
+		'parisan_hero_position_y' => array( 28, esc_html__( 'جایگاه عمودی سوژه در حالت روز', 'parisan' ) ),
 		'parisan_hero_night_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه در حالت شب', 'parisan' ) ),
-		'parisan_hero_night_position_y' => array( 42, esc_html__( 'جایگاه عمودی سوژه در حالت شب', 'parisan' ) ),
+		'parisan_hero_night_position_y' => array( 28, esc_html__( 'جایگاه عمودی سوژه در حالت شب', 'parisan' ) ),
 	) as $setting_id => $definition ) {
 		$wp_customize->add_setting(
 			$setting_id,
@@ -492,13 +492,179 @@ function parisan_enqueue_assets() {
 add_action( 'wp_enqueue_scripts', 'parisan_enqueue_assets' );
 
 /**
+ * Determine whether public Parisan templates should render in Persian RTL.
+ *
+ * WordPress resets WPLANG to en_US when fa_IR translation packs are absent on disk,
+ * even though the Parisan theme templates are authored in Persian. Keep RTL active
+ * for Persian locales and default WordPress installs unless filtered otherwise.
+ *
+ * @return bool
+ */
+function parisan_is_rtl() {
+	$locale  = function_exists( 'determine_locale' ) ? determine_locale() : get_locale();
+	$default = is_rtl() || 0 === strpos( (string) $locale, 'fa' ) || 'en_US' === (string) $locale;
+	return (bool) apply_filters( 'parisan_force_rtl', $default, $locale );
+}
+
+/**
+ * Align front-end wp_locale direction with Parisan's Persian RTL templates.
+ *
+ * @return void
+ */
+function parisan_prepare_rtl_locale() {
+	if ( is_admin() || ! parisan_is_rtl() ) {
+		return;
+	}
+	if ( isset( $GLOBALS['wp_locale'] ) && is_object( $GLOBALS['wp_locale'] ) ) {
+		$GLOBALS['wp_locale']->text_direction = 'rtl';
+	}
+}
+add_action( 'wp', 'parisan_prepare_rtl_locale' );
+
+/**
+ * Ensure front-end <html> attributes include dir="rtl" and Persian lang fallback.
+ *
+ * @param string $output Existing language attributes string.
+ * @return string
+ */
+function parisan_filter_language_attributes( $output ) {
+	if ( is_admin() || ! parisan_is_rtl() ) {
+		return $output;
+	}
+	if ( false === strpos( $output, 'dir=' ) ) {
+		$output .= ' dir="rtl"';
+	} else {
+		$output = preg_replace( '/\bdir=(["\'])ltr\1/i', 'dir="rtl"', $output );
+	}
+	if ( apply_filters( 'parisan_force_persian_lang', true ) && preg_match( '/\blang=(["\'])en-US\1/i', $output ) ) {
+		$output = preg_replace( '/\blang=(["\'])en-US\1/i', 'lang="fa-IR"', $output );
+	}
+	return $output;
+}
+add_filter( 'language_attributes', 'parisan_filter_language_attributes', 20 );
+
+/**
+ * Return the self-contained local default hero portrait URL for day or night mode.
+ *
+ * @param string $mode Either 'day' or 'night'.
+ * @return string
+ */
+function parisan_hero_fallback_image_url( $mode = 'day' ) {
+	$file = 'night' === $mode ? 'hero-night.jpg' : 'hero-day.jpg';
+	return PARISAN_THEME_URI . '/assets/images/' . $file;
+}
+
+/**
+ * Return curated local fallback image metadata for a homepage or archive card slot.
+ *
+ * Each section cycles across distinct bundled assets so cards never depend on
+ * unreliable external URLs, empty boxes, or a repeated single placeholder image.
+ *
+ * @param string $group Card group: services, portfolio, staff, or journal.
+ * @param int    $index Zero-based card position within the section.
+ * @return array{url:string,object_position:string}
+ */
+function parisan_fallback_image_for_card( $group, $index = 0 ) {
+	$catalog = array(
+		'services'  => array(
+			array( 'file' => 'service-skincare.jpg', 'object_position' => '50% 45%' ),
+			array( 'file' => 'service-brows.jpg', 'object_position' => '50% 45%' ),
+			array( 'file' => 'service-hair.jpg', 'object_position' => '50% 35%' ),
+		),
+		'portfolio' => array(
+			array( 'file' => 'portfolio-glow.jpg', 'object_position' => '50% 24%' ),
+			array( 'file' => 'portfolio-nails.jpg', 'object_position' => '50% 50%' ),
+			array( 'file' => 'portfolio-updo.jpg', 'object_position' => '50% 26%' ),
+			array( 'file' => 'portfolio-evening.jpg', 'object_position' => '50% 24%' ),
+			array( 'file' => 'portfolio-care.jpg', 'object_position' => '50% 45%' ),
+			array( 'file' => 'portfolio-bridal.jpg', 'object_position' => '50% 24%' ),
+		),
+		'staff'     => array(
+			array( 'file' => 'specialist-1.jpg', 'object_position' => '50% 20%' ),
+			array( 'file' => 'specialist-2.jpg', 'object_position' => '50% 20%' ),
+			array( 'file' => 'specialist-3.jpg', 'object_position' => '50% 20%' ),
+		),
+		'journal'   => array(
+			array( 'file' => 'journal-skincare.jpg', 'object_position' => '50% 50%' ),
+			array( 'file' => 'journal-ritual.jpg', 'object_position' => '50% 45%' ),
+			array( 'file' => 'journal-color.jpg', 'object_position' => '50% 45%' ),
+		),
+	);
+
+	$items = isset( $catalog[ $group ] ) ? $catalog[ $group ] : $catalog['journal'];
+	$item  = $items[ absint( $index ) % count( $items ) ];
+	return array(
+		'url'             => PARISAN_THEME_URI . '/assets/images/' . $item['file'],
+		'object_position' => $item['object_position'],
+	);
+}
+
+/**
+ * Render an intentional card image using the post thumbnail or curated local fallback.
+ *
+ * @param WP_Post|int $post  Post object or ID.
+ * @param string      $group Card group: services, portfolio, staff, or journal.
+ * @param int         $index Zero-based card index for distinct fallback selection.
+ * @param string      $size  WordPress image size when a featured image exists.
+ * @param array       $args  Optional attributes (`decorative`, `alt`, `loading`, `class`).
+ * @return string
+ */
+function parisan_card_image_html( $post, $group, $index = 0, $size = 'large', $args = array() ) {
+	$post_id    = is_object( $post ) ? absint( $post->ID ) : absint( $post );
+	$decorative = ! isset( $args['decorative'] ) || (bool) $args['decorative'];
+	$loading    = isset( $args['loading'] ) && in_array( $args['loading'], array( 'lazy', 'eager' ), true ) ? $args['loading'] : 'lazy';
+	$class      = isset( $args['class'] ) && is_string( $args['class'] ) ? trim( $args['class'] ) : '';
+
+	if ( $post_id && has_post_thumbnail( $post_id ) ) {
+		$alt = '';
+		if ( ! $decorative ) {
+			$alt = isset( $args['alt'] ) && is_string( $args['alt'] ) && '' !== $args['alt']
+				? $args['alt']
+				: (string) get_post_meta( get_post_thumbnail_id( $post_id ), '_wp_attachment_image_alt', true );
+			if ( '' === $alt ) {
+				$alt = get_the_title( $post_id );
+			}
+		}
+		$attr = array(
+			'loading'  => $loading,
+			'decoding' => 'async',
+			'alt'      => $alt,
+		);
+		if ( '' !== $class ) {
+			$attr['class'] = $class;
+		}
+		return get_the_post_thumbnail( $post_id, $size, $attr );
+	}
+
+	$fallback = parisan_fallback_image_for_card( $group, $index );
+	$alt      = '';
+	if ( ! $decorative ) {
+		$alt = isset( $args['alt'] ) && is_string( $args['alt'] ) && '' !== $args['alt']
+			? $args['alt']
+			: ( $post_id ? get_the_title( $post_id ) : '' );
+	}
+	return sprintf(
+		'<img%1$s src="%2$s" alt="%3$s" loading="%4$s" decoding="async" style="object-position:%5$s;">',
+		'' !== $class ? ' class="' . esc_attr( $class ) . '"' : '',
+		esc_url( $fallback['url'] ),
+		esc_attr( $alt ),
+		esc_attr( $loading ),
+		esc_attr( $fallback['object_position'] )
+	);
+}
+
+/**
  * Add a body class for the theme's RTL-aware design system.
  *
  * @param array $classes Existing body classes.
  * @return array
  */
 function parisan_body_classes( $classes ) {
-	$classes[] = is_rtl() ? 'parisan-is-rtl' : 'parisan-is-ltr';
+	$rtl       = parisan_is_rtl();
+	$classes[] = $rtl ? 'parisan-is-rtl' : 'parisan-is-ltr';
+	if ( $rtl && ! in_array( 'rtl', $classes, true ) ) {
+		$classes[] = 'rtl';
+	}
 	return $classes;
 }
 add_filter( 'body_class', 'parisan_body_classes' );

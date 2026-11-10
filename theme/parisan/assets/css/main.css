@@ -2418,11 +2418,12 @@ html[data-parisan-theme="dark"] .menu-list a { color: #f6eaf5; }
 html[data-parisan-theme="dark"] .menu-list a:hover,
 html[data-parisan-theme="dark"] .menu-list .current-menu-item > a { color: #ff75d7; }
 html[data-parisan-theme="dark"] .header-booking,
-html[data-parisan-theme="dark"] .hero-copy .hero-actions .button {
-	border-color: #ed4bbd;
-	background: #e83cae;
+html[data-parisan-theme="dark"] .hero-copy .hero-actions .button,
+html[data-parisan-theme="dark"] .parisan-booking-section .button {
+	border-color: #f472cf;
+	background: linear-gradient(100deg, #b81b7c 0%, #c71f89 100%);
 	color: #fff;
-	box-shadow: 0 0 18px rgba(239,62,194,.24);
+	box-shadow: 0 0 18px rgba(239, 62, 194, .28);
 }
 html[data-parisan-theme="dark"] .parisan-theme-toggle {
 	border-color: rgba(255,90,218,.55);
@@ -2557,9 +2558,10 @@ html[data-parisan-theme="dark"] .hero-benefit small { color: #d8c1d8; }
 .hero-benefit-icon::before { content: none !important; display: none !important; }
 .hero-benefit-icon { margin-bottom: 7px; }
 html[data-parisan-theme="dark"] .header-booking,
-html[data-parisan-theme="dark"] .hero-copy .hero-actions .button {
-	background: linear-gradient(100deg,#e83eae 0%,#f45bb8 100%);
-	border-color: #ed4bbd;
+html[data-parisan-theme="dark"] .hero-copy .hero-actions .button,
+html[data-parisan-theme="dark"] .parisan-booking-section .button {
+	background: linear-gradient(100deg,#b81b7c 0%,#c71f89 100%);
+	border-color: #f472cf;
 }
 html[data-parisan-theme="dark"] .hero-art {
 	box-shadow: 0 0 24px rgba(255,63,207,.17), 0 18px 54px rgba(0,0,0,.38);
@@ -2575,3 +2577,286 @@ html[data-parisan-theme="dark"] .hero-art {
 .hero-art-photo-night { display: none !important; }
 html[data-parisan-theme="dark"] .hero-art-photo-day { display: none !important; }
 html[data-parisan-theme="dark"] .hero-art-photo-night { display: block !important; }
+
+/* Visual completion pass: crisp vector toggle icons, RTL layout rhythm,
+ * WCAG contrast tuning, focal-point framing, and uniform card grids. */
+:root {
+	--parisan-muted: #5e5360;
+}
+html[data-parisan-theme="dark"] {
+	--parisan-muted: #d2c1d6;
+}
+
+/* Crisp SVG sun/moon theme toggle with zero thumb/glyph overlap on desktop or mobile. */
+.parisan-theme-toggle {
+	position: relative;
+	width: 68px;
+	min-width: 68px;
+	height: 38px;
+	min-height: 38px;
+	padding: 0;
+}
+.parisan-theme-toggle::before {
+	inset: 4px auto 4px 4px;
+	width: 28px;
+	height: 28px;
+	background: #f2be7a;
+	box-shadow: 0 2px 6px rgba(91, 42, 67, .22);
+}
+.parisan-theme-toggle::after {
+	position: absolute;
+	inset: 50% 9px auto auto;
+	width: 16px;
+	height: 16px;
+	content: "";
+	transform: translateY(-50%);
+	background-color: transparent;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2363394f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/%3E%3C/svg%3E");
+}
+html[data-parisan-theme="dark"] .parisan-theme-toggle::before {
+	transform: translateX(30px);
+	background: #fff;
+	box-shadow: 0 0 13px rgba(244, 94, 210, .85), 0 0 6px rgba(131, 231, 242, .65);
+}
+html[data-parisan-theme="dark"] .parisan-theme-toggle::after {
+	inset: 50% auto auto 9px;
+	content: "";
+	transform: translateY(-50%);
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffe7fb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/%3E%3C/svg%3E");
+}
+
+/* Equal-height cards, consistent media framing, and protective portrait focal points. */
+.service-grid,
+.parisan-portfolio-grid,
+.specialist-grid,
+.post-grid {
+	align-items: stretch;
+}
+.service-card,
+.portfolio-card,
+.specialist-card,
+.post-card {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+.service-card-media {
+	aspect-ratio: 4 / 3;
+}
+.portfolio-card-media {
+	aspect-ratio: 4 / 4.5;
+}
+.specialist-card-image {
+	aspect-ratio: 4 / 4.3;
+}
+.post-card-image {
+	aspect-ratio: 16 / 10;
+}
+.specialist-card-image img {
+	object-position: 50% 20%;
+}
+.portfolio-card-media img {
+	object-position: 50% 38%;
+}
+.service-card-content,
+.portfolio-card-content,
+.specialist-card-content,
+.post-card-content {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+}
+.service-card-content .service-card-link,
+.post-card-content .service-card-link {
+	margin-top: auto;
+	align-self: flex-start;
+	padding-top: 10px;
+}
+.service-card-content > p:last-of-type,
+.portfolio-card-content > p:last-of-type,
+.specialist-card-content > p:last-of-type,
+.post-card-content > p:last-of-type {
+	margin-bottom: 0;
+}
+
+/* Editorial band glass inner surface layering and RTL spacing. */
+.parisan-editorial-band .editorial-band-inner {
+	position: relative;
+	z-index: 2;
+}
+.parisan-editorial-band .editorial-mark {
+	user-select: none;
+	direction: ltr;
+	unicode-bidi: isolate;
+}
+
+/* Contrast polish across Day and Night palettes. */
+.hero-benefit small {
+	color: #5f515d;
+}
+.service-card-meta {
+	color: #6d4559;
+	font-weight: 650;
+}
+.specialist-role {
+	color: #7c385a !important;
+}
+.service-card-content p,
+.portfolio-card-content p,
+.specialist-card-content p,
+.post-card-content > p:not(.post-meta) {
+	color: #5a4e5c;
+}
+.post-card-content .post-meta {
+	color: #76445f;
+	font-weight: 650;
+}
+html[data-parisan-theme="dark"] .hero-benefit small {
+	color: #dfd0e3;
+}
+html[data-parisan-theme="dark"] .service-card-meta {
+	color: #e4cbe0;
+}
+html[data-parisan-theme="dark"] .specialist-role {
+	color: #f4add6 !important;
+}
+html[data-parisan-theme="dark"] .service-card-content p,
+html[data-parisan-theme="dark"] .portfolio-card-content p,
+html[data-parisan-theme="dark"] .specialist-card-content p,
+html[data-parisan-theme="dark"] .post-card-content > p:not(.post-meta) {
+	color: #d6c5db;
+}
+html[data-parisan-theme="dark"] .post-card-content .post-meta,
+html[data-parisan-theme="dark"] .post-meta {
+	color: #ecb7d9;
+}
+html[data-parisan-theme="dark"] .parisan-booking-shell,
+html[data-parisan-theme="dark"] .parisan-booking-unavailable,
+html[data-parisan-theme="dark"] .parisan-empty-state,
+html[data-parisan-theme="dark"] .catalog-empty {
+	background: linear-gradient(145deg, rgba(47, 33, 53, .88), rgba(29, 20, 38, .88));
+	border-color: rgba(236, 190, 224, .24);
+	color: #efe3f0;
+}
+html[data-parisan-theme="dark"] .parisan-booking-notice {
+	background: transparent;
+	border-color: rgba(236, 190, 224, .24);
+	color: #f4e6f3;
+}
+
+/* Accessible skip link aligned with Day/Night pill design. */
+.skip-link {
+	border-radius: 999px;
+	font-size: 13px;
+	font-weight: 700;
+	text-decoration: none;
+}
+.skip-link:focus {
+	inset-block-start: 14px;
+	background: var(--parisan-plum-dark);
+	color: #fff;
+	box-shadow: 0 10px 26px rgba(48, 24, 42, .24);
+}
+html[data-parisan-theme="dark"] .skip-link:focus {
+	background: #b81b7c;
+	color: #fff;
+}
+
+/* Booking CTA + empty state harmony. */
+.parisan-booking-section .button {
+	margin-top: 6px;
+}
+.parisan-booking-embed {
+	margin-top: 26px;
+}
+.parisan-empty-state {
+	display: grid;
+	place-items: center;
+	gap: 10px;
+	min-height: 164px;
+}
+
+/* Footer alignment and wrap stability across desktop & mobile. */
+.footer-inner {
+	flex-wrap: wrap;
+	gap: 18px 32px;
+}
+.footer-menu {
+	flex-wrap: wrap;
+	gap: 10px 22px;
+}
+.footer-menu a {
+	white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+	.parisan-theme-toggle {
+		width: 56px;
+		min-width: 56px;
+		height: 32px;
+		min-height: 32px;
+	}
+	.parisan-theme-toggle::before {
+		inset: 3px auto 3px 3px;
+		width: 24px;
+		height: 24px;
+	}
+	.parisan-theme-toggle::after {
+		inset: 50% 8px auto auto;
+		width: 14px;
+		height: 14px;
+	}
+	html[data-parisan-theme="dark"] .parisan-theme-toggle::before {
+		transform: translateX(24px);
+	}
+	html[data-parisan-theme="dark"] .parisan-theme-toggle::after {
+		inset: 50% auto auto 8px;
+	}
+	.parisan-mobile-menu-toggle::before {
+		content: "";
+		display: block;
+		width: 22px;
+		height: 22px;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: contain;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2354233f' stroke-width='2.1' stroke-linecap='round'%3E%3Cpath d='M4 6h16M4 12h16M4 18h16'/%3E%3C/svg%3E");
+	}
+	html[data-parisan-theme="dark"] .parisan-mobile-menu-toggle::before {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff0fb' stroke-width='2.1' stroke-linecap='round'%3E%3Cpath d='M4 6h16M4 12h16M4 18h16'/%3E%3C/svg%3E");
+	}
+	.primary-navigation.is-open .menu-list {
+		margin-top: 4px;
+		padding-top: 12px;
+		border-top: 1px solid rgba(112, 71, 95, .14);
+	}
+	html[data-parisan-theme="dark"] .primary-navigation.is-open .menu-list {
+		border-top-color: rgba(255, 91, 221, .22);
+	}
+	.menu-list a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 40px;
+		padding: 4px 8px;
+	}
+	.hero-art-photo {
+		object-position: 50% 24%;
+	}
+	.portfolio-card-media,
+	.specialist-card-image {
+		aspect-ratio: 4 / 4.2;
+	}
+	.service-card-media,
+	.post-card-image {
+		aspect-ratio: 16 / 10;
+	}
+	.footer-inner {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 18px;
+	}
+}
+

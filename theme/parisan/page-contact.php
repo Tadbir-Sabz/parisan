@@ -13,7 +13,7 @@ $hours = parisan_public_setting( 'parisan_contact_hours' );
 ?>
 <main id="main-content">
 	<?php while ( have_posts() ) : the_post(); ?>
-		<section class="parisan-page-hero"><div class="container"><p class="eyebrow"><?php esc_html_e( 'WE ARE HERE FOR YOU', 'parisan' ); ?></p><h1><?php the_title(); ?></h1><p><?php esc_html_e( 'برای پرسش، راهنمایی و هماهنگی مراجعه، از راه‌های ارتباطی زیر با ما در تماس باشید.', 'parisan' ); ?></p></div></section>
+		<section class="parisan-page-hero"><div class="container"><p class="eyebrow"><?php esc_html_e( 'پاسخ‌گویی و ارتباط', 'parisan' ); ?></p><h1><?php the_title(); ?></h1><p><?php esc_html_e( 'برای پرسش، راهنمایی و هماهنگی مراجعه، از راه‌های ارتباطی زیر با ما در تماس باشید.', 'parisan' ); ?></p></div></section>
 		<div class="container parisan-page-content">
 			<div class="parisan-contact-grid">
 				<?php if ( $phone ) : ?><section class="parisan-contact-card"><h2><?php esc_html_e( 'تلفن تماس', 'parisan' ); ?></h2><p><a href="<?php echo esc_url( 'tel:' . preg_replace( '/[^0-9+]/', '', $phone ) ); ?>"><?php echo esc_html( $phone ); ?></a></p></section><?php endif; ?>

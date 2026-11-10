@@ -17,6 +17,7 @@ get_header();
 
 	<div class="container service-grid">
 		<?php if ( have_posts() ) : ?>
+			<?php $parisan_index = 0; ?>
 			<?php while ( have_posts() ) : the_post(); ?>
 				<?php
 				$duration   = absint( get_post_meta( get_the_ID(), '_parisan_duration', true ) );
@@ -25,11 +26,7 @@ get_header();
 				?>
 				<article <?php post_class( 'service-card' ); ?>>
 					<a class="service-card-media" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-						<?php if ( has_post_thumbnail() ) : ?>
-							<?php the_post_thumbnail( 'large', array( 'loading' => 'lazy' ) ); ?>
-						<?php else : ?>
-							<span class="service-card-placeholder" aria-hidden="true">✳</span>
-						<?php endif; ?>
+						<?php echo parisan_card_image_html( get_the_ID(), 'services', $parisan_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 					</a>
 					<div class="service-card-content">
 						<div class="service-card-meta">
@@ -52,9 +49,10 @@ get_header();
 						<a class="service-card-link" href="<?php the_permalink(); ?>"><?php esc_html_e( 'جزئیات خدمت', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
 					</div>
 				</article>
+				<?php $parisan_index++; ?>
 			<?php endwhile; ?>
 		<?php else : ?>
-			<p class="catalog-empty"><?php esc_html_e( 'هنوز خدمتی ثبت نشده است.', 'parisan' ); ?></p>
+			<div class="catalog-empty parisan-empty-state"><span aria-hidden="true">✳</span><p><?php esc_html_e( 'هنوز خدمتی ثبت نشده است.', 'parisan' ); ?></p></div>
 		<?php endif; ?>
 	</div>
 

@@ -12,7 +12,7 @@ get_header();
 	<?php while ( have_posts() ) : the_post(); ?>
 		<article <?php post_class( 'container portfolio-detail' ); ?>>
 			<header class="portfolio-detail-heading">
-				<p class="eyebrow"><?php esc_html_e( 'PARISAN BEAUTY · SELECTED WORK', 'parisan' ); ?></p>
+				<p class="eyebrow"><?php esc_html_e( 'نمونه‌کار برگزیده · استودیوی پاریسان', 'parisan' ); ?></p>
 				<h1><?php the_title(); ?></h1>
 				<?php the_terms( get_the_ID(), 'parisan_portfolio_category', '<div class="portfolio-detail-categories">', '، ', '</div>' ); ?>
 			</header>
