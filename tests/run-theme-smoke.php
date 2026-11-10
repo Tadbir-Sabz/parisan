@@ -159,13 +159,35 @@ parisan_theme_smoke_assert( false === strpos( $homepage, 'A MORE PERSONAL EXPERI
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false !== strpos( $homepage, 'برای هماهنگی نوبت با سالن تماس بگیرید' ), 'disabled booking state explains how to contact the salon' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'legacy owner-selected hero image URL remains backward-compatible' );
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo-night' ) && false !== strpos( $homepage, 'photo-1599753558482-08ac12195069' ), 'homepage includes a distinct default night portrait' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo-night' ) && false !== strpos( $homepage, '/assets/images/hero-night.jpg' ), 'homepage includes a distinct bundled local night portrait' );
+parisan_theme_smoke_assert( false === strpos( $homepage, 'images.unsplash.com' ), 'homepage does not depend on external Unsplash image URLs' );
+parisan_theme_smoke_assert( false === strpos( $homepage, 'parisan-home-content' ), 'homepage avoids duplicating the blog post loop right above the footer' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'object-position:63% 28%;' ), 'owner-selected hero focal point is applied to the image crop' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'alt="تصویر فضای داخلی استودیوی پاریسان"' ), 'owner-provided alternative text is rendered on the hero image' );
 parisan_theme_smoke_assert( false === strpos( $homepage, 'hero-art" role="img"' ), 'selected photography is not redundantly exposed as a generic image role' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-theme-toggle' ), 'accessible light/dark theme control renders in the site header' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking' ), 'mobile booking shortcut renders in the site footer' );
 parisan_theme_smoke_assert( wp_script_is( 'parisan-theme', 'enqueued' ), 'theme interaction script is enqueued' );
+
+$rtl_attrs = parisan_filter_language_attributes( 'lang="en-US"' );
+parisan_theme_smoke_assert( false !== strpos( $rtl_attrs, 'dir="rtl"' ) && false !== strpos( $rtl_attrs, 'lang="fa-IR"' ), 'Persian RTL attributes are enforced even when WordPress falls back to en-US' );
+$asset_files = array(
+	parisan_hero_fallback_image_url( 'day' ),
+	parisan_hero_fallback_image_url( 'night' ),
+);
+foreach ( array( 'services', 'portfolio', 'staff', 'journal' ) as $card_group ) {
+	$group_urls = array();
+	for ( $card_i = 0; $card_i < 3; $card_i++ ) {
+		$fallback = parisan_fallback_image_for_card( $card_group, $card_i );
+		$group_urls[] = $fallback['url'];
+		$asset_files[] = $fallback['url'];
+	}
+	parisan_theme_smoke_assert( 3 === count( array_unique( $group_urls ) ), 'fallback images are distinct across cards in group: ' . $card_group );
+}
+foreach ( array_unique( $asset_files ) as $asset_url ) {
+	$rel = str_replace( PARISAN_THEME_URI, '', $asset_url );
+	parisan_theme_smoke_assert( file_exists( get_template_directory() . $rel ), 'bundled theme visual exists on disk: ' . $rel );
+}
 
 
 parisan_theme_smoke_assert( function_exists( 'parisan_core_register_settings_pages' ), 'unified Parisan settings workspace is registered' );

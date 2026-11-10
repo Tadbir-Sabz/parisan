@@ -17,7 +17,11 @@ const { chromium } = require('playwright');
 			targetPage.on('requestfailed', request => failedRequests.push(request.method() + ' ' + request.url() + ': ' + (request.failure() ? request.failure().errorText : 'unknown failure')));
 		}
 		collectBrowserDiagnostics(page);
-		await page.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
+		await page.goto(process.env.PARISAN_TEST_URL || 'http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
+		assert.equal(await page.locator('html').getAttribute('dir'), 'rtl', 'homepage renders with explicit RTL document direction');
+		assert.equal(await page.evaluate(() => document.documentElement.innerHTML.includes('images.unsplash.com')), false, 'homepage relies solely on local assets, not external Unsplash URLs');
+		assert.equal(await page.locator('.parisan-home-content').count(), 0, 'homepage does not duplicate blog posts right above the footer');
+
 		const fontDiagnostics = await page.evaluate(async () => {
 			try { await document.fonts.load('16px Vazirmatn'); await document.fonts.ready; }
 			catch (error) { return { error: error.message, faces: Array.from(document.fonts, face => ({ family: face.family, status: face.status, weight: face.weight })) }; }
@@ -26,6 +30,7 @@ const { chromium } = require('playwright');
 		assert.equal(fontDiagnostics.loaded, true, 'bundled Vazirmatn font loads successfully: ' + JSON.stringify(fontDiagnostics));
 		assert.equal(await page.evaluate(() => performance.getEntriesByType('resource').some(entry => entry.name.includes('/assets/fonts/Vazirmatn'))), true, 'Vazirmatn is served from the theme package, not an external CDN');
 		assert.match(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily), /Vazirmatn/, 'Persian-first Vazirmatn font is applied');
+
 		const themeToggle = page.locator('.parisan-theme-toggle');
 		assert.equal(await themeToggle.isVisible(), true, 'day/night theme control is available');
 		assert.equal(await page.locator('.hero-art-photo-day').isVisible(), true, 'day theme shows its own hero portrait');
@@ -33,6 +38,7 @@ const { chromium } = require('playwright');
 		const dayHeroPhoto = await page.locator('.hero-art-photo-day').getAttribute('src');
 		const nightHeroPhoto = await page.locator('.hero-art-photo-night').getAttribute('src');
 		assert.ok(dayHeroPhoto && nightHeroPhoto && dayHeroPhoto !== nightHeroPhoto, 'day and night hero modes use distinct photography');
+		assert.equal(await page.locator('.hero-art-photo-day').evaluate(img => img.complete && img.naturalWidth > 0), true, 'day hero portrait loads with valid image dimensions');
 		if (await page.locator('html').getAttribute('data-parisan-theme') !== 'light') await themeToggle.click();
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day theme can be activated');
 		const desktopHeroGeometry = await page.evaluate(() => {
@@ -42,21 +48,32 @@ const { chromium } = require('playwright');
 		});
 		assert.ok(desktopHeroGeometry.artWidth > 400 && desktopHeroGeometry.copyWidth > 360, 'desktop hero keeps both columns substantial: ' + JSON.stringify(desktopHeroGeometry));
 		assert.ok(desktopHeroGeometry.artRight <= desktopHeroGeometry.copyLeft + 2, 'desktop hero copy never overlaps the photograph: ' + JSON.stringify(desktopHeroGeometry));
-		// Force native lazy-loaded fixture thumbnails to load before asserting and capturing evidence.
+		// Force native lazy-loaded/async-decoded thumbnails to decode synchronously before full-page capture.
 		const cardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
-		await cardImages.evaluateAll(images => images.forEach(image => { image.loading = 'eager'; }));
+		await cardImages.evaluateAll(images => images.forEach(image => {
+			image.loading = 'eager';
+			image.decoding = 'sync';
+		}));
+		await page.waitForFunction(() => {
+			const images = Array.from(document.querySelectorAll('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img'));
+			return images.length === 12 && images.every(image => image.complete && image.naturalWidth > 0);
+		}, null, { timeout: 15000 });
 		await cardImages.evaluateAll(images => Promise.all(images.map(image => image.decode().catch(() => null))));
+		await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 		await page.screenshot({ path: 'artifacts/parisan-desktop.png', fullPage: true });
 		await page.screenshot({ path: 'artifacts/parisan-desktop-viewport.png', fullPage: false });
+
 		await themeToggle.click();
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'dark', 'neon night theme can be activated');
 		assert.equal(await page.locator('.hero-art-photo-day').isVisible(), false, 'day hero portrait is hidden in night mode');
 		assert.equal(await page.locator('.hero-art-photo-night').isVisible(), true, 'night mode reveals its dedicated hero portrait');
+		assert.equal(await page.locator('.hero-art-photo-night').evaluate(img => img.complete && img.naturalWidth > 0), true, 'night hero portrait loads with valid image dimensions');
 		assert.equal(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(23, 19, 30)', 'night theme uses the deep aubergine canvas');
 		assert.match(await page.locator('.button').first().evaluate(el => getComputedStyle(el).backgroundImage), /linear-gradient/, 'night theme uses the neon accent treatment');
 		assert.match(await page.locator('.hero-art').evaluate(el => getComputedStyle(el).boxShadow), /rgba\(255, 63, 207/, 'night hero artwork has a restrained neon glow');
 		await page.screenshot({ path: 'artifacts/parisan-desktop-night.png', fullPage: true });
 		await page.screenshot({ path: 'artifacts/parisan-desktop-night-viewport.png', fullPage: false });
+
 		await themeToggle.click();
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day theme can be restored');
 		await page.reload({ waitUntil: 'networkidle' });
@@ -65,28 +82,43 @@ const { chromium } = require('playwright');
 		assert.match(await page.locator('.parisan-brand-lockup').innerText(), /Parisan/, 'browser demo renders the Parisan wordmark and lotus mark');
 		assert.equal(await page.locator('.hero-copy h1').count(), 1, 'homepage hero heading renders');
 		assert.equal(await page.locator('.hero-benefit').count(), 4, 'reference-style four-benefit trust bar renders');
-		assert.equal(await page.locator('.parisan-home-service-grid .service-card').count(), 2, 'homepage renders seeded service cards');
-		assert.equal(await page.locator('.parisan-portfolio-grid .portfolio-card').count(), 3, 'homepage renders seeded portfolio cards');
-		assert.equal(await page.locator('.parisan-home-team-grid .specialist-card').count(), 2, 'homepage renders seeded specialist cards');
-		assert.equal(await page.locator('.post-grid .post-card').count(), 1, 'homepage renders seeded journal article without WordPress starter content');
-		assert.equal(await page.locator('.parisan-home-service-grid .service-card img').count(), 2, 'service cards have featured images');
-		assert.equal(await page.locator('.parisan-portfolio-grid .portfolio-card img').count(), 3, 'portfolio cards have featured images');
-		assert.equal(await page.locator('.parisan-home-team-grid .specialist-card img').count(), 2, 'specialist cards have featured images');
-		assert.equal(await page.locator('.post-grid .post-card-image img').count(), 1, 'journal card has a featured image');
+		assert.equal(await page.locator('.parisan-home-service-grid .service-card').count(), 3, 'homepage renders three balanced service cards');
+		assert.equal(await page.locator('.parisan-portfolio-grid .portfolio-card').count(), 3, 'homepage renders three balanced portfolio cards');
+		assert.equal(await page.locator('.parisan-home-team-grid .specialist-card').count(), 3, 'homepage renders three balanced specialist cards');
+		assert.equal(await page.locator('.post-grid .post-card').count(), 3, 'homepage renders three balanced journal articles without WordPress starter content');
+		assert.equal(await page.locator('.parisan-home-service-grid .service-card img').count(), 3, 'all service cards have images');
+		assert.equal(await page.locator('.parisan-portfolio-grid .portfolio-card img').count(), 3, 'all portfolio cards have images');
+		assert.equal(await page.locator('.parisan-home-team-grid .specialist-card img').count(), 3, 'all specialist cards have images');
+		assert.equal(await page.locator('.post-grid .post-card-image img').count(), 3, 'all journal cards have images');
+		for (const selector of [
+			'.parisan-home-service-grid .service-card img',
+			'.parisan-portfolio-grid .portfolio-card img',
+			'.parisan-home-team-grid .specialist-card img',
+			'.post-grid .post-card-image img',
+		]) {
+			const srcs = await page.locator(selector).evaluateAll(imgs => imgs.map(img => img.currentSrc || img.src));
+			assert.equal(new Set(srcs).size, srcs.length, 'card images are distinct within section ' + selector + ': ' + JSON.stringify(srcs));
+		}
+
 		const allCardImages = page.locator('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img');
 		// Reload resets native lazy-loading state; force all fixture images eager before the assertion.
 		await allCardImages.evaluateAll(images => images.forEach(image => { image.loading = 'eager'; }));
 		await allCardImages.evaluateAll(images => Promise.all(images.map(image => image.decode().catch(() => null))));
 		await page.waitForFunction(() => {
 			const images = Array.from(document.querySelectorAll('.service-card img, .portfolio-card img, .specialist-card img, .post-card-image img'));
-			return images.length === 8 && images.every(image => image.complete && image.naturalWidth > 0);
+			return images.length === 12 && images.every(image => image.complete && image.naturalWidth > 0);
 		}, null, { timeout: 15000 });
-		assert.equal(await allCardImages.count(), 8, 'all eight seeded card images are present');
-		assert.equal(await allCardImages.evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true, 'all seeded card images load successfully');
+		assert.equal(await allCardImages.count(), 12, 'all twelve card images are present');
+		assert.equal(await allCardImages.evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true, 'all card images load successfully');
 		assert.equal(await page.locator('.parisan-booking-notice').count(), 1, 'disabled booking notice renders');
 		assert.match(await page.locator('.parisan-booking-notice').innerText(), /رزرو آنلاین در حال حاضر فعال نیست/, 'booking remains visibly disabled by default');
 		assert.equal(await page.locator('.parisan-mobile-menu-toggle').isVisible(), false, 'mobile menu toggle is hidden on desktop');
 		assert.equal(await page.locator('.primary-navigation a').count(), 6, 'concise six-item fallback navigation renders on desktop');
+
+		await page.keyboard.press('Tab');
+		assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.classList.contains('skip-link')), true, 'first keyboard Tab focuses the skip-to-content link');
+		await page.keyboard.press('Tab');
+		assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.closest('.site-header') !== null), true, 'subsequent keyboard Tab moves focus into the site header navigation/actions');
 
 		await page.setViewportSize({ width: 390, height: 844 });
 		assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'mobile homepage has no horizontal page overflow');
@@ -136,7 +168,7 @@ const { chromium } = require('playwright');
 		await fallbackPage.addInitScript(() => {
 			Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: undefined });
 		});
-		await fallbackPage.goto('http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
+		await fallbackPage.goto(process.env.PARISAN_TEST_URL || 'http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
 		assert.equal(await fallbackPage.locator('.parisan-mobile-booking').isVisible(), false, 'no-observer fallback never displays a floating overlay');
 		assert.equal(await fallbackPage.locator('#booking').isVisible(), true, 'booking/contact section remains available without IntersectionObserver');
 		assert.equal(await fallbackPage.locator('#booking a.button').isVisible(), true, 'salon contact action remains available without IntersectionObserver');

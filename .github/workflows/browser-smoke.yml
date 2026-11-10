@@ -66,69 +66,50 @@ jobs:
           cp -R plugin/parisan-core "$WP_PATH/wp-content/plugins/parisan-core"
           wp plugin activate parisan-core --path="$WP_PATH"
           wp theme activate parisan --path="$WP_PATH"
-          # Replace WordPress's generic starter content with deterministic Persian salon fixtures.
+          # Replace WordPress's generic starter content with balanced 3-column Persian salon fixtures using bundled local imagery.
           wp post delete 1 --force --path="$WP_PATH"
-          wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="راهنمای انتخاب خدمات مراقبت پوست" --post_excerpt="چطور خدمات متناسب با نیاز پوست خود را آگاهانه انتخاب کنیم؟" --post_content="در این راهنما با چند نکته کاربردی برای انتخاب خدمات مراقبت پوست آشنا می‌شوید." --porcelain
-          # Generate local abstract thumbnails so browser evidence tests populated cards, not empty placeholders.
-          cat > "$WP_PATH/create-fixtures.php" <<'PHP'
-          <?php
-          $items = array(
-              'service-skin' => array( 224, 190, 199 ),
-              'service-brow' => array( 178, 133, 155 ),
-              'portfolio-one' => array( 194, 155, 174 ),
-              'portfolio-two' => array( 207, 176, 185 ),
-              'portfolio-three' => array( 158, 119, 143 ),
-              'staff-one' => array( 211, 183, 167 ),
-              'staff-two' => array( 183, 145, 164 ),
-              'journal' => array( 225, 203, 193 ),
-          );
-          foreach ( $items as $name => $rgb ) {
-              $image = imagecreatetruecolor( 1200, 900 );
-              for ( $y = 0; $y < 900; $y++ ) {
-                  $mix = $y / 900;
-                  $color = imagecolorallocate( $image, (int) ( $rgb[0] + ( 247 - $rgb[0] ) * $mix ), (int) ( $rgb[1] + ( 235 - $rgb[1] ) * $mix ), (int) ( $rgb[2] + ( 232 - $rgb[2] ) * $mix ) );
-                  imageline( $image, 0, $y, 1200, $y, $color );
-              }
-              $ring = imagecolorallocatealpha( $image, 255, 248, 241, 65 );
-              $soft = imagecolorallocatealpha( $image, 255, 248, 241, 82 );
-              imageellipse( $image, 600, 450, 560, 560, $ring );
-              imageellipse( $image, 600, 450, 420, 420, $soft );
-              imagefilledellipse( $image, 600, 450, 230, 230, $soft );
-              imagefilledellipse( $image, 740, 340, 90, 90, $ring );
-              imagepng( $image, __DIR__ . '/' . $name . '.png' );
-              imagedestroy( $image );
-          }
-          PHP
-          php "$WP_PATH/create-fixtures.php"
-          SERVICE_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="پاکسازی و آبرسانی پوست" --post_excerpt="مراقبت تخصصی برای طراوت و شادابی پوست." --post_content="یک تجربه مراقبتی با توجه به نوع پوست و نیازهای شما." --porcelain)
-          wp post meta update "$SERVICE_ID" _parisan_duration 60 --path="$WP_PATH"
-          wp post meta update "$SERVICE_ID" _parisan_price 850000 --path="$WP_PATH"
-          wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="طراحی و فرم‌دهی ابرو" --post_excerpt="فرم‌دهی متناسب با چهره با دقت و ظرافت." --post_content="مشاوره و اجرای فرم دلخواه با توجه به تناسب چهره." --porcelain
-          STAFF_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="نگار احمدی" --post_excerpt="متخصص مراقبت و زیبایی پوست." --post_content="با تمرکز بر تجربه‌ای آرام و انتخاب آگاهانه خدمات." --porcelain)
-          wp post meta update "$STAFF_ID" _parisan_staff_role "متخصص مراقبت پوست" --path="$WP_PATH"
-          STAFF_ID=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="سارا محمدی" --post_excerpt="متخصص طراحی و زیبایی ابرو." --post_content="توجه به جزئیات و تناسب طبیعی، بخشی از رویکرد کاری اوست." --porcelain)
-          wp post meta update "$STAFF_ID" _parisan_staff_role "متخصص زیبایی" --path="$WP_PATH"
-          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="درخشش طبیعی" --post_excerpt="نمونه‌ای از زیبایی ساده و متناسب." --post_content="نمونه‌کار نمایشی برای آزمون چیدمان گالری." --porcelain
-          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="جزئیات ظریف" --post_excerpt="توجه به جزئیات در اجرای خدمات." --post_content="نمونه‌کار نمایشی دوم برای آزمون گالری." --porcelain
-          wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="سبک هماهنگ" --post_excerpt="هماهنگی سبک و سلیقه شخصی." --post_content="نمونه‌کار نمایشی سوم برای آزمون گالری." --porcelain
-          SERVICE_ID=$(wp post list --path="$WP_PATH" --post_type=parisan_service --field=ID --format=ids | awk '{print $1}')
-          wp media import "$WP_PATH/service-skin.png" --post_id="$SERVICE_ID" --featured_image --path="$WP_PATH" --quiet
-          SERVICE_ID=$(wp post list --path="$WP_PATH" --post_type=parisan_service --field=ID --format=ids | awk '{print $2}')
-          wp media import "$WP_PATH/service-brow.png" --post_id="$SERVICE_ID" --featured_image --path="$WP_PATH" --quiet
-          INDEX=0
-          for ID in $(wp post list --path="$WP_PATH" --post_type=parisan_portfolio --field=ID --format=ids); do
-            INDEX=$((INDEX + 1))
-            case "$INDEX" in 1) IMAGE=portfolio-one;; 2) IMAGE=portfolio-two;; *) IMAGE=portfolio-three;; esac
-            wp media import "$WP_PATH/$IMAGE.png" --post_id="$ID" --featured_image --path="$WP_PATH" --quiet
-          done
-          INDEX=0
-          for ID in $(wp post list --path="$WP_PATH" --post_type=parisan_staff --field=ID --format=ids); do
-            INDEX=$((INDEX + 1))
-            if [ "$INDEX" -eq 1 ]; then IMAGE=staff-one; else IMAGE=staff-two; fi
-            wp media import "$WP_PATH/$IMAGE.png" --post_id="$ID" --featured_image --path="$WP_PATH" --quiet
-          done
-          POST_ID=$(wp post list --path="$WP_PATH" --post_type=post --field=ID --format=ids | awk '{print $1}')
-          wp media import "$WP_PATH/journal.png" --post_id="$POST_ID" --featured_image --path="$WP_PATH" --quiet
+          POST_1=$(wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="راهنمای انتخاب خدمات مراقبت پوست" --post_excerpt="چطور خدمات متناسب با نیاز پوست خود را آگاهانه انتخاب کنیم؟" --post_content="در این راهنما با چند نکته کاربردی برای انتخاب خدمات مراقبت پوست آشنا می‌شوید." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/journal-skincare.jpg" --post_id="$POST_1" --featured_image --path="$WP_PATH" --quiet
+          POST_2=$(wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="روتین آرامش‌بخش مراقبت شبانه" --post_excerpt="سه گام ساده برای حفظ رطوبت و لطافت پوست پیش از خواب." --post_content="مراقبت شبانه به پوست فرصت بازسازی می‌دهد و شادابی روز بعد را تقویت می‌کند." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/journal-ritual.jpg" --post_id="$POST_2" --featured_image --path="$WP_PATH" --quiet
+          POST_3=$(wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="انتخاب رنگ‌های هماهنگ با تناژ پوست" --post_excerpt="چطور تناژ آرایش و رنگ مو را متناسب با گرمی و سردی پوست برگزینیم؟" --post_content="هماهنگی طیف رنگ‌ها باعث جلوه طبیعی‌تر و ظریف‌تر چهره در نور روز و شب می‌شود." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/journal-color.jpg" --post_id="$POST_3" --featured_image --path="$WP_PATH" --quiet
+
+          SERVICE_1=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="پاکسازی و آبرسانی پوست" --post_excerpt="مراقبت تخصصی برای طراوت، پاکسازی عمقی و شادابی پوست." --post_content="یک تجربه مراقبتی آرام با توجه به نوع پوست و نیازهای شما." --porcelain)
+          wp post meta update "$SERVICE_1" _parisan_duration 60 --path="$WP_PATH"
+          wp post meta update "$SERVICE_1" _parisan_price 850000 --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/service-skincare.jpg" --post_id="$SERVICE_1" --featured_image --path="$WP_PATH" --quiet
+
+          SERVICE_2=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="طراحی و فرم‌دهی ابرو" --post_excerpt="فرم‌دهی متناسب با چهره با دقت، تقارن و ظرافت." --post_content="مشاوره و اجرای فرم دلخواه با توجه به تناسب چهره." --porcelain)
+          wp post meta update "$SERVICE_2" _parisan_duration 45 --path="$WP_PATH"
+          wp post meta update "$SERVICE_2" _parisan_price 480000 --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/service-brows.jpg" --post_id="$SERVICE_2" --featured_image --path="$WP_PATH" --quiet
+
+          SERVICE_3=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="احیا و مراقبت ابریشمی مو" --post_excerpt="آبرسانی عمیق ساقه مو با سرم‌های گیاهی و براشینگ نرم." --post_content="درمان تغذیه‌کننده برای نرمی، درخشش و سلامت تارهای مو." --porcelain)
+          wp post meta update "$SERVICE_3" _parisan_duration 75 --path="$WP_PATH"
+          wp post meta update "$SERVICE_3" _parisan_price 1250000 --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/service-hair.jpg" --post_id="$SERVICE_3" --featured_image --path="$WP_PATH" --quiet
+
+          STAFF_1=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="نگار احمدی" --post_excerpt="متخصص مراقبت و فیشال پوست با رویکرد علمی و آرامش‌بخش." --post_content="با تمرکز بر تجربه‌ای آرام و انتخاب آگاهانه خدمات." --porcelain)
+          wp post meta update "$STAFF_1" _parisan_staff_role "متخصص مراقبت پوست" --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/specialist-1.jpg" --post_id="$STAFF_1" --featured_image --path="$WP_PATH" --quiet
+
+          STAFF_2=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="سارا محمدی" --post_excerpt="متخصص طراحی ابرو و میکاپ ظریف متناسب با چهره." --post_content="توجه به جزئیات و تناسب طبیعی، بخشی از رویکرد کاری اوست." --porcelain)
+          wp post meta update "$STAFF_2" _parisan_staff_role "متخصص زیبایی و ابرو" --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/specialist-2.jpg" --post_id="$STAFF_2" --featured_image --path="$WP_PATH" --quiet
+
+          STAFF_3=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="مهسا کریمی" --post_excerpt="متخصص احیا، رنگ و استایلینگ حرفه‌ای مو در استودیو." --post_content="ترکیب تکنیک روز و سلامت مو برای نتیجه‌ای ماندگار و لطیف." --porcelain)
+          wp post meta update "$STAFF_3" _parisan_staff_role "متخصص زیبایی مو" --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/specialist-3.jpg" --post_id="$STAFF_3" --featured_image --path="$WP_PATH" --quiet
+
+          PORTFOLIO_1=$(wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="درخشش طبیعی" --post_excerpt="میکاپ سبک و شفاف با جلوه‌ای طبیعی و درخشان." --post_content="نمونه‌کار نمایشی برای آزمون چیدمان گالری." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/portfolio-glow.jpg" --post_id="$PORTFOLIO_1" --featured_image --path="$WP_PATH" --quiet
+
+          PORTFOLIO_2=$(wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="جزئیات ظریف ناخن" --post_excerpt="مانیکور صدفی و لطیف با پرداخت دقیق و تمیز." --post_content="نمونه‌کار نمایشی دوم برای آزمون گالری." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/portfolio-nails.jpg" --post_id="$PORTFOLIO_2" --featured_image --path="$WP_PATH" --quiet
+
+          PORTFOLIO_3=$(wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="شینیون کلاسیک مرواریدی" --post_excerpt="بافت و جمع‌کردن کلاسیک مو همراه با اکسسوری مرواریدی ظریف." --post_content="نمونه‌کار نمایشی سوم برای آزمون گالری." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/portfolio-updo.jpg" --post_id="$PORTFOLIO_3" --featured_image --path="$WP_PATH" --quiet
           cat > "$WP_PATH/router.php" <<'PHP'
           <?php
           $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );

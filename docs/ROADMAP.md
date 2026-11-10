@@ -41,7 +41,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 - [ ] Define brand concept, naming/wordmark direction, color tokens, Persian/Latin type system, iconography, spacing, motion, and responsive breakpoints.
 - [ ] Produce desktop/tablet/mobile design references and high-fidelity homepage/service/booking/account/admin prototypes.
-- [~] Define complete RTL/LTR interaction rules and dark/light tokens; initial accessible light/dark preference control is implemented, while full-page contrast, RTL/LTR and keyboard/screen-reader review remain UNVERIFIED.
+- [~] Define complete RTL/LTR interaction rules and dark/light tokens; accessible light/dark preference control, front-end Persian `dir="rtl"` direction fallback, SVG toggle icon, and WCAG-oriented Day/Night card contrast adjustments are implemented and checked in Chromium, while full-screen-reader/multi-browser WCAG 2.2 AA review remains UNVERIFIED.
 - [x] Add initial theme scaffold, semantic header/footer, navigation, dedicated front page, standard page/post, archive, search, and 404 templates, and responsive RTL-aware base styles.
 - [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
 - [~] Build public templates: dynamic editorial homepage and service/staff catalogue archive/detail foundations are implemented; gallery, blog, contact, FAQ, policies, and remaining content templates are pending. Browser rendering and responsive visual review remain UNVERIFIED.
@@ -217,4 +217,4 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [ ] Run exact-SHA CI and independent review on the implementation branch before merge.
 
 
-- [~] Hero photography now has separate day/night images, independent focal points and alternative text, plus responsive media-library output; four trust-benefit cards are owner-editable. Exact-SHA browser/PHP evidence is being refreshed after the visual rebuild. Existing saved day-image URLs remain supported.
+- [~] Hero photography now has separate day/night images, independent focal points and alternative text, plus responsive media-library output; four trust-benefit cards are owner-editable; 17 self-contained local AI-generated demo visuals (`theme/parisan/assets/images/*.jpg`) eliminate broken/duplicated Unsplash URLs across homepage and archives; duplicate front-page bottom loop and theme-toggle overlap are resolved with fresh Chromium desktop/mobile day/night verification on the session branch. Existing saved day-image URLs remain supported. Real salon photography, multi-browser/screen-reader audits, and production deployment remain pending.
