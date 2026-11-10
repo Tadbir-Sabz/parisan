@@ -16,6 +16,16 @@ const { chromium } = require('playwright');
 			});
 			targetPage.on('requestfailed', request => failedRequests.push(request.method() + ' ' + request.url() + ': ' + (request.failure() ? request.failure().errorText : 'unknown failure')));
 		}
+		async function runAccessibilityAudit(targetPage, label) {
+			await targetPage.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
+			const audit = await targetPage.evaluate(async () => window.axe.run(document, {
+				runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'] }
+			}));
+			const violations = audit.violations.map(item => ({ id: item.id, impact: item.impact, description: item.help, nodes: item.nodes.length }));
+			console.log('ACCESSIBILITY ' + JSON.stringify({ label, passes: audit.passes.length, incomplete: audit.incomplete.length, violations }));
+			const blockers = violations.filter(item => item.impact === 'critical' || item.impact === 'serious');
+			assert.deepEqual(blockers, [], label + ' has no serious or critical axe-core violations: ' + JSON.stringify(blockers));
+		}
 		collectBrowserDiagnostics(page);
 		await page.goto(process.env.PARISAN_TEST_URL || 'http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
 		assert.equal(await page.locator('html').getAttribute('dir'), 'rtl', 'homepage renders with explicit RTL document direction');
@@ -41,6 +51,7 @@ const { chromium } = require('playwright');
 		assert.equal(await page.locator('.hero-art-photo-day').evaluate(img => img.complete && img.naturalWidth > 0), true, 'day hero portrait loads with valid image dimensions');
 		if (await page.locator('html').getAttribute('data-parisan-theme') !== 'light') await themeToggle.click();
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day theme can be activated');
+		await runAccessibilityAudit(page, 'desktop-day');
 		const desktopHeroGeometry = await page.evaluate(() => {
 			const art = document.querySelector('.hero-art').getBoundingClientRect();
 			const copy = document.querySelector('.hero-copy').getBoundingClientRect();
@@ -67,6 +78,7 @@ const { chromium } = require('playwright');
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'dark', 'neon night theme can be activated');
 		assert.equal(await page.locator('.hero-art-photo-day').isVisible(), false, 'day hero portrait is hidden in night mode');
 		assert.equal(await page.locator('.hero-art-photo-night').isVisible(), true, 'night mode reveals its dedicated hero portrait');
+		await runAccessibilityAudit(page, 'desktop-night');
 		assert.equal(await page.locator('.hero-art-photo-night').evaluate(img => img.complete && img.naturalWidth > 0), true, 'night hero portrait loads with valid image dimensions');
 		assert.equal(await page.locator('body').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(23, 19, 30)', 'night theme uses the deep aubergine canvas');
 		assert.match(await page.locator('.button').first().evaluate(el => getComputedStyle(el).backgroundImage), /linear-gradient/, 'night theme uses the neon accent treatment');
@@ -125,6 +137,7 @@ const { chromium } = require('playwright');
 		assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.intro-grid')).gridTemplateColumns.split(' ').length), 1, 'mobile intro content uses a single readable column');
 		assert.ok(await page.locator('.site-title').evaluate(el => getComputedStyle(el).whiteSpace) === 'nowrap', 'mobile site title remains on one line');
 		assert.ok(await page.locator('.hero-description').evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16), 'mobile body copy remains comfortably readable');
+		await runAccessibilityAudit(page, 'mobile-day');
 		const menuToggle = page.locator('.parisan-mobile-menu-toggle');
 		const navigation = page.locator('.primary-navigation');
 		assert.equal(await menuToggle.isVisible(), true, 'mobile menu control is visible');
@@ -158,6 +171,7 @@ const { chromium } = require('playwright');
 		await themeToggle.click();
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'dark', 'mobile night theme can be activated');
 		assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'mobile night theme has no horizontal overflow');
+		await runAccessibilityAudit(page, 'mobile-night');
 		await page.screenshot({ path: 'artifacts/parisan-mobile-night.png', fullPage: true });
 		await page.screenshot({ path: 'artifacts/parisan-mobile-night-viewport.png', fullPage: false });
 		await themeToggle.click();
