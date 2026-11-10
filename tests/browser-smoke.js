@@ -1,9 +1,12 @@
 'use strict';
 const assert = require('node:assert/strict');
-const { chromium } = require('playwright');
+const { chromium, firefox, webkit } = require('playwright');
 
 (async () => {
-	const browser = await chromium.launch({ headless: true });
+	const browserName = process.env.PARISAN_BROWSER || 'chromium';
+	const browserType = ({ chromium, firefox, webkit })[browserName];
+	assert.ok(browserType, 'PARISAN_BROWSER must be chromium, firefox, or webkit');
+	const browser = await browserType.launch({ headless: true });
 	try {
 		const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
 		const errors = [];
