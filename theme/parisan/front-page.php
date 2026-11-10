@@ -82,7 +82,7 @@ get_header();
 				<?php endif; ?>
 			</div>
 		</div>
-		<div class="container hero-bottomline" aria-label="<?php esc_attr_e( 'مزیت‌های سالن پاریسان', 'parisan' ); ?>">
+		<div class="container hero-bottomline" role="group" aria-label="<?php esc_attr_e( 'مزیت‌های سالن پاریسان', 'parisan' ); ?>">
 			<div class="hero-benefit">
 				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 5 43 17 24 43 5 17 24 5Z M5 17h38 M17 17l7 26 7-26 M17 17l7-12 7 12"/></svg></span>
 				<strong><?php echo esc_html( parisan_home_content( 'benefit_4_title', 'خدمات لوکس' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_4_description', 'با بالاترین کیفیت' ) ); ?></small>
