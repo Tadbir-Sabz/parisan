@@ -4,9 +4,9 @@
 
 | کاربرد در قالب | عکاس | منبع |
 |---|---|---|
-| تصویر نمونه کارت متخصص | Alexander Mass | https://unsplash.com/photos/makeup-artist-applying-makeup-to-a-woman-VJzTeWtzKxg |
+| تصویر نمونه کارت خدمات و متخصصان | Alexander Mass | https://unsplash.com/photos/makeup-artist-applying-makeup-to-a-woman-VJzTeWtzKxg |
 | تصویر پیش‌فرض هیرو در حالت روز | Chidera Faustina Okeke | https://unsplash.com/photos/woman-with-elaborate-makeup-and-pink-flowers-2s940gVmoq8 |
-| تصویر پیش‌فرض هیرو در حالت شب | Jessica Felicio | https://unsplash.com/photos/woman-with-purple-and-pink-glitter-on-her-face-pRTXDhCIAbY |
+| تصویر اصلی حالت شب و کارت مجله | Jessica Felicio | https://unsplash.com/photos/woman-with-purple-and-pink-glitter-on-her-face-pRTXDhCIAbY |
 | کارت خدمات و مجله | Vinicius “amnx” Amano | https://unsplash.com/photos/a-woman-getting-her-hair-done-in-a-salon-lK8oXGycy88 |
 | کارت نمونه‌کار | Dmitriy Ilkevich | https://unsplash.com/photos/a-woman-with-makeup-on-her-face-posing-for-a-picture-u65AB6gtL34 |
 
