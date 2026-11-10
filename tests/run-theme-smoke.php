@@ -226,6 +226,16 @@ ob_start();
 parisan_core_render_booking_settings_page();
 $booking_settings_html = ob_get_clean();
 parisan_theme_smoke_assert( false !== strpos( $booking_settings_html, 'parisan_booking_slot_interval_minutes' ) && false !== strpos( $booking_settings_html, 'parisan_booking_buffer_before_minutes' ) && false !== strpos( $booking_settings_html, 'parisan_booking_buffer_after_minutes' ), 'booking settings page renders all three availability-engine controls' );
+$_GET['page'] = 'parisan-bookings';
+$_GET['booking_date'] = current_datetime()->format( 'Y-m-d' );
+$_GET['staff_id'] = 0;
+$_GET['status'] = '';
+ob_start();
+parisan_core_render_booking_admin_page();
+$daily_booking_html = ob_get_clean();
+parisan_theme_smoke_assert( false !== strpos( $daily_booking_html, 'مدیریت نوبت‌ها' ) && false !== strpos( $daily_booking_html, 'برنامه روزانه' ) && false !== strpos( $daily_booking_html, 'parisan-booking-date' ), 'booking operations screen renders the date-filtered daily schedule without a fatal error' );
+parisan_theme_smoke_assert( false !== strpos( $daily_booking_html, 'همه متخصصان' ) && false !== strpos( $daily_booking_html, 'نمایش برنامه' ), 'daily schedule exposes specialist selection and a clear submit action' );
+unset( $_GET['page'], $_GET['booking_date'], $_GET['staff_id'], $_GET['status'] );
 wp_set_current_user( 0 );
 
 parisan_theme_smoke_assert( function_exists( 'parisan_core_public_booking_admin_notice' ), 'booking owner-readiness notice is registered' );
