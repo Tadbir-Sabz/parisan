@@ -58,6 +58,7 @@ parisan_theme_smoke_assert( function_exists( 'parisan_primary_menu_fallback' ), 
 parisan_theme_smoke_assert( function_exists( 'parisan_footer_menu_fallback' ), 'footer navigation fallback is registered' );
 $header_source = file_get_contents( get_template_directory() . '/header.php' );
 parisan_theme_smoke_assert( false !== strpos( $header_source, 'parisan-mobile-menu-toggle' ) && false !== strpos( $header_source, 'aria-controls="primary-navigation"' ), 'header renders a labelled mobile navigation control with an explicit target' );
+parisan_theme_smoke_assert( false !== strpos( $header_source, 'parisan-brand-lockup' ) && false !== strpos( $header_source, 'parisan-brand-mark' ), 'header renders the Parisan wordmark and lotus mark when no custom logo is uploaded' );
 $theme_script = file_get_contents( get_template_directory() . '/assets/js/theme.js' );
 parisan_theme_smoke_assert( false !== strpos( $theme_script, "event.key === 'Escape'" ) && false !== strpos( $theme_script, "setAttribute('aria-expanded'" ), 'mobile navigation supports Escape and expanded state' );
 
@@ -145,6 +146,9 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Ser
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Specialist' ), 'homepage renders real published specialist content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Portfolio Work' ), 'homepage renders published portfolio work' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="portfolio"' ), 'homepage exposes the portfolio section' );
+parisan_theme_smoke_assert( 4 === substr_count( $homepage, 'class="hero-benefit"' ), 'homepage renders exactly four reference-style trust benefit cards' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'خدمات لوکس' ) && false !== strpos( $homepage, 'پشتیبانی حرفه‌ای' ) && false !== strpos( $homepage, 'وقت‌دهی آسان' ) && false !== strpos( $homepage, 'محیط امن و بهداشتی' ), 'all four homepage benefit cards render their Persian content' );
+
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'مجلهٔ پاریسان' ), 'homepage renders the Persian editorial journal label' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'تجربه‌ای متناسب با شما' ), 'homepage renders the Persian introduction eyebrow' );
 parisan_theme_smoke_assert( false === strpos( $homepage, 'A MORE PERSONAL EXPERIENCE' ) && false === strpos( $homepage, 'THE PARISAN JOURNAL' ) && false === strpos( $homepage, 'MAKE TIME FOR YOURSELF' ), 'homepage default editorial labels contain no leftover English-only copy' );
