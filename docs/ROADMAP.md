@@ -218,3 +218,11 @@ Do not infer runtime readiness from source files. Replace this section only with
 
 
 - [~] Hero photography now has separate day/night images, independent focal points and alternative text, plus responsive media-library output; four trust-benefit cards are owner-editable; 17 self-contained local AI-generated demo visuals (`theme/parisan/assets/images/*.jpg`) eliminate broken/duplicated Unsplash URLs across homepage and archives; duplicate front-page bottom loop and theme-toggle overlap are resolved with fresh Chromium desktop/mobile day/night verification on the session branch. Existing saved day-image URLs remain supported. Real salon photography, multi-browser/screen-reader audits, and production deployment remain pending.
+
+
+## Product completion follow-up — 2026-11-10
+
+- [x] Add a Persian-first, read-only first-run readiness center under «متخصصان ← راهنمای شروع», linked from the unified settings workspace. It reports live checks for theme activation, front-page configuration, timezone, bookable service data, specialist/service/schedule coverage, booking rules, HTTPS detection, and the public-booking gate; each item links to its corrective admin screen.
+- [x] Add responsive status presentation and a Persian setup guide. The readiness screen never mutates content, options, schedules, database state, or the public-booking constant.
+- [x] Add WordPress smoke assertions for unique checks and complete actionable status records.
+- [ ] Execute the full CI suite against the new exact head SHA. The GitHub connector currently reports no workflow runs or status checks for the new commit; automated validation is therefore UNVERIFIED until a run is triggered and completed.
