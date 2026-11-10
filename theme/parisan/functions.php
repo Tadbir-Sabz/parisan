@@ -59,7 +59,7 @@ function parisan_customize_register( $wp_customize ) {
 		'parisan_homepage',
 		array(
 			'title'       => esc_html__( 'پاریسان — صفحه اصلی', 'parisan' ),
-			'description' => esc_html__( 'تصویر اصلی را از کتابخانه رسانه انتخاب کنید و جایگاه سوژه را برای برش قاب تنظیم کنید. در صورت خالی‌بودن، طرح هنری پیش‌فرض نمایش داده می‌شود.', 'parisan' ),
+			'description' => esc_html__( 'برای حالت روز و شب تصویر جداگانه از کتابخانه رسانه انتخاب کنید؛ متن جایگزین و نقطه تمرکز هر تصویر مستقل است.', 'parisan' ),
 			'priority'    => 35,
 		)
 	);
@@ -88,7 +88,7 @@ function parisan_customize_register( $wp_customize ) {
 			$wp_customize,
 			'parisan_hero_image_id',
 			array(
-				'label'       => esc_html__( 'تصویر اصلی از کتابخانه رسانه', 'parisan' ),
+				'label'       => esc_html__( 'تصویر اصلی حالت روز از کتابخانه رسانه', 'parisan' ),
 				'description' => esc_html__( 'برای بارگذاری تصویر اختصاصی، از کتابخانه رسانه انتخاب کنید.', 'parisan' ),
 				'mime_type'   => 'image',
 				'section'     => 'parisan_homepage',
@@ -145,7 +145,7 @@ function parisan_customize_register( $wp_customize ) {
 	$wp_customize->add_control(
 		'parisan_hero_image_alt',
 		array(
-			'label'       => esc_html__( 'متن جایگزین تصویر اصلی', 'parisan' ),
+			'label'       => esc_html__( 'متن جایگزین تصویر حالت روز', 'parisan' ),
 			'description' => esc_html__( 'توضیح کوتاهی برای کاربران صفحه‌خوان بنویسید؛ اگر خالی باشد، متن جایگزین ثبت‌شده در کتابخانه رسانه استفاده می‌شود.', 'parisan' ),
 			'section'     => 'parisan_homepage',
 			'type'        => 'text',
