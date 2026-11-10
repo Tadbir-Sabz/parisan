@@ -145,7 +145,9 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Ser
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Specialist' ), 'homepage renders real published specialist content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Portfolio Work' ), 'homepage renders published portfolio work' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="portfolio"' ), 'homepage exposes the portfolio section' );
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'THE PARISAN JOURNAL' ), 'homepage renders the editorial journal section' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'مجلهٔ پاریسان' ), 'homepage renders the Persian editorial journal label' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'تجربه‌ای متناسب با شما' ), 'homepage renders the Persian introduction eyebrow' );
+parisan_theme_smoke_assert( false === strpos( $homepage, 'A MORE PERSONAL EXPERIENCE' ) && false === strpos( $homepage, 'THE PARISAN JOURNAL' ) && false === strpos( $homepage, 'MAKE TIME FOR YOURSELF' ), 'homepage default editorial labels contain no leftover English-only copy' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false !== strpos( $homepage, 'برای هماهنگی نوبت با سالن تماس بگیرید' ), 'disabled booking state explains how to contact the salon' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'legacy owner-selected hero image URL remains backward-compatible' );
