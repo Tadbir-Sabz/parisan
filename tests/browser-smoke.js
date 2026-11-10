@@ -25,7 +25,8 @@ const { chromium, firefox, webkit } = require('playwright');
 				runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'] }
 			}));
 			const violations = audit.violations.map(item => ({ id: item.id, impact: item.impact, description: item.help, nodes: item.nodes.map(node => ({ target: node.target, html: node.html, summary: node.failureSummary })) }));
-			console.log('ACCESSIBILITY ' + JSON.stringify({ label, passes: audit.passes.length, incomplete: audit.incomplete.length, violations }));
+			const incomplete = audit.incomplete.map(item => ({ id: item.id, impact: item.impact, description: item.help, nodes: item.nodes.map(node => ({ target: node.target, html: node.html, summary: node.failureSummary })) }));
+			console.log('ACCESSIBILITY ' + JSON.stringify({ label, passes: audit.passes.length, incomplete, violations }));
 			const blockers = violations.filter(item => item.impact === 'critical' || item.impact === 'serious');
 			assert.deepEqual(blockers, [], label + ' has no serious or critical axe-core violations: ' + JSON.stringify(blockers));
 		}
@@ -95,6 +96,7 @@ const { chromium, firefox, webkit } = require('playwright');
 		assert.equal(await page.locator('html').getAttribute('data-parisan-theme'), 'light', 'day/night selection persists after reload');
 		assert.equal(await page.locator('main#main-content').count(), 1, 'homepage main landmark renders');
 		assert.match(await page.locator('.parisan-brand-lockup').innerText(), /Parisan/, 'browser demo renders the Parisan wordmark and lotus mark');
+		assert.equal(await page.getByRole('link', { name: 'Parisan', exact: true }).count(), 1, 'brand link accessible name matches its visible wordmark');
 		assert.equal(await page.locator('.hero-copy h1').count(), 1, 'homepage hero heading renders');
 		assert.equal(await page.locator('.hero-benefit').count(), 4, 'reference-style four-benefit trust bar renders');
 		assert.equal(await page.locator('.parisan-home-service-grid .service-card').count(), 3, 'homepage renders three balanced service cards');
