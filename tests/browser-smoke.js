@@ -190,10 +190,10 @@ const { chromium, firefox, webkit } = require('playwright');
 
 		// Exercise the real WordPress content templates, not only the marketing homepage.
 		const contentRoutes = [
-			{ label: 'service-detail', selector: '.parisan-home-service-grid .service-card h2 a' },
-			{ label: 'portfolio-detail', selector: '.parisan-portfolio-grid .portfolio-card h2 a' },
-			{ label: 'specialist-detail', selector: '.parisan-home-team-grid .specialist-card h2 a' },
-			{ label: 'article-detail', selector: '.post-grid .post-card h2 a' },
+			{ label: 'service-detail', selector: '.parisan-home-service-grid .service-card h3 a' },
+			{ label: 'portfolio-detail', selector: '.parisan-portfolio-grid .portfolio-card h3 a' },
+			{ label: 'specialist-detail', selector: '.parisan-home-team-grid .specialist-card h3 a' },
+			{ label: 'article-detail', selector: '.post-grid .post-card h3 a' },
 		];
 		const routeTargets = [];
 		for (const route of contentRoutes) {
