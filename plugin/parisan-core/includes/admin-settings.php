@@ -33,7 +33,7 @@ add_action( 'admin_enqueue_scripts', 'parisan_core_enqueue_settings_admin_assets
  * @return int
  */
 function parisan_core_sanitize_booking_interval( $value ) {
-	$value = absint( $value );
+	$value = is_scalar( $value ) ? (int) $value : 0;
 	$allowed = array( 5, 10, 15, 20, 30, 60 );
 	return in_array( $value, $allowed, true ) ? $value : 15;
 }
@@ -45,7 +45,8 @@ function parisan_core_sanitize_booking_interval( $value ) {
  * @return int
  */
 function parisan_core_sanitize_booking_buffer( $value ) {
-	return min( 240, absint( $value ) );
+	$value = is_scalar( $value ) ? (int) $value : 0;
+	return min( 240, max( 0, $value ) );
 }
 
 /**
