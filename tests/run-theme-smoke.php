@@ -141,7 +141,7 @@ remove_theme_mod( 'parisan_hero_position_x' );
 remove_theme_mod( 'parisan_hero_position_y' );
 remove_theme_mod( 'parisan_hero_image_alt' );
 
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیباییِ شما، با امضای ظرافت' ), 'editorial Persian hero default renders' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیبایی، با امضای ظرافت' ), 'reference-aligned Persian hero title renders' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Service' ), 'homepage renders real published service content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Specialist' ), 'homepage renders real published specialist content' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Portfolio Work' ), 'homepage renders published portfolio work' );
