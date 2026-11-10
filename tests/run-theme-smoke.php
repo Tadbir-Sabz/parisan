@@ -25,6 +25,15 @@ parisan_theme_smoke_assert( post_type_exists( 'parisan_faq' ), 'first-party FAQ 
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_brand_register' ), 'brand and identity customizer is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_output_brand_tokens' ), 'custom brand design tokens are output' );
 parisan_theme_smoke_assert( function_exists( 'parisan_public_setting' ), 'public salon settings helper is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_get_setup_readiness_checks' ), 'read-only first-run setup readiness checks are registered' );
+$readiness_checks = parisan_core_get_setup_readiness_checks();
+$readiness_ids = array_column( $readiness_checks, 'id' );
+parisan_theme_smoke_assert( count( $readiness_checks ) >= 7 && count( $readiness_ids ) === count( array_unique( $readiness_ids ) ), 'setup readiness exposes unique actionable checks' );
+foreach ( $readiness_checks as $readiness_check ) {
+	parisan_theme_smoke_assert( isset( $readiness_check['title'], $readiness_check['ready'], $readiness_check['detail'], $readiness_check['url'], $readiness_check['action'], $readiness_check['required'] ), 'each setup readiness check has a complete status and next action' );
+}
+parisan_theme_smoke_assert( false !== strpos( file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/setup-readiness.php' ), 'This function is deliberately read-only' ), 'setup readiness is explicitly documented as read-only' );
+
 parisan_theme_smoke_assert( function_exists( 'parisan_home_content' ), 'owner-editable homepage content helper is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_homepage_content_register' ), 'homepage copy controls are registered in the Customizer' );
 parisan_theme_smoke_assert( function_exists( 'parisan_blog_index_url' ), 'blog index URL resolver is registered' );
