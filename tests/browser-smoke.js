@@ -21,7 +21,7 @@ const { chromium } = require('playwright');
 			const audit = await targetPage.evaluate(async () => window.axe.run(document, {
 				runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'best-practice'] }
 			}));
-			const violations = audit.violations.map(item => ({ id: item.id, impact: item.impact, description: item.help, nodes: item.nodes.length }));
+			const violations = audit.violations.map(item => ({ id: item.id, impact: item.impact, description: item.help, nodes: item.nodes.map(node => ({ target: node.target, html: node.html, summary: node.failureSummary })) }));
 			console.log('ACCESSIBILITY ' + JSON.stringify({ label, passes: audit.passes.length, incomplete: audit.incomplete.length, violations }));
 			const blockers = violations.filter(item => item.impact === 'critical' || item.impact === 'serious');
 			assert.deepEqual(blockers, [], label + ' has no serious or critical axe-core violations: ' + JSON.stringify(blockers));
