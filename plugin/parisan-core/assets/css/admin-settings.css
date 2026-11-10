@@ -158,3 +158,57 @@
 		justify-content: space-between;
 	}
 }
+
+
+.parisan-booking-overview {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	max-width: 1180px;
+	margin: 22px 0 28px;
+}
+.parisan-booking-metric {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 7px;
+	padding: 18px 20px;
+	border: 1px solid #e5dce1;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 2px 8px rgba(43, 24, 36, .04);
+}
+.parisan-booking-metric > span {
+	color: #62545d;
+	font-size: 13px;
+	font-weight: 600;
+}
+.parisan-booking-metric > strong {
+	color: #563044;
+	font-size: 30px;
+	line-height: 1.3;
+	font-variant-numeric: tabular-nums;
+}
+.parisan-booking-metric > small,
+.parisan-booking-metric > a {
+	color: #655b63;
+	font-size: 12px;
+}
+.parisan-booking-metric.is-attention {
+	border-inline-start: 4px solid #b7791f;
+}
+.parisan-booking-metric.is-attention > strong {
+	color: #94600d;
+}
+@media (max-width: 782px) {
+	.parisan-booking-overview {
+		grid-template-columns: 1fr;
+		gap: 10px;
+	}
+	.parisan-booking-metric {
+		padding: 14px 16px;
+	}
+	.parisan-booking-metric > strong {
+		font-size: 25px;
+	}
+}
