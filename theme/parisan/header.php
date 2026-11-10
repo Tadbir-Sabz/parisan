@@ -24,8 +24,12 @@ defined( 'ABSPATH' ) || exit;
 			<?php if ( has_custom_logo() ) : ?>
 				<?php the_custom_logo(); ?>
 			<?php else : ?>
-				<a class="site-title" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-					<?php bloginfo( 'name' ); ?>
+				<a class="site-title parisan-brand-lockup" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+					<span class="parisan-brand-name">Parisan</span>
+					<svg class="parisan-brand-mark" viewBox="0 0 52 48" aria-hidden="true" focusable="false">
+						<path d="M26 43C18 34 17 24 26 5C35 24 34 34 26 43Z M26 43C9 39 4 29 7 18C19 20 25 29 26 43Z M26 43C43 39 48 29 45 18C33 20 27 29 26 43Z M26 43C15 31 14 21 17 12C26 19 29 29 26 43Z M26 43C37 31 38 21 35 12C26 19 23 29 26 43Z" />
+						<path d="M13 44H39" />
+					</svg>
 				</a>
 			<?php endif; ?>
 		</div>
