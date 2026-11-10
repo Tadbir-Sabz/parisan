@@ -60,7 +60,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
 - [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor, and date-specific full-day/partial-day unavailability administration. Breaks, resource schedules, and expanded calendar UX remain pending.
 - [ ] Implement branches/resources data model with single-salon-first UX.
-- [~] Add a unified settings entry point linking brand, homepage, hero image, booking rules, SEO/performance, WordPress timezone/language, and menus; a guided first-run setup wizard and role-specific dashboard remain pending.
+- [~] Add a unified settings entry point linking brand, homepage copy and four benefit cards, separate day/night hero images, booking rules, SEO/performance, WordPress timezone/language, and menus; a guided first-run setup wizard and role-specific dashboard remain pending.
 - [ ] Add seed/demo data that is clearly non-production.
 - [ ] Test deactivation/theme-switch data persistence.
 - [x] Add pure weekly schedule normalization tests to the PHP CI matrix; previous run PASS on PHP 8.1/8.2/8.3; 22 assertions.
@@ -217,4 +217,4 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [ ] Run exact-SHA CI and independent review on the implementation branch before merge.
 
 
-- [~] Hero photography controls now use the WordPress media library with responsive attachment output and owner-adjustable horizontal/vertical focal point; exact-SHA browser/PHP CI is pending for commit `57f264aea4bfcdcdc0462bdecada61f6fb4b887f`. Existing saved hero image URLs remain supported.
+- [~] Hero photography now has separate day/night images, independent focal points and alternative text, plus responsive media-library output; four trust-benefit cards are owner-editable. Exact-SHA browser/PHP evidence is being refreshed after the visual rebuild. Existing saved day-image URLs remain supported.
