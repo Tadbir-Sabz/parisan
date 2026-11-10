@@ -246,24 +246,6 @@ function parisan_core_render_booking_detail( $booking_id ) {
 		),
 		ARRAY_A
 	);
-	$local_now = new DateTimeImmutable( 'now', wp_timezone() );
-	$today_start_utc = $local_now->setTime( 0, 0, 0 )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
-	$tomorrow_start_utc = $local_now->modify( '+1 day' )->setTime( 0, 0, 0 )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
-	$today_metrics = $wpdb->get_row(
-		$wpdb->prepare(
-			"SELECT
-				SUM( CASE WHEN b.starts_at_utc >= %s AND b.starts_at_utc < %s AND b.status IN ('pending','confirmed') THEN 1 ELSE 0 END ) AS today_active,
-				SUM( CASE WHEN b.status = 'pending' THEN 1 ELSE 0 END ) AS awaiting_confirmation,
-				SUM( CASE WHEN b.starts_at_utc >= %s AND b.status = 'confirmed' THEN 1 ELSE 0 END ) AS upcoming_confirmed
-			FROM {$table} b",
-			$today_start_utc,
-			$tomorrow_start_utc,
-			$tomorrow_start_utc
-		),
-		ARRAY_A
-	);
-	$today_metrics = is_array( $today_metrics ) ? $today_metrics : array();
-
 	$status_labels = array(
 		'pending' => __( 'در انتظار تأیید', 'parisan-core' ),
 		'confirmed' => __( 'تأییدشده', 'parisan-core' ),
@@ -389,6 +371,23 @@ function parisan_core_render_booking_admin_page() {
 
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_bookings';
+	$local_now = new DateTimeImmutable( 'now', wp_timezone() );
+	$today_start_utc = $local_now->setTime( 0, 0, 0 )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
+	$tomorrow_start_utc = $local_now->modify( '+1 day' )->setTime( 0, 0, 0 )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
+	$today_metrics = $wpdb->get_row(
+		$wpdb->prepare(
+			"SELECT
+				SUM( CASE WHEN b.starts_at_utc >= %s AND b.starts_at_utc < %s AND b.status IN ('pending','confirmed') THEN 1 ELSE 0 END ) AS today_active,
+				SUM( CASE WHEN b.status = 'pending' THEN 1 ELSE 0 END ) AS awaiting_confirmation,
+				SUM( CASE WHEN b.starts_at_utc >= %s AND b.status = 'confirmed' THEN 1 ELSE 0 END ) AS upcoming_confirmed
+			FROM {$table} b",
+			$today_start_utc,
+			$tomorrow_start_utc,
+			$tomorrow_start_utc
+		),
+		ARRAY_A
+	);
+	$today_metrics = is_array( $today_metrics ) ? $today_metrics : array();
 	$valid_statuses = array( 'pending', 'confirmed', 'cancelled', 'expired', 'completed', 'no_show' );
 	$status_filter = isset( $_GET['status'] ) && is_string( $_GET['status'] ) ? sanitize_key( wp_unslash( $_GET['status'] ) ) : '';
 	if ( ! in_array( $status_filter, $valid_statuses, true ) ) {
