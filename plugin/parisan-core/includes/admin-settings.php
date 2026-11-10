@@ -185,7 +185,7 @@ function parisan_core_render_settings_hub() {
 		),
 		array(
 			__( 'تصویر اصلی و کادر نمایش', 'parisan-core' ),
-			__( 'تصویر هیرو، متن جایگزین و نقطه تمرکز عکس را برای نمایش دسکتاپ و موبایل تنظیم کنید.', 'parisan-core' ),
+			__( 'تصویر مستقل حالت روز و شب، متن جایگزین و نقطه تمرکز هر عکس را برای نمایش دسکتاپ و موبایل تنظیم کنید.', 'parisan-core' ),
 			admin_url( 'customize.php?autofocus[section]=parisan_homepage' ),
 			'',
 		),
