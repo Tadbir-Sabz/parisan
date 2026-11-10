@@ -42,8 +42,10 @@
 	color: #5e5660;
 	line-height: 1.9;
 }
-.parisan-settings-card .button {
+.parisan-settings-card > p:nth-of-type(2) {
 	margin-top: auto;
+}
+.parisan-settings-card .button {
 	border-color: #70465d;
 	color: #70465d;
 }
