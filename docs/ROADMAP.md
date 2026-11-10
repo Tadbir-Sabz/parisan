@@ -231,3 +231,10 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [x] Add a live operational overview to the booking-management screen: active bookings for the current local day, all bookings awaiting confirmation, and confirmed bookings from the next local day onward. The cards link directly to the pending queue, use the WordPress timezone, and are read-only aggregates.
 - [x] Add responsive styling and smoke assertions for the new operational metrics.
 - [ ] Confirm the new exact commit through PHP, WordPress activation, privacy/integration, and Chromium/Firefox/WebKit browser CI before marking the operational overview PASS.
+
+
+## Booking operations — daily schedule
+
+- Added a timezone-safe daily schedule filter to the booking operations screen. Staff can filter by salon-local date, specialist, and booking status; the selected day is shown in chronological order while the unfiltered history remains newest-first.
+- Date boundaries are converted from the WordPress salon timezone to UTC before querying, including daylight-saving transitions. Invalid dates and unauthorized specialist filters are discarded safely.
+- Booking overview metrics are calculated in the booking-list scope; booking detail queries use the explicit bookings table. Public booking remains explicitly gated and disabled by default.
