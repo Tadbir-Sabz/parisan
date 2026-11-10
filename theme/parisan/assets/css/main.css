@@ -2568,3 +2568,10 @@ html[data-parisan-theme="dark"] .hero-art {
 	.hero-copy h1 { font-size: clamp(31px,8.5vw,43px) !important; }
 	.hero-copy .hero-description { font-size: 16px !important; }
 }
+
+
+/* Separate editorial photography for the two theme modes. */
+.hero-art-photo-day { display: block !important; }
+.hero-art-photo-night { display: none !important; }
+html[data-parisan-theme="dark"] .hero-art-photo-day { display: none !important; }
+html[data-parisan-theme="dark"] .hero-art-photo-night { display: block !important; }
