@@ -226,3 +226,8 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [x] Add responsive status presentation and a Persian setup guide. The readiness screen never mutates content, options, schedules, database state, or the public-booking constant.
 - [x] Add WordPress smoke assertions for unique checks and complete actionable status records.
 - [ ] Execute the full CI suite against the new exact head SHA. The GitHub connector currently reports no workflow runs or status checks for the new commit; automated validation is therefore UNVERIFIED until a run is triggered and completed.
+
+
+- [x] Add a live operational overview to the booking-management screen: active bookings for the current local day, all bookings awaiting confirmation, and confirmed bookings from the next local day onward. The cards link directly to the pending queue, use the WordPress timezone, and are read-only aggregates.
+- [x] Add responsive styling and smoke assertions for the new operational metrics.
+- [ ] Confirm the new exact commit through PHP, WordPress activation, privacy/integration, and Chromium/Firefox/WebKit browser CI before marking the operational overview PASS.
