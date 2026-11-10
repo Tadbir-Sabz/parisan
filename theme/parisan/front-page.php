@@ -33,7 +33,7 @@ $parisan_articles = get_posts( array( 'post_type' => 'post', 'post_status' => 'p
 $parisan_hero_image_id = absint( get_theme_mod( 'parisan_hero_image_id', 0 ) );
 $parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
 $parisan_hero_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_x', 50 ) );
-$parisan_hero_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_y', 34 ) );
+$parisan_hero_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_y', 42 ) );
 $parisan_hero_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_position_x, $parisan_hero_position_y );
 $parisan_has_hero_attachment = $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id );
 $parisan_has_hero_image = $parisan_has_hero_attachment || ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image );
@@ -44,7 +44,7 @@ if ( '' === $parisan_hero_image_alt && $parisan_has_hero_attachment ) {
 
 $parisan_hero_image_night_id = absint( get_theme_mod( 'parisan_hero_image_night_id', 0 ) );
 $parisan_hero_night_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_x', 50 ) );
-$parisan_hero_night_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_y', 34 ) );
+$parisan_hero_night_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_y', 42 ) );
 $parisan_hero_night_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_night_position_x, $parisan_hero_night_position_y );
 $parisan_hero_image_night_alt = sanitize_text_field( get_theme_mod( 'parisan_hero_image_night_alt', '' ) );
 if ( '' === $parisan_hero_image_night_alt && $parisan_hero_image_night_id && wp_attachment_is_image( $parisan_hero_image_night_id ) ) {
