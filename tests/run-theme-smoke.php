@@ -126,6 +126,7 @@ $post = null;
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_register' ), 'homepage image customization is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_sanitize_hero_position' ), 'hero focal-point sanitizer is registered' );
 parisan_theme_smoke_assert( false !== strpos( file_get_contents( get_template_directory() . '/functions.php' ), 'parisan_hero_image_alt' ), 'hero image alternative-text control is registered' );
+parisan_theme_smoke_assert( false !== strpos( file_get_contents( get_template_directory() . '/functions.php' ), 'parisan_hero_image_night_id' ) && false !== strpos( file_get_contents( get_template_directory() . '/functions.php' ), 'parisan_hero_night_position_x' ), 'night hero image and independent focal-point controls are registered' );
 parisan_theme_smoke_assert( 0 === parisan_sanitize_hero_position( -20 ) && 100 === parisan_sanitize_hero_position( 140 ) && 37 === parisan_sanitize_hero_position( '37' ), 'hero focal-point values are clamped to 0–100' );
 set_theme_mod( 'parisan_hero_position_x', 63 );
 set_theme_mod( 'parisan_hero_position_y', 28 );
@@ -155,6 +156,7 @@ parisan_theme_smoke_assert( false === strpos( $homepage, 'A MORE PERSONAL EXPERI
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false !== strpos( $homepage, 'برای هماهنگی نوبت با سالن تماس بگیرید' ), 'disabled booking state explains how to contact the salon' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'legacy owner-selected hero image URL remains backward-compatible' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo-night' ) && false !== strpos( $homepage, 'photo-1599753558482-08ac12195069' ), 'homepage includes a distinct default night portrait' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'object-position:63% 28%;' ), 'owner-selected hero focal point is applied to the image crop' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'alt="تصویر فضای داخلی استودیوی پاریسان"' ), 'owner-provided alternative text is rendered on the hero image' );
 parisan_theme_smoke_assert( false === strpos( $homepage, 'hero-art" role="img"' ), 'selected photography is not redundantly exposed as a generic image role' );
