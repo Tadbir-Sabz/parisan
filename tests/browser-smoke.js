@@ -188,6 +188,42 @@ const { chromium, firefox, webkit } = require('playwright');
 		await page.screenshot({ path: 'artifacts/parisan-mobile-night-viewport.png', fullPage: false });
 		await themeToggle.click();
 
+		// Exercise the real WordPress content templates, not only the marketing homepage.
+		const contentRoutes = [
+			{ label: 'service-detail', selector: '.parisan-home-service-grid .service-card h2 a' },
+			{ label: 'portfolio-detail', selector: '.parisan-portfolio-grid .portfolio-card h2 a' },
+			{ label: 'specialist-detail', selector: '.parisan-home-team-grid .specialist-card h2 a' },
+			{ label: 'article-detail', selector: '.post-grid .post-card h2 a' },
+		];
+		const routeTargets = [];
+		for (const route of contentRoutes) {
+			const target = await page.locator(route.selector).first().getAttribute('href');
+			assert.ok(target, route.label + ' has a real internal destination');
+			routeTargets.push({ label: route.label, url: new URL(target, page.url()).toString() });
+		}
+		for (const route of routeTargets) {
+			await page.goto(route.url, { waitUntil: 'networkidle' });
+			assert.equal(await page.locator('main#main-content').count(), 1, route.label + ' renders exactly one main landmark');
+			assert.equal(await page.locator('main#main-content h1').count(), 1, route.label + ' renders exactly one primary heading');
+			assert.equal(await page.locator('.parisan-breadcrumbs, nav[aria-label*="مسیر"]').count() > 0, true, route.label + ' includes semantic breadcrumb navigation');
+			assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, route.label + ' has no desktop horizontal overflow');
+			await runAccessibilityAudit(page, route.label + '-desktop');
+			await page.setViewportSize({ width: 390, height: 844 });
+			assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, route.label + ' has no mobile horizontal overflow');
+			await runAccessibilityAudit(page, route.label + '-mobile');
+			await page.setViewportSize({ width: 1440, height: 1000 });
+		}
+		await page.goto(new URL('/?s=' + encodeURIComponent('مراقبت'), page.url()).toString(), { waitUntil: 'networkidle' });
+		assert.equal(await page.locator('#search-results-title').count(), 1, 'search route renders its labelled result heading');
+		assert.equal(await page.locator('.search-results-count[role="status"]').count(), 1, 'search route announces the result count');
+		await runAccessibilityAudit(page, 'search-results');
+		await page.goto(new URL('/this-parisan-route-does-not-exist/', page.url()).toString(), { waitUntil: 'networkidle' });
+		assert.equal(await page.locator('main.not-found-page h1').count(), 1, '404 route renders its dedicated recovery page');
+		assert.equal(await page.getByRole('link', { name: /بازگشت به صفحه اصلی/ }).count(), 1, '404 route offers a clear home recovery action');
+		await runAccessibilityAudit(page, 'not-found');
+		await page.goto(process.env.PARISAN_TEST_URL || 'http://127.0.0.1:8080/', { waitUntil: 'networkidle' });
+		await page.setViewportSize({ width: 390, height: 844 });
+
 		const fallbackContext = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
 		const fallbackPage = await fallbackContext.newPage();
 		collectBrowserDiagnostics(fallbackPage);
