@@ -156,7 +156,7 @@ const { chromium, firefox, webkit } = require('playwright');
 		assert.equal(await navigation.isVisible(), false, 'Escape collapses mobile navigation');
 		assert.equal(await menuToggle.evaluate(el => document.activeElement === el), true, 'Escape restores focus to menu control');
 		await menuToggle.click();
-		await page.locator('.hero-section').click({ position: { x: 12, y: 12 } });
+		await page.locator('.intro-section').click({ position: { x: 12, y: 12 } });
 		assert.equal(await menuToggle.getAttribute('aria-expanded'), 'false', 'clicking outside the header dismisses mobile navigation');
 		await menuToggle.click();
 		await page.setViewportSize({ width: 800, height: 900 });
