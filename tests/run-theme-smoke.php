@@ -159,6 +159,13 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking
 parisan_theme_smoke_assert( wp_script_is( 'parisan-theme', 'enqueued' ), 'theme interaction script is enqueued' );
 
 
+parisan_theme_smoke_assert( function_exists( 'parisan_core_register_settings_pages' ), 'unified Parisan settings workspace is registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_register_booking_settings' ), 'booking rules settings are registered' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_sanitize_booking_interval' ), 'booking interval setting has a dedicated sanitizer' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_sanitize_booking_buffer' ), 'booking buffer settings have a dedicated sanitizer' );
+parisan_theme_smoke_assert( 15 === parisan_core_sanitize_booking_interval( 15 ) && 15 === parisan_core_sanitize_booking_interval( 17 ) && 60 === parisan_core_sanitize_booking_interval( 60 ), 'booking interval accepts supported increments and safely defaults invalid values' );
+parisan_theme_smoke_assert( 0 === parisan_core_sanitize_booking_buffer( -5 ) && 240 === parisan_core_sanitize_booking_buffer( 999 ), 'booking buffers are clamped to the supported 0–240 minute range' );
+parisan_theme_smoke_assert( false !== has_action( 'admin_menu', 'parisan_core_register_settings_pages' ), 'settings workspace and booking rules pages are registered in WordPress admin' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_public_booking_admin_notice' ), 'booking owner-readiness notice is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_seo_settings' ), 'first-party SEO settings module is loaded' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_output_seo_metadata' ), 'SEO metadata renderer is loaded' );
