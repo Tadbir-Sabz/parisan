@@ -132,6 +132,7 @@ set_theme_mod( 'parisan_hero_position_x', 63 );
 set_theme_mod( 'parisan_hero_position_y', 28 );
 set_theme_mod( 'parisan_hero_image_alt', 'تصویر فضای داخلی استودیوی پاریسان' );
 set_theme_mod( 'parisan_hero_image', 'https://example.test/parisan-hero.jpg' );
+set_theme_mod( 'parisan_home_benefit_1_title', 'مزیت آزمایشی قابل ویرایش' );
 ob_start();
 include get_template_directory() . '/front-page.php';
 $homepage = ob_get_clean();
@@ -141,6 +142,7 @@ remove_theme_mod( 'parisan_hero_image' );
 remove_theme_mod( 'parisan_hero_position_x' );
 remove_theme_mod( 'parisan_hero_position_y' );
 remove_theme_mod( 'parisan_hero_image_alt' );
+remove_theme_mod( 'parisan_home_benefit_1_title' );
 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'زیبایی، با امضای ظرافت' ), 'reference-aligned Persian hero title renders' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Service' ), 'homepage renders real published service content' );
@@ -149,6 +151,7 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Portfolio Wo
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="portfolio"' ), 'homepage exposes the portfolio section' );
 parisan_theme_smoke_assert( 4 === substr_count( $homepage, 'class="hero-benefit"' ), 'homepage renders exactly four reference-style trust benefit cards' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'خدمات لوکس' ) && false !== strpos( $homepage, 'پشتیبانی حرفه‌ای' ) && false !== strpos( $homepage, 'وقت‌دهی آسان' ) && false !== strpos( $homepage, 'محیط امن و بهداشتی' ), 'all four homepage benefit cards render their Persian content' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'مزیت آزمایشی قابل ویرایش' ), 'homepage benefit card copy can be customized by the site owner' );
 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'مجلهٔ پاریسان' ), 'homepage renders the Persian editorial journal label' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'تجربه‌ای متناسب با شما' ), 'homepage renders the Persian introduction eyebrow' );
