@@ -134,7 +134,7 @@ jobs:
 
       - name: Install Playwright Chromium
         run: |
-          npm install --no-save playwright
+          npm install --no-save playwright axe-core
           npx playwright install --with-deps chromium
 
       - name: Verify desktop and mobile experience
