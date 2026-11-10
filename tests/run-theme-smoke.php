@@ -284,4 +284,15 @@ parisan_theme_smoke_assert( false !== strpos( $seo_head, 'name="description"' ) 
 parisan_theme_smoke_assert( false !== strpos( $seo_head, 'rel="canonical"' ) && false !== strpos( $seo_head, 'og:title' ), 'canonical and Open Graph metadata are emitted' );
 parisan_theme_smoke_assert( false !== strpos( $seo_head, 'application/ld+json' ) && false !== strpos( $seo_head, '"@type":"Service"' ), 'service JSON-LD is emitted for service detail pages' );
 
+$theme_root = get_template_directory();
+$index_template = file_get_contents( $theme_root . '/index.php' );
+$search_template = file_get_contents( $theme_root . '/search.php' );
+$archive_template = file_get_contents( $theme_root . '/archive.php' );
+parisan_theme_smoke_assert( false !== strpos( $index_template, 'parisan-content-index' ) && false !== strpos( $index_template, 'parisan_card_image_html' ) && false !== strpos( $index_template, 'the_posts_pagination' ), 'generic public fallback is a complete editorial archive with imagery and pagination' );
+parisan_theme_smoke_assert( false === strpos( $index_template, 'service-placeholder-grid' ) && false === strpos( $index_template, 'سامانه نوبت‌دهی آنلاین با فعال‌سازی افزونه' ), 'generic index fallback does not display a fake salon homepage or stale booking placeholder' );
+parisan_theme_smoke_assert( false !== strpos( $search_template, 'search-results-count' ) && false !== strpos( $search_template, 'role="status"' ) && false !== strpos( $search_template, 'aria-labelledby="search-results-title"' ), 'search results expose an announced result count and a labelled results region' );
+parisan_theme_smoke_assert( false !== strpos( $search_template, 'get_post_type_object' ) && false !== strpos( $search_template, '$post_type_object && isset' ) && false !== strpos( $search_template, 'parisan_card_image_html' ), 'search cards safely resolve post-type labels and use the shared image treatment' );
+parisan_theme_smoke_assert( false !== strpos( $search_template, 'the_posts_pagination' ) && false !== strpos( $archive_template, 'the_posts_pagination' ), 'search and archive results both retain pagination' );
+$theme_styles = file_get_contents( $theme_root . '/assets/css/main.css' );
+parisan_theme_smoke_assert( false !== strpos( $theme_styles, '.parisan-content-index' ) || false !== strpos( $theme_styles, '.post-grid' ), 'content fallback reuses the established editorial design system' );
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
