@@ -50,7 +50,7 @@ get_header();
 	<section class="hero-section">
 		<div class="container hero-grid">
 			<div class="hero-copy">
-				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'hero_eyebrow', 'PARISAN BEAUTY STUDIO · زیبایی با آرامش' ) ); ?></p>
+				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'hero_eyebrow', 'استودیوی زیبایی پاریسان · زیبایی با آرامش' ) ); ?></p>
 				<h1><?php echo esc_html( parisan_home_content( 'hero_title', 'زیباییِ شما، با امضای ظرافت' ) ); ?></h1>
 				<p class="hero-description"><?php echo esc_html( parisan_home_content( 'hero_description', 'از لحظه‌ای که وارد می‌شوید تا آخرین جزئیات خدمات، همه‌چیز برای یک تجربه دلنشین، دقیق و شایسته شما طراحی شده است.' ) ); ?></p>
 				<div class="hero-actions">
@@ -222,7 +222,7 @@ get_header();
 
 	<section class="parisan-booking-section" id="booking">
 		<div class="container booking-section-heading">
-			<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'booking_eyebrow', 'MAKE TIME FOR YOURSELF' ) ); ?></p>
+			<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'booking_eyebrow', 'زمانی برای خودتان' ) ); ?></p>
 			<h2><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'booking_title', 'زمانی برای خودتان کنار بگذارید.' ) : 'برای هماهنگی نوبت با سالن در ارتباط باشید.' ); ?></h2>
 			<p><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'booking_description', 'خدمت و متخصص دلخواهتان را انتخاب کنید و زمان‌های در دسترس را ببینید.' ) : 'رزرو آنلاین در حال حاضر فعال نیست. برای دریافت راهنمایی با سالن تماس بگیرید.' ); ?></p>
 		</div>
