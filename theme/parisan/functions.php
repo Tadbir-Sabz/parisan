@@ -268,6 +268,16 @@ function parisan_customize_homepage_content_register( $wp_customize ) {
 		'hero_primary_url' => array( '#booking', 'url', 'پیوند دکمه اصلی' ),
 		'hero_secondary_label' => array( 'آشنایی با خدمات', 'text', 'عنوان پیوند دوم' ),
 		'hero_secondary_url' => array( '#services', 'url', 'پیوند دوم' ),
+
+		'benefit_1_title' => array( 'محیط امن و بهداشتی', 'text', 'عنوان مزیت اول — سمت راست' ),
+		'benefit_1_description' => array( 'با رعایت کامل استانداردها', 'text', 'توضیح مزیت اول' ),
+		'benefit_2_title' => array( 'پشتیبانی حرفه‌ای', 'text', 'عنوان مزیت دوم' ),
+		'benefit_2_description' => array( 'همیشه در کنار شما', 'text', 'توضیح مزیت دوم' ),
+		'benefit_3_title' => array( 'وقت‌دهی آسان', 'text', 'عنوان مزیت سوم' ),
+		'benefit_3_description' => array( 'آنلاین و سریع', 'text', 'توضیح مزیت سوم' ),
+		'benefit_4_title' => array( 'خدمات لوکس', 'text', 'عنوان مزیت چهارم — سمت چپ' ),
+		'benefit_4_description' => array( 'با بالاترین کیفیت', 'text', 'توضیح مزیت چهارم' ),
+
 		'intro_eyebrow' => array( 'تجربه‌ای متناسب با شما', 'text', 'متن کوچک معرفی سالن' ),
 		'intro_title' => array( 'زیبایی، وقتی دلنشین‌تر است که برای شما معنا داشته باشد.', 'text', 'عنوان معرفی سالن' ),
 		'intro_description' => array( 'پاریسان فضایی برای انتخاب آگاهانه و مراقبت حرفه‌ای است؛ جایی که می‌توانید خدمات را با جزئیات ببینید، متخصص مناسب را بشناسید و با خیال آسوده برای زمان دلخواهتان برنامه‌ریزی کنید.', 'textarea', 'توضیح معرفی سالن' ),
