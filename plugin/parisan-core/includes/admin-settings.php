@@ -8,6 +8,25 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Load the settings workspace stylesheet only on its own screens.
+ *
+ * @param string $hook_suffix Current admin screen hook.
+ * @return void
+ */
+function parisan_core_enqueue_settings_admin_assets( $hook_suffix ) {
+	if ( false === strpos( (string) $hook_suffix, 'parisan-settings' ) && false === strpos( (string) $hook_suffix, 'parisan-booking-settings' ) ) {
+		return;
+	}
+	wp_enqueue_style(
+		'parisan-admin-settings',
+		plugins_url( 'assets/css/admin-settings.css', PARISAN_CORE_FILE ),
+		array(),
+		PARISAN_CORE_VERSION
+	);
+}
+add_action( 'admin_enqueue_scripts', 'parisan_core_enqueue_settings_admin_assets' );
+
+/**
  * Sanitize the slot increment used by the availability engine.
  *
  * @param mixed $value Submitted value.
@@ -130,7 +149,7 @@ add_action( 'admin_menu', 'parisan_core_register_settings_pages', 20 );
  */
 function parisan_core_render_settings_card( $title, $description, $url, $status = '' ) {
 	printf(
-		'<section class="card" style="max-width:none;margin:0;padding:20px 22px"><h2 style="margin-top:0">%1$s</h2><p>%2$s</p><p><a class="button button-secondary" href="%3$s">%4$s</a></p>%5$s</section>',
+		'<section class="parisan-settings-card"><h2>%1$s</h2><p>%2$s</p><p><a class="button button-secondary" href="%3$s">%4$s</a></p>%5$s</section>',
 		esc_html( $title ),
 		esc_html( $description ),
 		esc_url( $url ),
@@ -199,12 +218,12 @@ function parisan_core_render_settings_hub() {
 	echo '<h1>' . esc_html__( 'تنظیمات پاریسان', 'parisan-core' ) . '</h1>';
 	echo '<p class="description">' . esc_html__( 'مرکز مدیریت ظاهر، محتوای وب‌سایت و قواعد عملیاتی سالن. هر بخش به تنظیمات واقعی همان قابلیت هدایت می‌شود.', 'parisan-core' ) . '</p>';
 	echo '<div class="notice notice-' . ( $booking_enabled ? 'success' : 'info' ) . '"><p><strong>' . esc_html__( 'وضعیت رزرو عمومی:', 'parisan-core' ) . '</strong> ' . esc_html( $booking_enabled ? __( 'فعال است؛ پیش از استفاده عملیاتی، آزمون امنیت و زیرساخت را کامل کنید.', 'parisan-core' ) : __( 'غیرفعال است. این وضعیت پیش‌فرض محافظتی محصول است و از این صفحه قابل فعال‌سازی نیست.', 'parisan-core' ) ) . '</p></div>';
-	echo '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;max-width:1100px;margin-top:22px">';
+	echo '<div class="parisan-settings-grid">';
 	foreach ( $cards as $card ) {
 		parisan_core_render_settings_card( $card[0], $card[1], $card[2], $card[3] );
 	}
 	echo '</div>';
-	echo '<h2 style="margin-top:30px">' . esc_html__( 'امکانات در حال توسعه', 'parisan-core' ) . '</h2>';
+	echo '<h2 class="parisan-settings-roadmap-title">' . esc_html__( 'امکانات در حال توسعه', 'parisan-core' ) . '</h2>';
 	echo '<p>' . esc_html__( 'تنظیمات پیامک، پرداخت آنلاین، فرم‌ساز و گزارش‌های پیشرفته تا زمان تکمیل و آزمون، به‌عنوان قابلیت فعال نمایش داده نمی‌شوند.', 'parisan-core' ) . '</p>';
 	echo '</div>';
 }
