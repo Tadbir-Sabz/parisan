@@ -35,6 +35,7 @@
 
 	if (menuToggle && primaryNavigation) {
 		menuToggle.hidden = false;
+		menuToggle.setAttribute('aria-expanded', 'false');
 		root.classList.add('parisan-mobile-nav-ready');
 
 		function closePrimaryNavigation(returnFocus) {
@@ -68,6 +69,30 @@
 				closePrimaryNavigation(true);
 			}
 		});
+
+		// Dismiss the compact menu when the user interacts with the page outside the header.
+		document.addEventListener('click', function (event) {
+			if (menuToggle.getAttribute('aria-expanded') !== 'true') { return; }
+			var header = menuToggle.closest('.site-header');
+			if (header && event.target && !header.contains(event.target)) {
+				closePrimaryNavigation(false);
+			}
+		});
+
+		// A menu opened on a phone must not remain in a stale open state after rotation/resizing.
+		var desktopViewport = window.matchMedia ? window.matchMedia('(min-width: 761px)') : null;
+		function closeMenuOnDesktop() {
+			if (desktopViewport && desktopViewport.matches && menuToggle.getAttribute('aria-expanded') === 'true') {
+				closePrimaryNavigation(false);
+			}
+		}
+		if (desktopViewport) {
+			if (typeof desktopViewport.addEventListener === 'function') {
+				desktopViewport.addEventListener('change', closeMenuOnDesktop);
+			} else if (typeof desktopViewport.addListener === 'function') {
+				desktopViewport.addListener(closeMenuOnDesktop);
+			}
+		}
 	}
 
 	applyTheme(readPreference() || systemPreference(), false);
