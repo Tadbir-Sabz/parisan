@@ -154,9 +154,9 @@ function parisan_customize_register( $wp_customize ) {
 
 	foreach ( array(
 		'parisan_hero_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه در حالت روز', 'parisan' ) ),
-		'parisan_hero_position_y' => array( 34, esc_html__( 'جایگاه عمودی سوژه در حالت روز', 'parisan' ) ),
+		'parisan_hero_position_y' => array( 42, esc_html__( 'جایگاه عمودی سوژه در حالت روز', 'parisan' ) ),
 		'parisan_hero_night_position_x' => array( 50, esc_html__( 'جایگاه افقی سوژه در حالت شب', 'parisan' ) ),
-		'parisan_hero_night_position_y' => array( 34, esc_html__( 'جایگاه عمودی سوژه در حالت شب', 'parisan' ) ),
+		'parisan_hero_night_position_y' => array( 42, esc_html__( 'جایگاه عمودی سوژه در حالت شب', 'parisan' ) ),
 	) as $setting_id => $definition ) {
 		$wp_customize->add_setting(
 			$setting_id,
