@@ -68,10 +68,10 @@ ob_start();
 parisan_primary_menu_fallback();
 $navigation = ob_get_clean();
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#services' ) ), 'fallback navigation links to the services section' );
-parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#team' ) ), 'fallback navigation links to the team section' );
 parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#portfolio' ) ), 'fallback navigation links to the portfolio section' );
-parisan_theme_smoke_assert( false !== strpos( $navigation, home_url( '/#booking' ) ), 'fallback navigation links to booking from every page' );
 parisan_theme_smoke_assert( false !== strpos( $navigation, parisan_blog_index_url() ), 'fallback navigation links to the resolved blog index' );
+parisan_theme_smoke_assert( false !== strpos( $navigation, 'صفحه اصلی' ) && false !== strpos( $navigation, 'درباره ما' ) && false !== strpos( $navigation, 'تماس با ما' ), 'fallback navigation uses the approved concise Persian labels' );
+parisan_theme_smoke_assert( false === strpos( $navigation, 'سؤالات متداول' ) && false === strpos( $navigation, 'رزرو نوبت' ) && false === strpos( $navigation, 'متخصصان' ), 'fallback header avoids extra items that crowd the reference layout' );
 
 $service_id = wp_insert_post(
 	array(
