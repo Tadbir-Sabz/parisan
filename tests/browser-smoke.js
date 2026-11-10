@@ -217,7 +217,7 @@ const { chromium, firefox, webkit } = require('playwright');
 		assert.equal(await page.locator('#search-results-title').count(), 1, 'search route renders its labelled result heading');
 		assert.equal(await page.locator('.search-results-count[role="status"]').count(), 1, 'search route announces the result count');
 		await runAccessibilityAudit(page, 'search-results');
-		await page.goto(new URL('/this-parisan-route-does-not-exist/', page.url()).toString(), { waitUntil: 'networkidle' });
+		await page.goto(new URL('/?p=999999', page.url()).toString(), { waitUntil: 'networkidle' });
 		assert.equal(await page.locator('main.not-found-page h1').count(), 1, '404 route renders its dedicated recovery page');
 		assert.equal(await page.getByRole('link', { name: /بازگشت به صفحه اصلی/ }).count(), 1, '404 route offers a clear home recovery action');
 		await runAccessibilityAudit(page, 'not-found');
