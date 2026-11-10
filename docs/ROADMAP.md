@@ -55,12 +55,12 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 **Status:** [ ] NOT STARTED
 
-- [ ] Implement plugin bootstrap, namespacing/autoloading, module boundaries, capability map, settings, logging, and diagnostics.
+- [~] Add the first Persian-first admin settings workspace, booking-rule controls, and scoped admin styling; a complete setup wizard, full capability map, logging, and diagnostics remain pending.
 - [ ] Add versioned database migrations and upgrade safety.
 - [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
 - [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor, and date-specific full-day/partial-day unavailability administration. Breaks, resource schedules, and expanded calendar UX remain pending.
 - [ ] Implement branches/resources data model with single-salon-first UX.
-- [ ] Build admin navigation and setup wizard.
+- [~] Add a unified settings entry point linking brand, homepage, hero image, booking rules, SEO/performance, WordPress timezone/language, and menus; a guided first-run setup wizard and role-specific dashboard remain pending.
 - [ ] Add seed/demo data that is clearly non-production.
 - [ ] Test deactivation/theme-switch data persistence.
 - [x] Add pure weekly schedule normalization tests to the PHP CI matrix; previous run PASS on PHP 8.1/8.2/8.3; 22 assertions.
