@@ -134,7 +134,7 @@ get_header();
 								<?php if ( has_post_thumbnail( $parisan_service ) ) : ?>
 									<?php echo get_the_post_thumbnail( $parisan_service, 'large', array( 'loading' => 'lazy' ) ); ?>
 								<?php else : ?>
-									<img src="https://images.unsplash.com/photo-1675034743339-0b0747047727?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async">
+									<img src="https://images.unsplash.com/photo-1771254240529-dbe324f0a401?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=900" alt="" loading="lazy" decoding="async">
 								<?php endif; ?>
 							</a>
 							<div class="service-card-content">
@@ -168,7 +168,7 @@ get_header();
 							<a class="portfolio-card-media" href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'مشاهده نمونه‌کار %s', 'parisan' ), get_the_title( $parisan_work ) ) ); ?>">
 								<?php if ( has_post_thumbnail( $parisan_work ) ) : ?>
 									<?php echo get_the_post_thumbnail( $parisan_work, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?><img src="https://images.unsplash.com/photo-1699207012725-72af224cca65?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?>
+								<?php else : ?><img src="https://images.unsplash.com/photo-1763192902738-a3e17d5f9015?auto=format&amp;fit=crop&amp;crop=faces&amp;fm=jpg&amp;q=82&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?>
 							</a>
 							<div class="portfolio-card-content">
 								<h3><a href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>"><?php echo esc_html( get_the_title( $parisan_work ) ); ?></a></h3>
@@ -193,7 +193,7 @@ get_header();
 			<?php if ( $parisan_articles ) : ?><div class="post-grid">
 				<?php foreach ( $parisan_articles as $parisan_article ) : ?>
 					<article class="post-card">
-						<a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php if ( has_post_thumbnail( $parisan_article ) ) : ?><?php echo get_the_post_thumbnail( $parisan_article, 'large', array( 'loading' => 'lazy' ) ); ?><?php else : ?><img src="https://images.unsplash.com/photo-1675034743339-0b0747047727?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=78&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?></a>
+						<a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php if ( has_post_thumbnail( $parisan_article ) ) : ?><?php echo get_the_post_thumbnail( $parisan_article, 'large', array( 'loading' => 'lazy' ) ); ?><?php else : ?><img src="https://images.unsplash.com/photo-1599753558482-08ac12195069?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=900" alt="" loading="lazy" decoding="async"><?php endif; ?></a>
 						<div class="post-card-content"><p class="post-meta"><?php echo esc_html( get_the_date( '', $parisan_article ) ); ?></p><h3><a href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo esc_html( get_the_title( $parisan_article ) ); ?></a></h3><p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_article ), 18 ) ); ?></p></div>
 					</article>
 				<?php endforeach; ?>
