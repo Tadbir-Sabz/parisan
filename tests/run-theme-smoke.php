@@ -77,6 +77,8 @@ parisan_theme_smoke_assert( false !== strpos( $header_source, 'parisan-mobile-me
 parisan_theme_smoke_assert( false !== strpos( $header_source, 'parisan-brand-lockup' ) && false !== strpos( $header_source, 'parisan-brand-mark' ), 'header renders the Parisan wordmark and lotus mark when no custom logo is uploaded' );
 $theme_script = file_get_contents( get_template_directory() . '/assets/js/theme.js' );
 parisan_theme_smoke_assert( false !== strpos( $theme_script, "event.key === 'Escape'" ) && false !== strpos( $theme_script, "setAttribute('aria-expanded'" ), 'mobile navigation supports Escape and expanded state' );
+parisan_theme_smoke_assert( false !== strpos( $theme_script, "!header.contains(event.target)" ), 'mobile navigation closes when a user clicks outside the header' );
+parisan_theme_smoke_assert( false !== strpos( $theme_script, "'(min-width: 761px)'" ) && false !== strpos( $theme_script, 'closeMenuOnDesktop' ), 'mobile navigation resets its expanded state when the viewport returns to desktop' );
 
 foreach ( array( 'home.php', 'single.php', 'page-about.php', 'page-contact.php', 'page-faq.php', 'page-privacy-policy.php', 'page-terms.php' ) as $template_file ) {
 	parisan_theme_smoke_assert( file_exists( get_template_directory() . '/' . $template_file ), 'required editorial template exists: ' . $template_file );
