@@ -32,6 +32,7 @@ require_once PARISAN_CORE_DIR . 'includes/staff.php';
 require_once PARISAN_CORE_DIR . 'includes/service-taxonomy.php';
 require_once PARISAN_CORE_DIR . 'includes/seo-performance.php';
 require_once PARISAN_CORE_DIR . 'includes/admin-settings.php';
+require_once PARISAN_CORE_DIR . 'includes/setup-readiness.php';
 require_once PARISAN_CORE_DIR . 'includes/cache-integration.php';
 require_once PARISAN_CORE_DIR . 'includes/breadcrumbs.php';
 
