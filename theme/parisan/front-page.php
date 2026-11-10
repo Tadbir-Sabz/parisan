@@ -42,6 +42,15 @@ if ( '' === $parisan_hero_image_alt && $parisan_has_hero_attachment ) {
 	$parisan_hero_image_alt = sanitize_text_field( get_post_meta( $parisan_hero_image_id, '_wp_attachment_image_alt', true ) );
 }
 
+$parisan_hero_image_night_id = absint( get_theme_mod( 'parisan_hero_image_night_id', 0 ) );
+$parisan_hero_night_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_x', 50 ) );
+$parisan_hero_night_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_y', 34 ) );
+$parisan_hero_night_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_night_position_x, $parisan_hero_night_position_y );
+$parisan_hero_image_night_alt = sanitize_text_field( get_theme_mod( 'parisan_hero_image_night_alt', '' ) );
+if ( '' === $parisan_hero_image_night_alt && $parisan_hero_image_night_id && wp_attachment_is_image( $parisan_hero_image_night_id ) ) {
+	$parisan_hero_image_night_alt = sanitize_text_field( get_post_meta( $parisan_hero_image_night_id, '_wp_attachment_image_alt', true ) );
+}
+
 $parisan_booking_enabled = function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled();
 
 get_header();
@@ -60,13 +69,17 @@ get_header();
 			</div>
 			<div class="hero-art">
 				<?php if ( $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id ) ) : ?>
-					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo', 'alt' => $parisan_hero_image_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
+					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo hero-art-photo-day', 'alt' => $parisan_hero_image_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
 				<?php elseif ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image ) : ?>
-					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
+					<img class="hero-art-photo hero-art-photo-day" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php else : ?>
-					<img class="hero-art-photo hero-art-demo-photo" src="https://images.unsplash.com/photo-1771254240529-dbe324f0a401?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=1400" alt="<?php esc_attr_e( 'تصویر نمونه از تجربه آرایش و زیبایی در فضای استودیو', 'parisan' ); ?>" loading="eager" decoding="async" fetchpriority="high" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
+					<img class="hero-art-photo hero-art-photo-day" src="https://images.unsplash.com/photo-1763192902738-a3e17d5f9015?auto=format&amp;fit=crop&amp;crop=faces&amp;fm=jpg&amp;q=82&amp;w=1400" alt="<?php esc_attr_e( 'پرتره زیبایی با آرایش ظریف و گل‌های صورتی', 'parisan' ); ?>" loading="eager" decoding="async" fetchpriority="high" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php endif; ?>
-
+				<?php if ( $parisan_hero_image_night_id && wp_attachment_is_image( $parisan_hero_image_night_id ) ) : ?>
+					<?php echo wp_get_attachment_image( $parisan_hero_image_night_id, 'full', false, array( 'class' => 'hero-art-photo hero-art-photo-night', 'alt' => $parisan_hero_image_night_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_night_image_style ) ); ?>
+				<?php else : ?>
+					<img class="hero-art-photo hero-art-photo-night" src="https://images.unsplash.com/photo-1599753558482-08ac12195069?auto=format&amp;fit=crop&amp;fm=jpg&amp;q=82&amp;w=1400" alt="<?php echo esc_attr( $parisan_hero_image_night_alt ? $parisan_hero_image_night_alt : __( 'پرتره هنری با آرایش صورتی و بنفش در نورپردازی شب', 'parisan' ) ); ?>" loading="eager" decoding="async">
+				<?php endif; ?>
 			</div>
 		</div>
 		<div class="container hero-bottomline" aria-label="<?php esc_attr_e( 'مزیت‌های سالن پاریسان', 'parisan' ); ?>">
