@@ -150,7 +150,7 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Homepage Spe
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'Synthetic Portfolio Work' ), 'homepage renders published portfolio work' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="portfolio"' ), 'homepage exposes the portfolio section' );
 parisan_theme_smoke_assert( 4 === substr_count( $homepage, 'class="hero-benefit"' ), 'homepage renders exactly four reference-style trust benefit cards' );
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'خدمات لوکس' ) && false !== strpos( $homepage, 'پشتیبانی حرفه‌ای' ) && false !== strpos( $homepage, 'وقت‌دهی آسان' ) && false !== strpos( $homepage, 'محیط امن و بهداشتی' ), 'all four homepage benefit cards render their Persian content' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'خدمات لوکس' ) && false !== strpos( $homepage, 'پشتیبانی حرفه‌ای' ) && false !== strpos( $homepage, 'وقت‌دهی آسان' ) && false !== strpos( $homepage, 'مزیت آزمایشی قابل ویرایش' ), 'all four homepage benefit cards render Persian content including the owner override' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'مزیت آزمایشی قابل ویرایش' ), 'homepage benefit card copy can be customized by the site owner' );
 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'مجلهٔ پاریسان' ), 'homepage renders the Persian editorial journal label' );
