@@ -36,6 +36,9 @@ parisan_theme_smoke_assert( false !== strpos( file_get_contents( WP_PLUGIN_DIR .
 $booking_admin_source = file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/booking-admin.php' );
 parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'today_active' ) && false !== strpos( $booking_admin_source, 'awaiting_confirmation' ) && false !== strpos( $booking_admin_source, 'upcoming_confirmed' ), 'booking operations overview exposes today, pending, and upcoming metrics' );
 parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'خلاصه عملیات نوبت‌ها' ) && false !== strpos( $booking_admin_source, 'از ابتدای فردا به بعد' ), 'booking overview labels its operational metrics in Persian with a clear date boundary' );
+parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'booking_date' ) && false !== strpos( $booking_admin_source, 'staff_filter' ), 'booking operations supports date and specialist filters for the daily schedule' );
+parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'ORDER BY b.starts_at_utc ' ) && false !== strpos( $booking_admin_source, "? 'ASC' : 'DESC'" ), 'daily schedule is chronological while the unfiltered history remains newest-first' );
+parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'FROM {$bookings_table} b' ), 'booking detail metrics use the correctly scoped bookings table' );
 
 
 parisan_theme_smoke_assert( function_exists( 'parisan_home_content' ), 'owner-editable homepage content helper is registered' );
