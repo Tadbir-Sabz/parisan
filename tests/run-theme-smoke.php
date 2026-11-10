@@ -33,6 +33,10 @@ foreach ( $readiness_checks as $readiness_check ) {
 	parisan_theme_smoke_assert( isset( $readiness_check['title'], $readiness_check['ready'], $readiness_check['detail'], $readiness_check['url'], $readiness_check['action'], $readiness_check['required'] ), 'each setup readiness check has a complete status and next action' );
 }
 parisan_theme_smoke_assert( false !== strpos( file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/setup-readiness.php' ), 'This function is deliberately read-only' ), 'setup readiness is explicitly documented as read-only' );
+$booking_admin_source = file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/booking-admin.php' );
+parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'today_active' ) && false !== strpos( $booking_admin_source, 'awaiting_confirmation' ) && false !== strpos( $booking_admin_source, 'upcoming_confirmed' ), 'booking operations overview exposes today, pending, and upcoming metrics' );
+parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'خلاصه عملیات نوبت‌ها' ) && false !== strpos( $booking_admin_source, 'از ابتدای فردا به بعد' ), 'booking overview labels its operational metrics in Persian with a clear date boundary' );
+
 
 parisan_theme_smoke_assert( function_exists( 'parisan_home_content' ), 'owner-editable homepage content helper is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_homepage_content_register' ), 'homepage copy controls are registered in the Customizer' );
