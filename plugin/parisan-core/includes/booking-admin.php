@@ -246,6 +246,24 @@ function parisan_core_render_booking_detail( $booking_id ) {
 		),
 		ARRAY_A
 	);
+	$local_now = new DateTimeImmutable( 'now', wp_timezone() );
+	$today_start_utc = $local_now->setTime( 0, 0, 0 )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
+	$tomorrow_start_utc = $local_now->modify( '+1 day' )->setTime( 0, 0, 0 )->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
+	$today_metrics = $wpdb->get_row(
+		$wpdb->prepare(
+			"SELECT
+				SUM( CASE WHEN b.starts_at_utc >= %s AND b.starts_at_utc < %s AND b.status IN ('pending','confirmed') THEN 1 ELSE 0 END ) AS today_active,
+				SUM( CASE WHEN b.status = 'pending' THEN 1 ELSE 0 END ) AS awaiting_confirmation,
+				SUM( CASE WHEN b.starts_at_utc >= %s AND b.status = 'confirmed' THEN 1 ELSE 0 END ) AS upcoming_confirmed
+			FROM {$table} b",
+			$today_start_utc,
+			$tomorrow_start_utc,
+			$tomorrow_start_utc
+		),
+		ARRAY_A
+	);
+	$today_metrics = is_array( $today_metrics ) ? $today_metrics : array();
+
 	$status_labels = array(
 		'pending' => __( 'در انتظار تأیید', 'parisan-core' ),
 		'confirmed' => __( 'تأییدشده', 'parisan-core' ),
@@ -426,6 +444,12 @@ function parisan_core_render_booking_admin_page() {
 	<div class="wrap">
 		<h1><?php esc_html_e( 'مدیریت نوبت‌ها', 'parisan-core' ); ?></h1>
 		<p><?php esc_html_e( 'نوبت‌های ثبت‌شده را بررسی کنید و وضعیت آن‌ها را از مسیر مجاز چرخه رزرو تغییر دهید. زمان‌ها بر اساس منطقه زمانی تنظیم‌شده در وردپرس نمایش داده می‌شوند.', 'parisan-core' ); ?></p>
+		<section class="parisan-booking-overview" aria-label="<?php esc_attr_e( 'خلاصه عملیات نوبت‌ها', 'parisan-core' ); ?>">
+			<article class="parisan-booking-metric"><span><?php esc_html_e( 'نوبت‌های فعال امروز', 'parisan-core' ); ?></span><strong><?php echo esc_html( number_format_i18n( absint( $today_metrics['today_active'] ?? 0 ) ) ); ?></strong><small><?php echo esc_html( wp_date( 'l، j F Y', $local_now->getTimestamp(), wp_timezone() ) ); ?></small></article>
+			<article class="parisan-booking-metric is-attention"><span><?php esc_html_e( 'در انتظار تأیید', 'parisan-core' ); ?></span><strong><?php echo esc_html( number_format_i18n( absint( $today_metrics['awaiting_confirmation'] ?? 0 ) ) ); ?></strong><a href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'status' => 'pending' ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'مشاهده موارد', 'parisan-core' ); ?></a></article>
+			<article class="parisan-booking-metric"><span><?php esc_html_e( 'نوبت‌های تأییدشده آینده', 'parisan-core' ); ?></span><strong><?php echo esc_html( number_format_i18n( absint( $today_metrics['upcoming_confirmed'] ?? 0 ) ) ); ?></strong><small><?php esc_html_e( 'از ابتدای فردا به بعد', 'parisan-core' ); ?></small></article>
+		</section>
+
 		<?php if ( isset( $_GET['booking_created'] ) ) : ?>
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'نوبت با موفقیت ثبت شد و در وضعیت «در انتظار تأیید» قرار گرفت.', 'parisan-core' ); ?></p></div>
 		<?php elseif ( isset( $_GET['booking_updated'] ) ) : ?>
