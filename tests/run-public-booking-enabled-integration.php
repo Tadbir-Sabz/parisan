@@ -322,15 +322,15 @@ $customer_availability_request->set_param( 'date', $booking_date );
 $customer_availability_response = parisan_core_rest_customer_availability( $customer_availability_request );
 parisan_public_enabled_assert( 200 === $customer_availability_response->get_status(), 'customer-token availability route returns reschedule candidates' );
 $customer_available_times = wp_list_pluck( $customer_availability_response->get_data()['slots'], 'starts_at_local' );
-parisan_public_enabled_assert( in_array( $booking_date . ' 11:00', $customer_available_times, true ) && in_array( $booking_date . ' 12:00', $customer_available_times, true ), 'customer reschedule availability excludes its own booking from conflicts and offers the original and another free time' );
+parisan_public_enabled_assert( in_array( $booking_date . ' 12:00', $customer_available_times, true ) && in_array( $booking_date . ' 14:00', $customer_available_times, true ), 'customer reschedule availability excludes its own booking from conflicts and offers the original and another free time' );
 
 $customer_reschedule_request = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
 $customer_reschedule_request->set_header( 'Origin', home_url( '/' ) );
 $customer_reschedule_request->set_header( 'X-Parisan-Booking-Token', $customer_token );
-$customer_reschedule_request->set_param( 'starts_at_local', $booking_date . ' 12:00' );
+$customer_reschedule_request->set_param( 'starts_at_local', $booking_date . ' 14:00' );
 $customer_reschedule_response = parisan_core_rest_customer_reschedule_booking( $customer_reschedule_request );
 parisan_public_enabled_assert( 200 === $customer_reschedule_response->get_status(), 'customer can reschedule a token-owned pending booking' );
-$expected_two_hour_reminder = $booking_date . ' 10:00:00';
+$expected_two_hour_reminder = $booking_date . ' 12:00:00';
 $actual_two_hour_reminder = $wpdb->get_var( $wpdb->prepare( "SELECT scheduled_at_utc FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d AND reminder_kind='2h'", (int) $first_booking['booking_id'] ) );
 parisan_public_enabled_assert( $expected_two_hour_reminder === $actual_two_hour_reminder, 'rescheduling recalculates the pending two-hour reminder against the new appointment time' );
 
@@ -338,11 +338,11 @@ $customer_view_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booki
 $customer_view_request->set_header( 'X-Parisan-Booking-Token', $customer_token );
 $customer_view_response = parisan_core_rest_customer_booking( $customer_view_request );
 $customer_view_data = $customer_view_response->get_data();
-parisan_public_enabled_assert( 200 === $customer_view_response->get_status() && $booking_date . ' 12:00' === $customer_view_data['starts_at_local_display'] && true === $customer_view_data['can_reschedule'], 'customer view reflects the new local appointment time and reschedule capability' );
+parisan_public_enabled_assert( 200 === $customer_view_response->get_status() && $booking_date . ' 14:00' === $customer_view_data['starts_at_local_display'] && true === $customer_view_data['can_reschedule'], 'customer view reflects the new local appointment time and reschedule capability' );
 
 $customer_booking = parisan_core_resolve_customer_access_token( $customer_token );
 $customer_token_row = $wpdb->get_row( $wpdb->prepare( "SELECT expires_at_utc FROM {$wpdb->prefix}parisan_customer_tokens WHERE booking_id = %d AND revoked_at_utc IS NULL", (int) $customer_booking['id'] ), ARRAY_A );
-$expected_customer_expiry = ( new DateTimeImmutable( $booking_date . ' 12:45:00', new DateTimeZone( 'UTC' ) ) )->modify( '+30 days' )->format( 'Y-m-d H:i:s' );
+$expected_customer_expiry = ( new DateTimeImmutable( $booking_date . ' 14:45:00', new DateTimeZone( 'UTC' ) ) )->modify( '+30 days' )->format( 'Y-m-d H:i:s' );
 parisan_public_enabled_assert( is_array( $customer_token_row ) && $expected_customer_expiry === $customer_token_row['expires_at_utc'], 'customer reschedule moves token expiry to 30 days after the new appointment end' );
 
 $customer_reschedule_horizon = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
