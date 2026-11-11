@@ -12,6 +12,13 @@ function parisan_core_reminder_cron_schedules( $schedules ) {
 }
 add_filter( 'cron_schedules', 'parisan_core_reminder_cron_schedules' );
 add_action( 'parisan_core_process_booking_reminders', 'parisan_core_process_booking_reminders' );
+add_action( 'init', 'parisan_core_ensure_reminder_cron' );
+
+function parisan_core_ensure_reminder_cron() {
+	if ( ! wp_next_scheduled( 'parisan_core_process_booking_reminders' ) ) {
+		wp_schedule_event( time() + 300, 'parisan_fifteen_minutes', 'parisan_core_process_booking_reminders' );
+	}
+}
 
 function parisan_core_sync_booking_reminders( $booking_id ) {
 	global $wpdb;
@@ -25,7 +32,7 @@ function parisan_core_sync_booking_reminders( $booking_id ) {
 	$active = in_array( $booking['status'], array( 'pending', 'confirmed' ), true );
 	$consented = 1 === (int) $booking['customer_email_consent'] && is_email( $booking['customer_email'] );
 	if ( ! $active || ! $consented ) {
-		$wpdb->update( $queue, array( 'status' => 'skipped', 'last_error' => ! $active ? 'booking_not_active' : 'email_consent_missing', 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'booking_id' => $booking_id, 'status' => 'pending' ), array( '%s','%s','%s' ), array( '%d','%s' ) );
+		$wpdb->query( $wpdb->prepare( "UPDATE {$queue} SET status='skipped',last_error=%s,updated_at_utc=%s WHERE booking_id=%d AND status IN ('pending','failed')", ! $active ? 'booking_not_active' : 'email_consent_missing', current_time( 'mysql', true ), $booking_id ) );
 		return true;
 	}
 	try {
@@ -62,7 +69,7 @@ function parisan_core_sync_booking_reminders( $booking_id ) {
 function parisan_core_skip_booking_reminders( $booking_id, $reason = 'booking_not_active' ) {
 	global $wpdb;
 	$queue = $wpdb->prefix . 'parisan_booking_reminders';
-	$updated = $wpdb->update( $queue, array( 'status' => 'skipped', 'last_error' => sanitize_key( $reason ), 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'booking_id' => absint( $booking_id ), 'status' => 'pending' ), array( '%s','%s','%s' ), array( '%d','%s' ) );
+	$updated = $wpdb->query( $wpdb->prepare( "UPDATE {$queue} SET status='skipped',last_error=%s,updated_at_utc=%s WHERE booking_id=%d AND status IN ('pending','failed')", sanitize_key( $reason ), current_time( 'mysql', true ), absint( $booking_id ) ) );
 	return false === $updated ? new WP_Error( 'parisan_reminder_skip_failed', __( 'به‌روزرسانی یادآورهای رزرو انجام نشد.', 'parisan-core' ) ) : true;
 }
 
