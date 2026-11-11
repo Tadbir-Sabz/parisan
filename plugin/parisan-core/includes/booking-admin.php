@@ -260,6 +260,12 @@ function parisan_core_render_booking_detail( $booking_id ) {
 		'status_changed' => __( 'تغییر وضعیت', 'parisan-core' ),
 		'rescheduled' => __( 'تغییر زمان', 'parisan-core' ),
 	);
+	$assigned_resource_ids = parisan_core_get_booking_resource_ids( $booking_id );
+	$assigned_resource_names = array();
+	foreach ( $assigned_resource_ids as $assigned_resource_id ) {
+		$assigned_resource_names[] = get_the_title( $assigned_resource_id );
+	}
+	$assigned_resource_label = $assigned_resource_names ? implode( '، ', array_filter( $assigned_resource_names ) ) : __( 'بدون منبع اختصاصی', 'parisan-core' );
 	$start = ( new DateTimeImmutable( $booking['starts_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
 	$end = ( new DateTimeImmutable( $booking['ends_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
 	$price_toman = intdiv( (int) $booking['price_amount'], 10 );
@@ -286,7 +292,7 @@ function parisan_core_render_booking_detail( $booking_id ) {
 			<tr><th><?php esc_html_e( 'ایمیل', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['customer_email'] ? $booking['customer_email'] : '—' ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['service_title'] ? $booking['service_title'] : '—' ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['staff_title'] ? $booking['staff_title'] : '—' ); ?></td></tr>
-			<tr><th><?php esc_html_e( 'منبع اختصاص‌یافته', 'parisan-core' ); ?></th><td><?php echo esc_html( ! empty( $booking['resource_title'] ) ? $booking['resource_title'] : __( 'بدون منبع اختصاصی', 'parisan-core' ) ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'منبع اختصاص‌یافته', 'parisan-core' ); ?></th><td><?php echo esc_html( $assigned_resource_label ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'زمان', 'parisan-core' ); ?></th><td><?php echo esc_html( wp_date( 'Y/m/d H:i', $start->getTimestamp(), wp_timezone() ) . ' تا ' . wp_date( 'H:i', $end->getTimestamp(), wp_timezone() ) ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'مبلغ ثبت‌شده', 'parisan-core' ); ?></th><td><?php echo esc_html( number_format_i18n( $price_toman ) . ' تومان' ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'وضعیت', 'parisan-core' ); ?></th><td><?php echo esc_html( isset( $status_labels[ $booking['status'] ] ) ? $status_labels[ $booking['status'] ] : $booking['status'] ); ?></td></tr>
