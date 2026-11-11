@@ -223,6 +223,38 @@ jobs:
               fwrite( STDERR, "Availability adapter did not exclude seeded booking/exception intervals.\\n" );
               exit( 1 );
             }
+            $resource_id = wp_insert_post( array(
+              "post_type" => "parisan_resource",
+              "post_status" => "publish",
+              "post_title" => "Synthetic CI treatment bed",
+            ), true );
+            if ( is_wp_error( $resource_id ) ) {
+              fwrite( STDERR, "Synthetic resource creation failed.\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $service_id, "_parisan_service_resources", array( $resource_id ) );
+            update_post_meta( $resource_id, "_parisan_resource_schedule", array(
+              "enabled" => true,
+              "days" => array( 1 => array( "enabled" => true, "start" => "11:00", "end" => "12:00" ) ),
+            ) );
+            $resource_slots = parisan_core_get_available_slots( $staff_id, $service_id, $ci_date );
+            $resource_starts = is_array( $resource_slots ) ? array_column( $resource_slots, "starts_at_local" ) : array();
+            if ( is_wp_error( $resource_slots ) || ! in_array( $ci_date . " 11:00", $resource_starts, true ) || in_array( $ci_date . " 10:30", $resource_starts, true ) || in_array( $ci_date . " 11:30", $resource_starts, true ) ) {
+              fwrite( STDERR, "Resource weekly schedule did not enforce the complete booking interval.\\n" );
+              exit( 1 );
+            }
+            update_post_meta( $resource_id, "_parisan_resource_schedule", array( "enabled" => true, "days" => array() ) );
+            $closed_resource_slots = parisan_core_get_available_slots( $staff_id, $service_id, $ci_date );
+            if ( is_wp_error( $closed_resource_slots ) || ! is_array( $closed_resource_slots ) || ! empty( $closed_resource_slots ) ) {
+              fwrite( STDERR, "A resource with no enabled working days was incorrectly treated as available.\\n" );
+              exit( 1 );
+            }
+            delete_post_meta( $resource_id, "_parisan_resource_schedule" );
+            $legacy_resource_slots = parisan_core_get_available_slots( $staff_id, $service_id, $ci_date );
+            if ( is_wp_error( $legacy_resource_slots ) || ! is_array( $legacy_resource_slots ) || empty( $legacy_resource_slots ) || $ci_date . " 10:30" !== $legacy_resource_slots[0]["starts_at_local"] ) {
+              fwrite( STDERR, "Resources without a custom schedule lost their backward-compatible availability.\\n" );
+              exit( 1 );
+            }
             echo "WordPress activation, schema, and seeded availability integration test passed.\\n";
           ' --path="$WP_PATH"
           test -f "$WP_PATH/wp-content/themes/parisan/front-page.php"
