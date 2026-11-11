@@ -52,12 +52,12 @@ function parisan_core_get_resource_report_rows( $range, $type_filter = '' ) {
 			FROM {$bookings} b
 			WHERE (b.resource_id=%d OR EXISTS (SELECT 1 FROM {$relations} br WHERE br.booking_id=b.id AND br.resource_id=%d))
 			AND b.starts_at_utc < %s AND b.ends_at_utc > %s",
-			$range['start_utc'], $range['end_utc'], $range['start_utc'], $range['end_utc'], $resource_id, $range['start_utc'], $range['end_utc'], $resource_id, $range['end_utc'], $range['start_utc']
+			$range['start_utc'], $range['end_utc'], $range['start_utc'], $range['end_utc'], $resource_id, $resource_id, $range['end_utc'], $range['start_utc']
 		), ARRAY_A );
 		$maintenance_rows = $wpdb->get_row( $wpdb->prepare(
 			"SELECT COUNT(*) AS maintenance_count, COALESCE(SUM(TIMESTAMPDIFF(MINUTE,GREATEST(starts_at_utc,%s),LEAST(ends_at_utc,%s))),0) AS maintenance_minutes
 			FROM {$maintenance} WHERE resource_id=%d AND status='active' AND starts_at_utc < %s AND ends_at_utc > %s",
-			$resource_id, $range['end_utc'], $range['start_utc']
+			$range['start_utc'], $range['end_utc'], $resource_id, $range['end_utc'], $range['start_utc']
 		), ARRAY_A );
 		$rows[] = array(
 			'resource_id' => $resource_id,
