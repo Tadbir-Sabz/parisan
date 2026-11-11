@@ -12,6 +12,9 @@ function parisan_core_register_waitlist_admin_page() {
 add_action( 'admin_menu', 'parisan_core_register_waitlist_admin_page' );
 
 function parisan_core_waitlist_shortcode() {
+	if ( ! function_exists( 'parisan_core_public_booking_enabled' ) || ! parisan_core_public_booking_enabled() ) {
+		return '<section class="parisan-waitlist" dir="rtl"><p>' . esc_html__( 'ثبت عمومی درخواست فهرست انتظار در حال حاضر فعال نیست.', 'parisan-core' ) . '</p></section>';
+	}
 	$services = get_posts( array( 'post_type' => 'parisan_service', 'post_status' => 'publish', 'numberposts' => 200, 'orderby' => 'title', 'order' => 'ASC' ) );
 	if ( ! $services ) {
 		return '<section class="parisan-waitlist" dir="rtl"><p>در حال حاضر خدمتی برای ثبت درخواست فهرست انتظار وجود ندارد.</p></section>';
@@ -52,6 +55,9 @@ function parisan_core_handle_waitlist_submit() {
 		wp_die( esc_html__( 'درخواست معتبر نیست.', 'parisan-core' ), '', array( 'response' => 405 ) );
 	}
 	check_admin_referer( 'parisan_waitlist_submit', 'parisan_waitlist_nonce' );
+	if ( ! function_exists( 'parisan_core_public_booking_enabled' ) || ! parisan_core_public_booking_enabled() ) {
+		wp_die( esc_html__( 'ثبت عمومی فهرست انتظار در حال حاضر فعال نیست.', 'parisan-core' ), '', array( 'response' => 503 ) );
+	}
 	if ( ! empty( $_POST['website'] ) ) {
 		wp_die( esc_html__( 'درخواست ثبت نشد.', 'parisan-core' ), '', array( 'response' => 400 ) );
 	}
@@ -144,7 +150,7 @@ function parisan_core_handle_waitlist_status() {
 	}
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_booking_waitlist';
-	$updated = $wpdb->update( $table, array( 'status' => $status, 'handled_by' => get_current_user_id(), 'handled_at_utc' => current_time( 'mysql', true ), 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'id' => $id, 'status' => 'waiting' ), array( '%s','%d','%s','%s' ), array( '%d','%s' ) );
+	$updated = $wpdb->update( $table, array( 'status' => $status, 'handled_by' => get_current_user_id(), 'handled_at_utc' => current_time( 'mysql', true ), 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'id' => $id ), array( '%s','%d','%s','%s' ), array( '%d' ) );
 	if ( false === $updated ) {
 		wp_die( esc_html__( 'به‌روزرسانی وضعیت انجام نشد.', 'parisan-core' ), '', array( 'response' => 503 ) );
 	}
