@@ -89,4 +89,4 @@ function parisan_core_enqueue_finance_admin_assets( $hook_suffix ) {
 	wp_add_inline_style( 'parisan-finance-admin', '.parisan-finance-filters{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin:18px 0}.parisan-finance-filters label{display:grid;gap:5px}.parisan-finance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:18px 0 26px}.parisan-finance-card{background:#fff;border:1px solid #dcdcde;border-radius:9px;padding:16px}.parisan-finance-card h2{font-size:13px;color:#646970;margin:0 0 10px}.parisan-finance-card strong{font-size:22px;color:#1d2327}.parisan-finance table{margin:12px 0 24px}' );
 }
 add_action( 'admin_enqueue_scripts', 'parisan_core_enqueue_finance_admin_assets' );
-}
+
