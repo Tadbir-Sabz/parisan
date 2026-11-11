@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 4 );
+define( 'PARISAN_CORE_DB_VERSION', 5 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -104,6 +104,16 @@ function parisan_core_install_database() {
 		KEY expires_at_utc (expires_at_utc)
 	) ENGINE=InnoDB {$charset_collate};";
 	dbDelta( $customer_tokens_sql );
+
+
+	$booking_resources_table = $wpdb->prefix . 'parisan_booking_resources';
+	$booking_resources_sql = "CREATE TABLE {$booking_resources_table} (
+		booking_id bigint(20) unsigned NOT NULL,
+		resource_id bigint(20) unsigned NOT NULL,
+		PRIMARY KEY  (booking_id,resource_id),
+		KEY resource_booking (resource_id,booking_id)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $booking_resources_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
