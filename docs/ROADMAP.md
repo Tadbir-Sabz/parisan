@@ -59,7 +59,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [ ] Add versioned database migrations and upgrade safety.
 - [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
 - [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor with validated recurring break windows (breaks are excluded from availability), and date-specific full-day/partial-day unavailability administration. Resource schedules and expanded calendar UX remain pending.
-- [ ] Implement branches/resources data model with single-salon-first UX.
+- [~] Implement single-salon shared resource inventory and service resource pools; multi-branch/tenant ownership and branch-specific resource policies remain pending.
 - [~] Add a unified settings entry point linking brand, homepage copy and four benefit cards, separate day/night hero images, booking rules, SEO/performance, WordPress timezone/language, and menus; a guided first-run setup wizard and role-specific dashboard remain pending.
 - [ ] Add seed/demo data that is clearly non-production.
 - [ ] Test deactivation/theme-switch data persistence.
@@ -204,7 +204,7 @@ As of the active implementation branch:
 - Duration snapshots and concurrency-safe rescheduling passed [CI run 42377819791](https://github.com/Tadbir-Sabz/parisan/actions/runs/42377819791).
 - Privacy exporter/eraser, terminal-only anonymization, active-booking retention, rollback safety, opt-in retention, and request throttling passed the PHP matrix [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545) and disposable WordPress/MariaDB integration [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
 - Latest PHP syntax, schedule/availability, booking integration, and WordPress activation smoke tests passed [run 42398990464](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990464).
-- Public booking/customer portal, secure customer access tokens, break/resource scheduling, browser visual/accessibility review, multi-connection stress, proxy/multi-node rate-limit verification, SMS, forms, SEO, caching, WooCommerce/Elementor adapters, packaging, and production deployment remain NOT STARTED or UNVERIFIED as marked above.
+- Public booking/customer portal, secure customer access tokens, resource-specific schedules and multi-resource bundles, browser visual/accessibility review, multi-connection stress, proxy/multi-node rate-limit verification, SMS, forms, SEO, caching, WooCommerce/Elementor adapters, packaging, and production deployment remain NOT STARTED or UNVERIFIED as marked above.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
