@@ -460,6 +460,7 @@ function parisan_core_render_booking_admin_page() {
 		'parisan_invalid_booking_transition' => __( 'این تغییر وضعیت در چرخه رزرو مجاز نیست.', 'parisan-core' ),
 		'parisan_booking_confirmation_conflict' => __( 'رزرو با نوبت یا عدم دسترسی دیگری تداخل دارد.', 'parisan-core' ),
 		'parisan_booking_lock_unavailable' => __( 'تقویم متخصص در حال پردازش است؛ دوباره تلاش کنید.', 'parisan-core' ),
+		'parisan_resource_lock_unavailable' => __( 'ظرفیت منابع در حال پردازش است؛ دوباره تلاش کنید.', 'parisan-core' ),
 		'parisan_invalid_booking_input' => __( 'اطلاعات نوبت کامل یا معتبر نیست.', 'parisan-core' ),
 		'parisan_invalid_local_booking_time' => __( 'زمان محلی واردشده معتبر نیست.', 'parisan-core' ),
 		'parisan_booking_time_in_past' => __( 'زمان رزرو باید در آینده باشد.', 'parisan-core' ),
