@@ -56,9 +56,13 @@ function parisan_core_get_resource_report_rows( $range, $type_filter = '' ) {
 		), ARRAY_A );
 		$booking_query_failed = null === $booking_rows || '' !== $wpdb->last_error;
 		$maintenance_rows = $wpdb->get_row( $wpdb->prepare(
-			"SELECT COUNT(*) AS maintenance_count, COALESCE(SUM(TIMESTAMPDIFF(MINUTE,GREATEST(starts_at_utc,%s),LEAST(ends_at_utc,%s))),0) AS maintenance_minutes
-			FROM {$maintenance} WHERE resource_id=%d AND status='active' AND starts_at_utc < %s AND ends_at_utc > %s",
-			$range['start_utc'], $range['end_utc'], $resource_id, $range['end_utc'], $range['start_utc']
+			"SELECT
+			COUNT(CASE WHEN status='active' THEN 1 END) AS maintenance_count,
+			COALESCE(SUM(CASE WHEN status='active' THEN TIMESTAMPDIFF(MINUTE,GREATEST(starts_at_utc,%s),LEAST(ends_at_utc,%s)) ELSE 0 END),0) AS maintenance_minutes,
+			COUNT(CASE WHEN status='cancelled' THEN 1 END) AS cancelled_maintenance_count,
+			COALESCE(SUM(CASE WHEN status='cancelled' THEN TIMESTAMPDIFF(MINUTE,GREATEST(starts_at_utc,%s),LEAST(ends_at_utc,%s)) ELSE 0 END),0) AS cancelled_maintenance_minutes
+			FROM {$maintenance} WHERE resource_id=%d AND status IN ('active','cancelled') AND starts_at_utc < %s AND ends_at_utc > %s",
+			$range['start_utc'], $range['end_utc'], $range['start_utc'], $range['end_utc'], $resource_id, $range['end_utc'], $range['start_utc']
 		), ARRAY_A );
 		$maintenance_query_failed = null === $maintenance_rows || '' !== $wpdb->last_error;
 		if ( $booking_query_failed || $maintenance_query_failed ) {
@@ -74,6 +78,8 @@ function parisan_core_get_resource_report_rows( $range, $type_filter = '' ) {
 			'completed_minutes' => (int) $booking_rows['completed_minutes'],
 			'maintenance_count' => (int) $maintenance_rows['maintenance_count'],
 			'maintenance_minutes' => (int) $maintenance_rows['maintenance_minutes'],
+			'cancelled_maintenance_count' => (int) $maintenance_rows['cancelled_maintenance_count'],
+			'cancelled_maintenance_minutes' => (int) $maintenance_rows['cancelled_maintenance_minutes'],
 		);
 	}
 	return $rows;
@@ -95,11 +101,11 @@ function parisan_core_handle_resource_report_csv() {
 	$out = fopen( 'php://output', 'w' );
 	if ( false === $out ) { wp_die( esc_html__( 'ساخت خروجی CSV انجام نشد.', 'parisan-core' ), 500 ); }
 	fwrite( $out, "\xEF\xBB\xBF" );
-	fputcsv( $out, array( 'Resource', 'Type', 'Reserved appointments', 'Reserved minutes', 'Completed appointments', 'Completed minutes', 'Active maintenance windows', 'Maintenance minutes' ) );
+	fputcsv( $out, array( 'Resource', 'Type', 'Reserved appointments', 'Reserved minutes', 'Completed appointments', 'Completed minutes', 'Active maintenance windows', 'Maintenance minutes', 'Cancelled maintenance windows', 'Cancelled maintenance minutes' ) );
 	foreach ( $rows as $row ) {
 		$name = (string) $row['name'];
 		if ( preg_match( '/^[=+@\-\t\r]/', $name ) ) { $name = "'" . $name; }
-		fputcsv( $out, array( $name, $row['type'], $row['reserved_count'], $row['reserved_minutes'], $row['completed_count'], $row['completed_minutes'], $row['maintenance_count'], $row['maintenance_minutes'] ) );
+		fputcsv( $out, array( $name, $row['type'], $row['reserved_count'], $row['reserved_minutes'], $row['completed_count'], $row['completed_minutes'], $row['maintenance_count'], $row['maintenance_minutes'], $row['cancelled_maintenance_count'], $row['cancelled_maintenance_minutes'] ) );
 	}
 	fclose( $out );
 	exit;
@@ -127,10 +133,10 @@ function parisan_core_render_resource_report_page() {
 	echo '<form method="get" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="parisan_resource_report_csv"><input type="hidden" name="from" value="' . esc_attr( $range['from'] ) . '"><input type="hidden" name="to" value="' . esc_attr( $range['to'] ) . '"><input type="hidden" name="resource_type" value="' . esc_attr( $type ) . '">';
 	wp_nonce_field( 'parisan_resource_report_csv', 'parisan_resource_report_nonce' );
 	echo '<button class="button">دریافت CSV</button></form>';
-	echo '<table class="widefat striped"><thead><tr><th>منبع</th><th>نوع</th><th>رزرو فعال (تعداد / دقیقه)</th><th>خدمت تکمیل‌شده (تعداد / دقیقه)</th><th>توقف فعال (تعداد / دقیقه)</th></tr></thead><tbody>';
+	echo '<table class="widefat striped"><thead><tr><th>منبع</th><th>نوع</th><th>رزرو فعال (تعداد / دقیقه)</th><th>خدمت تکمیل‌شده (تعداد / دقیقه)</th><th>توقف فعال (تعداد / دقیقه)</th><th>توقف لغوشده (تعداد / دقیقه)</th></tr></thead><tbody>';
 	foreach ( $rows as $row ) {
-		echo '<tr><td>' . esc_html( $row['name'] ) . '</td><td>' . esc_html( $types[ $row['type'] ] ) . '</td><td>' . esc_html( $row['reserved_count'] . ' / ' . number_format_i18n( $row['reserved_minutes'] ) ) . '</td><td>' . esc_html( $row['completed_count'] . ' / ' . number_format_i18n( $row['completed_minutes'] ) ) . '</td><td>' . esc_html( $row['maintenance_count'] . ' / ' . number_format_i18n( $row['maintenance_minutes'] ) ) . '</td></tr>';
+		echo '<tr><td>' . esc_html( $row['name'] ) . '</td><td>' . esc_html( $types[ $row['type'] ] ) . '</td><td>' . esc_html( $row['reserved_count'] . ' / ' . number_format_i18n( $row['reserved_minutes'] ) ) . '</td><td>' . esc_html( $row['completed_count'] . ' / ' . number_format_i18n( $row['completed_minutes'] ) ) . '</td><td>' . esc_html( $row['maintenance_count'] . ' / ' . number_format_i18n( $row['maintenance_minutes'] ) ) . '</td><td>' . esc_html( $row['cancelled_maintenance_count'] . ' / ' . number_format_i18n( $row['cancelled_maintenance_minutes'] ) ) . '</td></tr>';
 	}
 	if ( ! $rows ) { echo '<tr><td colspan="5">منبع قابل‌مشاهده‌ای در این محدوده وجود ندارد.</td></tr>'; }
-	echo '</tbody></table><p>بازه گزارش بر اساس تاریخ محلی سالن انتخاب و به UTC تبدیل می‌شود. فقط منابعی نمایش داده می‌شوند که کاربر جاری اجازه ویرایش آن‌ها را دارد. زمان رزرو شامل مدت ثبت‌شده خدمت است و بافرها جداگانه محاسبه نشده‌اند.</p></div>';
+	echo '</tbody></table><p>بازه گزارش بر اساس تاریخ محلی سالن انتخاب و به UTC تبدیل می‌شود. فقط منابعی نمایش داده می‌شوند که کاربر جاری اجازه ویرایش آن‌ها را دارد. زمان رزرو شامل مدت ثبت‌شده خدمت است و بافرها جداگانه محاسبه نشده‌اند. توقف‌های لغوشده نیز برای ممیزی تاریخی جداگانه نمایش داده می‌شوند و در ظرفیت فعال محسوب نمی‌شوند.</p></div>';
 }
