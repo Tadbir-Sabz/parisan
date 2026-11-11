@@ -615,6 +615,7 @@ function parisan_core_cancel_booking_with_customer_token( $booking_id, $token ) 
 			return new WP_Error( 'parisan_customer_booking_unavailable' );
 		}
 		$transaction_started = false;
+		if ( function_exists( 'parisan_core_skip_booking_reminders' ) ) { parisan_core_skip_booking_reminders( $booking_id, 'customer_cancelled' ); }
 		return true;
 	} finally {
 		if ( $transaction_started ) {
