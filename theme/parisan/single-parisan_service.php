@@ -28,7 +28,7 @@ get_header();
 					<?php endif; ?>
 				</div>
 				<div class="entry-content"><?php the_content(); ?></div>
-				<a class="button" href="<?php echo esc_url( apply_filters( 'parisan_service_booking_url', home_url( '/#booking' ), get_the_ID() ) ); ?>"><?php esc_html_e( 'درخواست نوبت برای این خدمت', 'parisan' ); ?></a>
+				<a class="button" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'تماس و دریافت راهنمایی برای این خدمت', 'parisan' ); ?></a>
 			</div>
 			<?php if ( has_post_thumbnail() ) : ?>
 				<div class="service-detail-image"><?php the_post_thumbnail( 'large' ); ?></div>
