@@ -428,7 +428,7 @@ The report deliberately does not calculate utilization percentages or theoretica
 - Added WordPress personal-data export and erasure coverage for waitlist entries. Waitlist requests are leads only, never bookings; there is no automatic customer notification.
 
 ### Task B: explicit-consent appointment email reminders
-- Added a dedicated booking email-reminder consent field; no reminder is queued unless the customer explicitly opts in and supplies a valid email address.
+- Added a dedicated booking email-reminder consent field to both public booking and receptionist-created bookings; no reminder is queued unless the customer explicitly opts in and supplies a valid email address.
 - Added a durable reminder queue with unique 24-hour and 2-hour reminder records, UTC scheduling, atomic worker claims, sent/skipped/failed states, timestamps, attempt counts, and bounded retries (maximum three attempts).
 - Uses WordPress `wp_mail`; delivery depends on the site's configured mail transport. No SMS gateway or third-party messaging integration is claimed.
 - Booking rescheduling recalculates unsent reminder times. Terminal booking transitions, customer cancellation, and privacy erasure prevent pending reminders from being sent.
