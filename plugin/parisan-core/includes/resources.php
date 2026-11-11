@@ -170,7 +170,7 @@ add_action( 'save_post_parisan_service', 'parisan_core_save_service_resources', 
  */
 function parisan_core_get_service_resource_ids( $service_id ) {
 	$ids = get_post_meta( absint( $service_id ), '_parisan_service_resources', true );
-	$ids = is_array( $ids ) ? array_values( array_unique( array_filter( array_map( static function ( $id ) { return is_scalar( $id ) ? absint( $id ) : 0; }, $ids ) ) ) : array();
+	$ids = is_array( $ids ) ? array_values( array_unique( array_filter( array_map( static function ( $id ) { return is_scalar( $id ) ? absint( $id ) : 0; }, $ids ) ) ) ) : array();
 	$valid = array();
 	foreach ( $ids as $id ) {
 		if ( 'publish' === get_post_status( $id ) && 'parisan_resource' === get_post_type( $id ) ) {
