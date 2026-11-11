@@ -135,6 +135,20 @@ parisan_public_enabled_assert( 1 === parisan_core_sanitize_booking_horizon( 0 ) 
 update_option( 'parisan_booking_lead_time_minutes', 0 );
 update_option( 'parisan_booking_horizon_days', 90 );
 
+$tomorrow = current_datetime()->modify( '+1 day' );
+$tomorrow_day = (int) $tomorrow->format( 'N' );
+$lead_test_schedule = array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) );
+$lead_test_schedule[ $tomorrow_day ] = array( 'start' => '09:00', 'end' => '17:00' );
+update_post_meta( $staff_id, '_parisan_staff_weekly_schedule', $lead_test_schedule );
+update_option( 'parisan_booking_lead_time_minutes', 10080 );
+$too_soon_input = $base_input;
+$too_soon_input['starts_at_local'] = $tomorrow->format( 'Y-m-d' ) . ' 10:00';
+$too_soon_input['idempotency_token'] = str_repeat( 'b', 64 );
+$too_soon_input['customer_access_token'] = bin2hex( random_bytes( 32 ) );
+$too_soon_result = parisan_core_create_booking( $too_soon_input );
+parisan_public_enabled_assert( is_wp_error( $too_soon_result ) && 'parisan_booking_slot_unavailable' === $too_soon_result->get_error_code(), 'transactional booking creation rejects appointments inside the configured lead time' );
+update_option( 'parisan_booking_lead_time_minutes', 0 );
+
 $availability_horizon_request = new WP_REST_Request( 'GET', '/parisan/v1/availability' );
 $availability_horizon_request->set_param( 'staff_id', (int) $staff_id );
 $availability_horizon_request->set_param( 'service_id', (int) $service_id );
