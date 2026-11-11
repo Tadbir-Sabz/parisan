@@ -814,7 +814,7 @@ function parisan_core_booking_shortcode() {
 
 	$today = current_datetime();
 	$minimum_date = $today->format( 'Y-m-d' );
-	$maximum_date = $today->modify( '+90 days' )->format( 'Y-m-d' );
+	$maximum_date = $today->modify( '+' . parisan_core_get_booking_horizon_days() . ' days' )->format( 'Y-m-d' );
 
 	ob_start();
 	?>
