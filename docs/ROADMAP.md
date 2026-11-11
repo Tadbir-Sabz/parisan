@@ -317,3 +317,16 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [x] Persist inquiries in an additive DB v6 table without storing requester IP addresses.
 - [x] Add administrator-only inbox and controlled new/in-progress/closed status updates.
 - [ ] Browser accessibility/RTL review, disposable DB integration, retention/deletion policy, and real email/SMS notifications remain pending.
+
+
+## Phase 4 — Finance operations and customer relationship workflows
+
+**Status:** [~] IMPLEMENTED ON FEATURE BRANCH — runtime acceptance pending
+
+- [~] Add immutable finance adjustments linked to original manual ledger entries; preserve original records and actor/reason provenance.
+- [~] Add a UTF-8 CSV export for manual entries and their adjustments.
+- [~] Add an administrator-only manual-ledger statement with adjusted income/expense/net totals. Completed-booking revenue remains a separate operational metric; no bank/gateway reconciliation is claimed.
+- [~] Add internal customer notes and scheduled follow-up tasks, including a completion action.
+- [~] Add contact-inquiry-to-existing-customer linkage by phone, only when a matching booking is within the current user's editable-specialist scope.
+- [ ] Runtime WordPress/MariaDB migration, finance adjustment, CSV export, CRM privacy-scope and browser workflows on the disposable integration environment.
+- [ ] Decide a formal finance correction policy, retention period, and whether accounting-grade P&L/tax reporting is in scope.
