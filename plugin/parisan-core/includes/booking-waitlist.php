@@ -80,13 +80,33 @@ function parisan_core_handle_waitlist_submit() {
 	if ( 'publish' !== get_post_status( $service_id ) || 'parisan_service' !== get_post_type( $service_id ) || ( $staff_id && ( 'publish' !== get_post_status( $staff_id ) || 'parisan_staff' !== get_post_type( $staff_id ) ) ) || ! preg_match( '/^\d{4}-\d{2}-\d{2}$/D', $date ) || false === $parsed || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $parsed->format( 'Y-m-d' ) !== $date || ! parisan_core_is_booking_date_within_horizon( $date ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9]{7,20}$/D', $phone ) || ( '' !== $email_raw && ( '' === $email || ! is_email( $email ) ) ) || ! in_array( $period, $periods, true ) || empty( $_POST['contact_consent'] ) ) {
 		wp_die( esc_html__( 'اطلاعات درخواست معتبر نیست یا رضایت تماس ثبت نشده است.', 'parisan-core' ), '', array( 'response' => 400 ) );
 	}
+	$eligible_staff_ids = array();
 	if ( $staff_id ) {
 		$eligible = get_post_meta( $staff_id, '_parisan_staff_services', true );
 		$eligible = is_array( $eligible ) ? array_map( 'absint', $eligible ) : array();
 		if ( ! in_array( $service_id, $eligible, true ) ) {
 			wp_die( esc_html__( 'این متخصص خدمت انتخاب‌شده را ارائه نمی‌کند.', 'parisan-core' ), '', array( 'response' => 400 ) );
 		}
+		$eligible_staff_ids[] = $staff_id;
+	} else {
+		$staff_posts = get_posts( array( 'post_type' => 'parisan_staff', 'post_status' => 'publish', 'numberposts' => 200, 'fields' => 'ids' ) );
+		foreach ( $staff_posts as $candidate_staff_id ) {
+			$eligible = get_post_meta( $candidate_staff_id, '_parisan_staff_services', true );
+			if ( is_array( $eligible ) && in_array( $service_id, array_map( 'absint', $eligible ), true ) ) { $eligible_staff_ids[] = absint( $candidate_staff_id ); }
+		}
 	}
+	if ( ! $eligible_staff_ids ) { wp_die( esc_html__( 'برای این خدمت متخصص فعالی ثبت نشده است.', 'parisan-core' ), '', array( 'response' => 400 ) ); }
+	$period_bounds = array( 'morning' => array( '05:00', '12:00' ), 'afternoon' => array( '12:00', '17:00' ), 'evening' => array( '17:00', '23:59' ), 'any' => array( '00:00', '23:59' ) );
+	$has_matching_slot = false;
+	foreach ( $eligible_staff_ids as $candidate_staff_id ) {
+		$slots = parisan_core_get_available_slots( $candidate_staff_id, $service_id, $date );
+		if ( is_wp_error( $slots ) ) { wp_die( esc_html__( 'بررسی ظرفیت در حال حاضر ممکن نیست؛ لطفاً بعداً دوباره تلاش کنید.', 'parisan-core' ), '', array( 'response' => 503 ) ); }
+		foreach ( $slots as $slot ) {
+			$clock = substr( (string) $slot['starts_at_local'], 11, 5 );
+			if ( $clock >= $period_bounds[ $period ][0] && $clock < $period_bounds[ $period ][1] ) { $has_matching_slot = true; break 2; }
+		}
+	}
+	if ( $has_matching_slot ) { wp_die( esc_html__( 'در بازه انتخابی هنوز زمان آزاد وجود دارد؛ لطفاً از فرم رزرو نوبت استفاده کنید.', 'parisan-core' ), '', array( 'response' => 409 ) ); }
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_booking_waitlist';
 	$inserted = $wpdb->insert( $table, array(
@@ -157,10 +177,12 @@ function parisan_core_render_waitlist_admin_page() {
 		$staff_label = $row['preferred_staff_id'] ? get_the_title( (int) $row['preferred_staff_id'] ) : 'هر متخصص واجد شرایط';
 		$period_labels = array( 'any'=>'هر زمان', 'morning'=>'صبح', 'afternoon'=>'ظهر و بعدازظهر', 'evening'=>'عصر' );
 		echo '<tr><td>' . esc_html( $row['customer_name'] ) . '</td><td dir="ltr">' . esc_html( $row['customer_phone'] ) . '<br>' . esc_html( $row['customer_email'] ) . '</td><td>' . esc_html( get_the_title( (int) $row['service_id'] ) ) . '<br>' . esc_html( $staff_label ) . '</td><td>' . esc_html( $row['preferred_date'] . ' · ' . ( $period_labels[ $row['preferred_period'] ] ?? '—' ) ) . '</td><td>' . esc_html( $row['created_at_utc'] ) . '</td><td><strong>' . esc_html( $labels[ $row['status'] ] ?? $row['status'] ) . '</strong>';
-		if ( 'waiting' === $row['status'] ) {
+		if ( in_array( $row['status'], array( 'waiting', 'contacted' ), true ) ) {
 			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="parisan_waitlist_status"><input type="hidden" name="waitlist_id" value="' . esc_attr( $row['id'] ) . '">';
 			wp_nonce_field( 'parisan_waitlist_status_' . (int) $row['id'] );
-			echo '<select name="status"><option value="contacted">تماس گرفته شد</option><option value="booked">به رزرو تبدیل شد</option><option value="closed">بستن درخواست</option></select> <button class="button button-small">ثبت</button></form>';
+			echo '<select name="status">';
+			if ( 'waiting' === $row['status'] ) { echo '<option value="contacted">تماس گرفته شد</option>'; }
+			echo '<option value="booked">به رزرو تبدیل شد</option><option value="closed">بستن درخواست</option></select> <button class="button button-small">ثبت</button></form>';
 		}
 		echo '</td></tr>';
 	}
