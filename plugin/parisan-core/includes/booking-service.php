@@ -73,12 +73,13 @@ function parisan_core_create_booking( $input ) {
 	$phone      = isset( $input['customer_phone'] ) && is_string( $input['customer_phone'] ) ? trim( $input['customer_phone'] ) : '';
 	$phone      = strtr( $phone, array( '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9' ) );
 	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';
+	$email_consent = ! empty( $input['customer_email_consent'] ) && in_array( $input['customer_email_consent'], array( true, 1, '1', 'yes' ), true );
 	$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
 	$customer_access_token = isset( $input['customer_access_token'] ) && is_string( $input['customer_access_token'] ) ? trim( $input['customer_access_token'] ) : '';
 	$actor_id   = get_current_user_id();
 
-	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $customer_access_token && ! preg_match( '/^[a-f0-9]{64}$/D', $customer_access_token ) ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) ) {
+	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $customer_access_token && ! preg_match( '/^[a-f0-9]{64}$/D', $customer_access_token ) ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) || ( $email_consent && ( '' === $email || ! is_email( $email ) ) ) ) {
 		return new WP_Error( 'parisan_invalid_booking_input', __( 'اطلاعات مشتری یا زمان رزرو معتبر نیست.', 'parisan-core' ) );
 	}
 	$phone = preg_replace( '/[^+0-9]/', '', $phone );
@@ -151,7 +152,7 @@ function parisan_core_create_booking( $input ) {
 		}
 
 		$existing = $wpdb->get_row(
-			$wpdb->prepare( "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email, starts_at_utc, ends_at_utc FROM {$bookings_table} WHERE idempotency_key = %s LIMIT 1", $idempotency_key ),
+			$wpdb->prepare( "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email, customer_email_consent, starts_at_utc, ends_at_utc FROM {$bookings_table} WHERE idempotency_key = %s LIMIT 1", $idempotency_key ),
 			ARRAY_A
 		);
 		if ( is_array( $existing ) ) {
@@ -160,6 +161,7 @@ function parisan_core_create_booking( $input ) {
 				&& hash_equals( (string) $existing['customer_name'], $name )
 				&& hash_equals( (string) $existing['customer_phone'], $phone )
 				&& hash_equals( (string) $existing['customer_email'], $email )
+				&& (int) $existing['customer_email_consent'] === ( $email_consent ? 1 : 0 )
 				&& hash_equals( (string) $existing['starts_at_utc'], $starts_sql )
 				&& hash_equals( (string) $existing['ends_at_utc'], $ends_sql );
 			if ( ! $same_payload ) {
@@ -216,6 +218,7 @@ function parisan_core_create_booking( $input ) {
 				'customer_name' => $name,
 				'customer_phone' => $phone,
 				'customer_email' => $email,
+				'customer_email_consent' => $email_consent ? 1 : 0,
 				'starts_at_utc' => $starts_sql,
 				'ends_at_utc' => $ends_sql,
 				'duration_minutes' => $duration,
@@ -227,14 +230,14 @@ function parisan_core_create_booking( $input ) {
 				'created_at_utc' => $now,
 				'updated_at_utc' => $now,
 			),
-			array( '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
+			array( '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
 		);
 		if ( false === $inserted ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
 			$duplicate = $wpdb->get_row( $wpdb->prepare( "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email, starts_at_utc, ends_at_utc FROM {$bookings_table} WHERE idempotency_key = %s LIMIT 1", $idempotency_key ), ARRAY_A );
 			if ( is_array( $duplicate ) ) {
-				$same = (int) $duplicate['service_id'] === $service_id && (int) $duplicate['staff_id'] === $staff_id && hash_equals( (string) $duplicate['customer_name'], $name ) && hash_equals( (string) $duplicate['customer_phone'], $phone ) && hash_equals( (string) $duplicate['customer_email'], $email ) && hash_equals( (string) $duplicate['starts_at_utc'], $starts_sql ) && hash_equals( (string) $duplicate['ends_at_utc'], $ends_sql );
+				$same = (int) $duplicate['service_id'] === $service_id && (int) $duplicate['staff_id'] === $staff_id && hash_equals( (string) $duplicate['customer_name'], $name ) && hash_equals( (string) $duplicate['customer_phone'], $phone ) && hash_equals( (string) $duplicate['customer_email'], $email ) && (int) $duplicate['customer_email_consent'] === ( $email_consent ? 1 : 0 ) && hash_equals( (string) $duplicate['starts_at_utc'], $starts_sql ) && hash_equals( (string) $duplicate['ends_at_utc'], $ends_sql );
 				if ( ! $same ) {
 					return new WP_Error( 'parisan_idempotency_conflict', __( 'کلید ثبت تکراری قبلاً برای اطلاعات دیگری استفاده شده است.', 'parisan-core' ) );
 				}
@@ -284,6 +287,9 @@ function parisan_core_create_booking( $input ) {
 			return new WP_Error( 'parisan_booking_commit_failed', __( 'تأیید نهایی رزرو انجام نشد.', 'parisan-core' ) );
 		}
 		$transaction_started = false;
+		if ( $email_consent && function_exists( 'parisan_core_sync_booking_reminders' ) ) {
+			parisan_core_sync_booking_reminders( $booking_id );
+		}
 		return array( 'booking_id' => $booking_id, 'public_id' => $public_id, 'reused' => false );
 	} finally {
 		if ( $transaction_started ) {
