@@ -68,6 +68,7 @@ $html = parisan_core_booking_shortcode();
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-booking' ), 'booking shortcode renders its accessible root' );
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-create-form' ), 'booking shortcode renders the create form' );
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-reschedule-form' ), 'booking shortcode renders token-based customer rescheduling controls' );
+parisan_public_enabled_assert( shortcode_exists( 'parisan_waitlist' ), 'consent-based customer waitlist shortcode is registered' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Service' ), 'published services are offered in the wizard' );
 parisan_public_enabled_assert( false !== strpos( $html, 'تومان' ) && false !== strpos( $html, 'دقیقه' ), 'wizard displays fixed service price and duration before booking' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Specialist' ), 'eligible specialists are offered in the wizard' );
@@ -85,12 +86,16 @@ $base_input = array(
 	'customer_name' => 'Synthetic Booking Customer',
 	'customer_phone' => '09123456789',
 	'customer_email' => 'public-booking@example.test',
+	'customer_email_consent' => true,
 	'idempotency_token' => str_repeat( 'a', 64 ),
 	'customer_access_token' => bin2hex( random_bytes( 32 ) ),
 );
 $first_customer_token = $base_input['customer_access_token'];
 $first_booking = parisan_core_create_booking( $base_input );
 parisan_public_enabled_assert( ! is_wp_error( $first_booking ), 'public booking service creates a pending booking with scoped token' );
+$first_consent = (int) $wpdb->get_var( $wpdb->prepare( "SELECT customer_email_consent FROM {$wpdb->prefix}parisan_bookings WHERE id=%d", (int) $first_booking['booking_id'] ) );
+$first_reminders = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d", (int) $first_booking['booking_id'] ) );
+parisan_public_enabled_assert( 1 === $first_consent && 2 === $first_reminders, 'explicit email consent stores one 24-hour and one 2-hour reminder record' );
 
 $resource_one = wp_insert_post( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'post_title' => 'Synthetic Treatment Bed A' ), true );
 $resource_two = wp_insert_post( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'post_title' => 'Synthetic Treatment Bed B' ), true );
