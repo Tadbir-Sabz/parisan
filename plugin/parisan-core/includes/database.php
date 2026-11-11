@@ -167,6 +167,18 @@ function parisan_core_install_database() {
 	) ENGINE=InnoDB {$charset_collate};";
 	dbDelta( $customer_followups_sql );
 
+
+	$inquiry_links_table = $wpdb->prefix . 'parisan_inquiry_customer_links';
+	$inquiry_links_sql = "CREATE TABLE {$inquiry_links_table} (
+		inquiry_id bigint(20) unsigned NOT NULL,
+		customer_phone varchar(24) NOT NULL,
+		linked_by bigint(20) unsigned NOT NULL,
+		linked_at_utc datetime NOT NULL,
+		PRIMARY KEY  (inquiry_id),
+		KEY customer_phone (customer_phone)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $inquiry_links_sql );
+
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
 
