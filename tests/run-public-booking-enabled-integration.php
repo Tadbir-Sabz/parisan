@@ -121,6 +121,7 @@ $resource_booking_input['staff_id'] = $resource_staff_ids[0];
 $resource_booking_input['starts_at_local'] = $booking_date . ' 11:00';
 $resource_booking_input['idempotency_token'] = str_repeat( 'c', 64 );
 $resource_booking_input['customer_access_token'] = '';
+$resource_booking_input['customer_email_consent'] = false;
 $resource_booking_one = parisan_core_create_booking( $resource_booking_input );
 parisan_public_enabled_assert( ! is_wp_error( $resource_booking_one ), 'first specialist reserves the first free shared resource' );
 $resource_booking_reminders = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d", (int) $resource_booking_one['booking_id'] ) );
