@@ -415,3 +415,28 @@ The report deliberately does not calculate utilization percentages or theoretica
 - Resource operations reporting now distinguishes active maintenance from cancelled maintenance history, including separately clipped appointment-independent downtime minutes and CSV columns.
 - Added smoke assertions for the installer regression, booking-buffer overlap logic, and cancelled-maintenance reporting.
 - Exact-final-SHA CI and disposable WordPress/MariaDB runtime validation remain pending after this code update.
+
+
+## Customer waitlist and appointment email reminders — product delivery
+
+### Task A: consent-based waitlist
+- Added the standalone `[parisan_waitlist]` shortcode for customers who cannot find a suitable slot. It captures service, optional preferred specialist, date, daypart, name, phone, optional email, and explicit consent to contact.
+- The public intake is gated by the existing public-booking feature flag; this work does not enable public booking or publish the shortcode automatically.
+- Validates that the requested service is published, the selected specialist is eligible, the requested date is within the configured booking horizon, and no matching availability remains in the requested daypart across eligible specialists.
+- Includes same-origin/referrer validation, WordPress nonce, honeypot, rate limiting, normalized phone input, and fail-closed availability checks.
+- Added a permission-scoped Persian admin queue with waiting/contacted/booked/closed states and retained handling metadata. Staff can progress contacted requests to booked or closed.
+- Added WordPress personal-data export and erasure coverage for waitlist entries. Waitlist requests are leads only, never bookings; there is no automatic customer notification.
+
+### Task B: explicit-consent appointment email reminders
+- Added a dedicated booking email-reminder consent field; no reminder is queued unless the customer explicitly opts in and supplies a valid email address.
+- Added a durable reminder queue with unique 24-hour and 2-hour reminder records, UTC scheduling, atomic worker claims, sent/skipped/failed states, timestamps, attempt counts, and bounded retries (maximum three attempts).
+- Uses WordPress `wp_mail`; delivery depends on the site's configured mail transport. No SMS gateway or third-party messaging integration is claimed.
+- Booking rescheduling recalculates unsent reminder times. Terminal booking transitions, customer cancellation, and privacy erasure prevent pending reminders from being sent.
+- Added a Persian admin delivery-status screen. No reminder is sent for historical bookings without recorded opt-in.
+- Schema upgraded additively to v11; existing bookings default to no email-reminder consent.
+- Public booking remains disabled unless the existing owner-controlled feature flag is separately enabled.
+
+### Validation boundaries
+- Added smoke and WordPress/MariaDB integration assertions for schema v11, waitlist controls, explicit consent, and reminder queue creation.
+- Calendar markup now retains its lane container on empty days. Resource allocation now resolves legacy serialized service-resource assignments by decoding actual metadata and fails closed on booking-query errors.
+- Exact-final-SHA CI is pending. Real outbound email delivery, SMTP configuration, and end-to-end browser validation remain unverified until the new run completes.
