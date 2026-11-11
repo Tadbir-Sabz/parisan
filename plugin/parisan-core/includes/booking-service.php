@@ -137,7 +137,6 @@ function parisan_core_create_booking( $input ) {
 	$resource_locks = parisan_core_acquire_resource_schedule_locks( parisan_core_get_service_resource_ids( $service_id ) );
 	if ( is_wp_error( $resource_locks ) ) {
 		parisan_core_release_resource_schedule_locks( $resource_locks );
-		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_staff_schedule_lock( $lock_name );
 		return new WP_Error( 'parisan_resource_lock_unavailable', __( 'ظرفیت منابع خدمت در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
@@ -290,6 +289,7 @@ function parisan_core_create_booking( $input ) {
 		if ( $transaction_started ) {
 			$wpdb->query( 'ROLLBACK' );
 		}
+		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_staff_schedule_lock( $lock_name );
 	}
 }
