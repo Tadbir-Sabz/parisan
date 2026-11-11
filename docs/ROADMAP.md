@@ -58,7 +58,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [~] Add the first Persian-first admin settings workspace, booking-rule controls, and scoped admin styling; a complete setup wizard, full capability map, logging, and diagnostics remain pending.
 - [ ] Add versioned database migrations and upgrade safety.
 - [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
-- [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor, and date-specific full-day/partial-day unavailability administration. Breaks, resource schedules, and expanded calendar UX remain pending.
+- [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor with validated recurring break windows (breaks are excluded from availability), and date-specific full-day/partial-day unavailability administration. Resource schedules and expanded calendar UX remain pending.
 - [ ] Implement branches/resources data model with single-salon-first UX.
 - [~] Add a unified settings entry point linking brand, homepage copy and four benefit cards, separate day/night hero images, booking rules, SEO/performance, WordPress timezone/language, and menus; a guided first-run setup wizard and role-specific dashboard remain pending.
 - [ ] Add seed/demo data that is clearly non-production.
@@ -74,7 +74,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration; disposable WordPress/MariaDB smoke test confirms all three tables and schema version.
 - [x] Implement timezone-aware availability calculation using staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Pure tests and a seeded WordPress database integration test are required for this milestone.
 - [x] Add Persian admin management for date-specific full-day leave/closures and partial-day unavailability; all submitted local intervals are validated and stored in UTC.
-- [ ] Add break management, resource schedules, capacity, lead time, and booking horizon.
+- [~] Recurring weekly specialist breaks are implemented in the schedule editor and availability engine; resource schedules, capacity, lead time, and configurable booking horizon remain pending.
 - [x] Implement and CI-verify internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, and atomic pending booking + audit event transaction (run 42376217290). Multi-connection stress and lock-timeout behavior remain UNVERIFIED. The public route wrapper is separately feature-gated and reuses this service.
 - [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
