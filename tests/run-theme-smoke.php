@@ -320,4 +320,14 @@ parisan_theme_smoke_assert( false !== strpos( $public_service_archive, '/contact
 parisan_theme_smoke_assert( false !== strpos( $public_service_single, '/contact/' ) && false !== strpos( $public_staff_single, '/contact/' ), 'public service and specialist detail pages route enquiries to salon contact, not online booking' );
 parisan_theme_smoke_assert( false !== strpos( $public_staff_single, '_parisan_staff_services' ) && false !== strpos( $public_service_single, '_parisan_price' ), 'public detail templates expose existing specialist-service and service-pricing data' );
 
+
+$finance_ledger_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/finance-ledger.php' );
+$contact_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/contact-inquiries.php' );
+parisan_theme_smoke_assert( false !== strpos( $finance_ledger_source, 'parisan_save_finance_entry' ) && false !== strpos( $finance_ledger_source, 'manage_options' ) && false !== strpos( $finance_ledger_source, 'amount_irr' ), 'manual finance ledger validates administrator, nonce, and integer IRR amounts' );
+parisan_theme_smoke_assert( false !== strpos( $finance_ledger_source, "array( 'income', 'expense' )" ) && false !== strpos( $finance_ledger_source, 'created_by' ), 'finance ledger records income/expense type and actor provenance' );
+parisan_theme_smoke_assert( false !== strpos( $contact_source, 'wp_verify_nonce' ) && false !== strpos( $contact_source, 'honeypot' ) && false !== strpos( $contact_source, 'set_transient' ), 'public contact submission includes nonce, honeypot, and rate limiting' );
+parisan_theme_smoke_assert( false !== strpos( $contact_source, 'parisan_contact_inquiries' ) && false !== strpos( $contact_source, 'parisan_update_contact_status' ) && false !== strpos( $contact_source, 'manage_options' ), 'contact messages persist to private inbox with administrator status workflow' );
+$contact_template = file_get_contents( $theme_root . '/page-contact.php' );
+parisan_theme_smoke_assert( false !== strpos( $contact_template, 'parisan_core_render_contact_form' ), 'public contact page renders the first-party inquiry form' );
+
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
