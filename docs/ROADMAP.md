@@ -365,3 +365,23 @@ These changes do not enable public booking, payment processing, or SMS delivery.
 - [ ] Verify the rendered forms, audit timeline, and failure/rollback behavior in a live WordPress browser session.
 
 No public booking, payment, SMS, production deployment, or PR merge is enabled by these changes.
+
+
+## Booking finance and customer loyalty — 2026-11-11
+
+### Task 1: Booking-level invoice adjustments
+- [x] Add additive DB v8 append-only booking finance events for discounts, surcharges, and manually recorded refunds.
+- [x] Preserve the original booking price snapshot and calculate a distinct adjusted invoice amount; keep refund records separate from invoice discounts.
+- [x] Serialize writes with a booking-row lock and reject cumulative discounts/refunds beyond the available invoice amount.
+- [x] Record actor, UTC timestamp, amount, and mandatory reason; provide a per-booking history and recent-booking entry point.
+- [x] Include finance-event notes in booking personal-data export and anonymize those notes with terminal-booking privacy erasure.
+- [ ] Validate DB migration, concurrent event writes, boundary amounts, and privacy erasure in disposable WordPress/MariaDB integration.
+- [ ] Payment settlement, gateway refund execution, receipts, and bank reconciliation remain NOT IMPLEMENTED.
+
+### Task 2: Customer loyalty and retention insights
+- [x] Add a permission-scoped customer loyalty workspace derived from completed booking history without creating a duplicate customer PII store.
+- [x] Calculate non-monetary engagement points and visit-based tiers; provide repeat, loyal, VIP, and 60-day lapsed-customer segments.
+- [x] Add name/phone/email filtering and show completed visits, completed service value, and last completed visit.
+- [x] Explicitly prevent points from being represented as cash value, redeemable credit, discounts, or payment evidence.
+- [ ] Validate seeded customer segments, salon timezone boundaries, and role/capability isolation in disposable WordPress/MariaDB integration.
+- [ ] Configurable reward rules, point redemption, expiry, and customer-facing loyalty portal remain NOT IMPLEMENTED pending owner policy.
