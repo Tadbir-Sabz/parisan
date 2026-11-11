@@ -82,7 +82,7 @@ function parisan_core_render_customer_relationship_page() {
 	$ids=$staff_ids?implode(',',array_map('absint',$staff_ids)):'0';
 
 	echo '<div class="wrap"><h1>یادداشت‌ها و پیگیری مشتریان</h1><p>دسترسی هر مشتری از روی متخصصان مرتبط و قابل ویرایش برای کاربر جاری کنترل می‌شود.</p>';
-	$leads = $wpdb->get_results("SELECT i.id,i.customer_name,i.customer_phone,i.subject_key,i.created_at_utc,l.customer_phone AS linked_phone FROM {$wpdb->prefix}parisan_contact_inquiries i LEFT JOIN {$wpdb->prefix}parisan_inquiry_customer_links l ON l.inquiry_id=i.id ORDER BY i.created_at_utc DESC LIMIT 100", ARRAY_A);
+	$leads = $wpdb->get_results("SELECT i.id,i.customer_name,i.customer_phone,i.subject_key,i.created_at_utc,l.customer_phone AS linked_phone FROM {$wpdb->prefix}parisan_contact_inquiries i LEFT JOIN {$wpdb->prefix}parisan_inquiry_customer_links l ON l.inquiry_id=i.id WHERE i.customer_phone IN (SELECT DISTINCT customer_phone FROM {$wpdb->prefix}parisan_bookings WHERE staff_id IN ({$ids}) AND customer_phone<>'' ) ORDER BY i.created_at_utc DESC LIMIT 100", ARRAY_A);
 	echo '<h2>درخواست‌های تماس</h2><table class="widefat striped"><thead><tr><th>نام</th><th>تلفن</th><th>موضوع</th><th>اتصال</th><th></th></tr></thead><tbody>';
 	foreach ((array)$leads as $lead) {
 		echo '<tr><td>'.esc_html($lead['customer_name']).'</td><td dir="ltr">'.esc_html($lead['customer_phone']).'</td><td>'.esc_html($lead['subject_key']).'</td><td>'.esc_html($lead['linked_phone']?'متصل':'متصل‌نشده').'</td><td>';
