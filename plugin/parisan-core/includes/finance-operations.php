@@ -18,7 +18,9 @@ function parisan_core_handle_finance_adjustment() {
 	global $wpdb;
 	$entries = $wpdb->prefix . 'parisan_finance_entries';
 	$adjustment_irr = $amount * 10;
-	$wpdb->query( 'START TRANSACTION' );
+	if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+		wp_die( esc_html__( 'شروع تراکنش امن مالی ممکن نشد؛ هیچ اصلاحیه‌ای ثبت نشد.', 'parisan-core' ), '', array( 'response' => 503 ) );
+	}
 	$original = $wpdb->get_row( $wpdb->prepare( "SELECT id, entry_type, amount_irr FROM {$entries} WHERE id=%d FOR UPDATE", $entry_id ), ARRAY_A );
 	if ( ! $original ) {
 		$wpdb->query( 'ROLLBACK' );
