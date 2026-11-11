@@ -438,7 +438,7 @@ function parisan_core_rest_customer_availability( $request ) {
 	$errors = DateTimeImmutable::getLastErrors();
 	$today = new DateTimeImmutable( 'today', $timezone );
 	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || ! parisan_core_is_booking_date_within_horizon( $date ) ) {
-		return parisan_core_public_booking_error( __( 'تاریخ باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+		return parisan_core_public_booking_error( __( 'تاریخ خارج از بازه مجاز رزرو است.', 'parisan-core' ), 400 );
 	}
 
 	$duration = absint( $booking['duration_minutes'] );
@@ -494,7 +494,7 @@ function parisan_core_rest_customer_reschedule_booking( $request ) {
 	$errors = DateTimeImmutable::getLastErrors();
 	$today = new DateTimeImmutable( 'today', $timezone );
 	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || ! parisan_core_is_booking_date_within_horizon( $date ) ) {
-		return parisan_core_public_booking_error( __( 'تاریخ باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+		return parisan_core_public_booking_error( __( 'تاریخ خارج از بازه مجاز رزرو است.', 'parisan-core' ), 400 );
 	}
 
 	$token = parisan_core_public_booking_request_token( $request );
