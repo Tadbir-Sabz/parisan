@@ -258,3 +258,13 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [x] Persist the complete resource set atomically on booking creation and rescheduling; show all assigned resources in booking detail and audit notes.
 - [ ] Add exact-head WordPress/MariaDB integration cases for room+device, exhausted one-type pool, shared-resource cross-service conflicts, reschedule replacement, and rollback on relation-write failure.
 - [ ] Verify list view shows all assigned resources and run concurrency stress before release readiness.
+
+
+## Booking operations — unified daily calendar — 2026-11-11
+
+- [x] Add a salon-timezone daily operational calendar grouped into specialist lanes, ordered by appointment start time.
+- [x] Show customer, service, time interval, assigned resource bundle, and current booking status in each calendar entry; entries link to the existing permission-checked booking detail screen.
+- [x] Add previous/next-day navigation that preserves specialist, resource, and status filters.
+- [x] Add a resource-specific filter that includes both v5 booking-resource relations and legacy single-resource bookings, while retaining status/date/specialist scoping.
+- [x] Add responsive admin styling and focused WordPress smoke assertions for the calendar, resource filter, and date navigation.
+- [ ] Exact-head CI execution and seeded multi-resource operational display validation remain pending.
