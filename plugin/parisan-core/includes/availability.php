@@ -64,7 +64,7 @@ function parisan_core_filter_booking_window_slots( $slots, $now_utc = null ) {
  * @return bool
  */
 function parisan_core_is_booking_date_within_horizon( $date ) {
-	if ( ! is_string( $date ) || ! preg_match( '/^\\d{4}-\\d{2}-\\d{2}$/D', $date ) ) {
+	if ( ! is_string( $date ) || ! preg_match( '/^\d{4}-\d{2}-\d{2}$/D', $date ) ) {
 		return false;
 	}
 	$timezone = wp_timezone();
