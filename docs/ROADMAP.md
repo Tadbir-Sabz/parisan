@@ -406,3 +406,12 @@ No public booking, payment, SMS, production deployment, or PR merge is enabled b
 - [ ] Validate report totals against seeded multi-resource fixtures, role boundaries, and CSV import behavior in disposable WordPress/MariaDB.
 
 The report deliberately does not calculate utilization percentages or theoretical free capacity because resource weekly schedules may be unrestricted or vary by weekday. Maintenance windows do not cancel or move existing appointments; creation is rejected when an active appointment conflicts.
+
+
+### Resource maintenance hardening — follow-up delivery
+- Corrected two escaped namespace calls in the database installer that were parsed as calls to a nonexistent `tdbDelta()`; the WordPress `dbDelta()` calls are now valid PHP function calls.
+- Maintenance conflict checks now include configured pre-service and post-service booking buffers, not just the appointment's visible start/end.
+- Each conflict lookup resets and inspects the database error state independently. Null results or SQL errors block maintenance creation; they are not interpreted as zero conflicts.
+- Resource operations reporting now distinguishes active maintenance from cancelled maintenance history, including separately clipped appointment-independent downtime minutes and CSV columns.
+- Added smoke assertions for the installer regression, booking-buffer overlap logic, and cancelled-maintenance reporting.
+- Exact-final-SHA CI and disposable WordPress/MariaDB runtime validation remain pending after this code update.
