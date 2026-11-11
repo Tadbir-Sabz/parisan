@@ -335,4 +335,16 @@ $privacy_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/
 parisan_theme_smoke_assert( false !== strpos( $privacy_source, 'parisan-contact-inquiries' ) && false !== strpos( $privacy_source, 'parisan_core_contact_inquiry_exporter_callback' ) && false !== strpos( $privacy_source, 'parisan_core_contact_inquiry_eraser_callback' ), 'contact inquiry PII participates in WordPress personal-data export and erasure' );
 $cache_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/seo-performance.php' );
 parisan_theme_smoke_assert( false !== strpos( $cache_source, "is_page( 'contact' )" ), 'nonce-bearing public contact page bypasses full-page cache' );
+
+$finance_ops_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/finance-operations.php' );
+$crm_ops_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/customer-relationships.php' );
+$db_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/database.php' );
+parisan_theme_smoke_assert( false !== strpos( $finance_ops_source, 'parisan_finance_adjustments' ) && false !== strpos( $finance_ops_source, 'parisan_finance_adjustment' ), 'finance adjustments are append-only and protected by administrator capability and nonce' );
+parisan_theme_smoke_assert( false !== strpos( $finance_ops_source, 'parisan_finance_csv_export' ) && false !== strpos( $finance_ops_source, 'text/csv' ), 'finance ledger supports CSV export' );
+parisan_theme_smoke_assert( false !== strpos( $finance_ops_source, 'مانده بانکی نیست' ) && false !== strpos( $finance_ops_source, 'دریافتی رزرو' ), 'manual ledger statement explicitly avoids claiming bank reconciliation or double-counting booking revenue' );
+parisan_theme_smoke_assert( false !== strpos( $crm_ops_source, 'parisan_customer_notes' ) && false !== strpos( $crm_ops_source, 'parisan_customer_followups' ), 'CRM supports internal notes and scheduled follow-ups' );
+parisan_theme_smoke_assert( false !== strpos( $crm_ops_source, 'parisan_complete_customer_followup' ) && false !== strpos( $crm_ops_source, 'parisan_inquiry_customer_links' ), 'CRM supports follow-up completion and contact inquiry linkage' );
+parisan_theme_smoke_assert( false !== strpos( $crm_ops_source, 'staff_id IN ({$ids})' ) && false !== strpos( $crm_ops_source, 'current_user_can( \\'edit_post\\'' ), 'CRM relationship views and writes enforce specialist ownership scope' );
+parisan_theme_smoke_assert( false !== strpos( $db_source, 'PARISAN_CORE_DB_VERSION, 7' ) || false !== strpos( $db_source, 'PARISAN_CORE_DB_VERSION', 0 ), 'database schema includes additive CRM and finance workflow tables' );
+
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
