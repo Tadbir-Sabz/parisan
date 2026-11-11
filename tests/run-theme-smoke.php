@@ -349,7 +349,7 @@ parisan_theme_smoke_assert( false !== strpos( $finance_ops_source, "START TRANSA
 parisan_theme_smoke_assert( false !== strpos( $finance_ops_source, 'income_delta_irr' ) && false !== strpos( $finance_ops_source, 'expense_delta_irr' ), 'finance statement applies adjustments only to their original income or expense class' );
 parisan_theme_smoke_assert( false !== strpos( $crm_ops_source, 'صف پیگیری باز' ) && false !== strpos( $crm_ops_source, 'سررسید گذشته' ) && false !== strpos( $crm_ops_source, 'setTimezone( wp_timezone() )' ), 'CRM renders a permission-scoped open and overdue follow-up queue in salon-local time' );
 parisan_theme_smoke_assert( false !== strpos( $crm_ops_source, 'staff_id IN ({$ids})' ) && false !== strpos( $crm_ops_source, 'current_user_can' ), 'CRM relationship views and writes enforce specialist ownership scope' );
-parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 7 )" ) && false !== strpos( $db_source, 'parisan_inquiry_customer_links' ), 'database schema includes additive CRM and finance workflow tables' );
+parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 9 )" ) && false !== strpos( $db_source, 'parisan_inquiry_customer_links' ), 'database schema includes additive CRM and finance workflow tables' );
 $booking_admin_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/booking-admin.php' );
 $booking_report_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/booking-operations-report.php' );
 parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'booking_event_note' ) && false !== strpos( $booking_admin_source, 'parisan_booking_reason_required' ), 'booking cancellation and no-show transitions require an audit reason' );
@@ -369,6 +369,19 @@ parisan_theme_smoke_assert( function_exists( 'parisan_core_render_customer_loyal
 parisan_theme_smoke_assert( false !== strpos( $loyalty_source, 'staff_id IN ({$ids})' ) && false !== strpos( $loyalty_source, 'current_user_can' ), 'customer loyalty insights remain scoped to editable specialists' );
 parisan_theme_smoke_assert( false !== strpos( $loyalty_source, 'ارزش نقدی' ) && false !== strpos( $loyalty_source, 'اعتبار قابل‌خرج' ), 'loyalty points are explicitly non-monetary and non-redeemable' );
 parisan_theme_smoke_assert( false !== strpos( $privacy_source, 'parisan_booking_finance_events' ) && false !== strpos( $privacy_source, 'finance_notes_updated' ), 'booking finance event notes participate in privacy export and terminal-booking anonymization' );
-parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 8 )" ) && false !== strpos( $db_source, 'parisan_booking_finance_events' ), 'database schema v8 adds append-only booking finance events' );
+parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 9 )" ) && false !== strpos( $db_source, 'parisan_booking_finance_events' ), 'database schema v8 adds append-only booking finance events' );
+
+
+$resource_maintenance_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/resource-maintenance-admin.php' );
+$resource_report_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/resource-operations-report.php' );
+$resource_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/resources.php' );
+parisan_theme_smoke_assert( false !== strpos( $resource_maintenance_source, 'parisan_core_handle_resource_maintenance_create' ) && false !== strpos( $resource_maintenance_source, 'parisan_core_acquire_resource_schedule_locks' ), 'resource maintenance writes are authorized and serialized with booking allocation locks' );
+parisan_theme_smoke_assert( false !== strpos( $resource_maintenance_source, 'parisan_maintenance_booking_conflict' ) && false !== strpos( $resource_maintenance_source, 'parisan_maintenance_overlap' ), 'resource maintenance rejects active-booking and maintenance-window conflicts' );
+parisan_theme_smoke_assert( false !== strpos( $resource_maintenance_source, 'cancelled_by' ) && false !== strpos( $resource_maintenance_source, 'cancelled_at_utc' ), 'resource maintenance cancellation preserves actor and UTC audit metadata' );
+parisan_theme_smoke_assert( false !== strpos( $resource_source, 'parisan_resource_maintenance' ) && false !== strpos( $resource_source, 'busy_by_resource[ $maintenance_resource_id ]' ), 'resource allocator blocks maintenance windows for all affected resource slots' );
+parisan_theme_smoke_assert( false !== strpos( $resource_report_source, 'parisan_core_get_resource_report_rows' ) && false !== strpos( $resource_report_source, 'current_user_can( \'edit_post\'' ), 'resource operations report is scoped to editable resources' );
+parisan_theme_smoke_assert( false !== strpos( $resource_report_source, 'parisan_resource_report_csv' ) && false !== strpos( $resource_report_source, 'text/csv; charset=UTF-8' ), 'resource report provides nonce-protected UTF-8 CSV export' );
+parisan_theme_smoke_assert( false !== strpos( $resource_report_source, 'GREATEST(b.starts_at_utc,%s)' ) && false !== strpos( $resource_report_source, 'GREATEST(starts_at_utc,%s)' ), 'resource report clips booking and maintenance durations to the selected date range' );
+parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 9 )" ) && false !== strpos( $db_source, 'parisan_resource_maintenance' ), 'database schema v9 adds resource maintenance windows' );
 
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
