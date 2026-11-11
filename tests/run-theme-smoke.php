@@ -330,4 +330,9 @@ parisan_theme_smoke_assert( false !== strpos( $contact_source, 'parisan_contact_
 $contact_template = file_get_contents( $theme_root . '/page-contact.php' );
 parisan_theme_smoke_assert( false !== strpos( $contact_template, 'parisan_core_render_contact_form' ), 'public contact page renders the first-party inquiry form' );
 
+
+$privacy_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/privacy.php' );
+parisan_theme_smoke_assert( false !== strpos( $privacy_source, 'parisan-contact-inquiries' ) && false !== strpos( $privacy_source, 'parisan_core_contact_inquiry_exporter_callback' ) && false !== strpos( $privacy_source, 'parisan_core_contact_inquiry_eraser_callback' ), 'contact inquiry PII participates in WordPress personal-data export and erasure' );
+$cache_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/seo-performance.php' );
+parisan_theme_smoke_assert( false !== strpos( $cache_source, "is_page( 'contact' )" ), 'nonce-bearing public contact page bypasses full-page cache' );
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
