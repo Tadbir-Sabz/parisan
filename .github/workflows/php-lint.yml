@@ -141,7 +141,7 @@ jobs:
                 exit( 1 );
               }
             }
-            if ( 3 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
+            if ( 11 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
               fwrite( STDERR, "Parisan schema version was not recorded.\\n" );
               exit( 1 );
             }
