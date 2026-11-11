@@ -63,6 +63,7 @@ function parisan_core_render_finance_admin_page() {
 	$money = static function( $irr ) { return number_format_i18n( (int) round( (float) $irr / 10 ) ) . ' تومان'; };
 	echo '<div class="wrap parisan-finance"><h1>' . esc_html__( 'گزارش مالی سالن', 'parisan-core' ) . '</h1>';
 	echo '<p>' . esc_html__( 'گزارش بر اساس زمان شروع رزرو و متخصصانی است که امکان مدیریت آن‌ها را دارید.', 'parisan-core' ) . '</p>';
+	echo '<p><a class="button" href="' . esc_url( admin_url( 'edit.php?post_type=parisan_staff&page=parisan-finance-ledger' ) ) . '">دفتر ثبت درآمد و هزینه</a></p>';
 	echo '<form method="get" class="parisan-finance-filters"><input type="hidden" name="post_type" value="parisan_staff"><input type="hidden" name="page" value="parisan-finance"><label>' . esc_html__( 'از تاریخ', 'parisan-core' ) . ' <input type="date" name="finance_from" value="' . esc_attr( $from ) . '"></label><label>' . esc_html__( 'تا تاریخ', 'parisan-core' ) . ' <input type="date" name="finance_to" value="' . esc_attr( $to ) . '"></label><button class="button button-primary">' . esc_html__( 'اعمال بازه', 'parisan-core' ) . '</button></form>';
 	echo '<div class="parisan-finance-grid">';
 	$cards = array(
