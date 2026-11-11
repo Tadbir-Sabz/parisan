@@ -50,7 +50,7 @@ function parisan_core_filter_booking_window_slots( $slots, $now_utc = null ) {
 		} catch ( Exception $exception ) {
 			continue;
 		}
-		if ( $start > $earliest && $start <= $latest_utc ) {
+		if ( $start >= $earliest && $start <= $latest_utc ) {
 			$filtered[] = $slot;
 		}
 	}
