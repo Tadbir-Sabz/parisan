@@ -64,12 +64,6 @@ function parisan_core_register_post_types() {
 			'icon'     => 'dashicons-format-gallery',
 			'slug'     => 'portfolio',
 		),
-		'parisan_resource' => array(
-			'singular' => __( 'منبع سالن', 'parisan-core' ),
-			'plural'   => __( 'منابع سالن', 'parisan-core' ),
-			'icon'     => 'dashicons-building',
-			'slug'     => 'salon-resources',
-		),
 		'parisan_faq' => array(
 			'singular' => __( 'پرسش متداول', 'parisan-core' ),
 			'plural'   => __( 'پرسش‌های متداول', 'parisan-core' ),
