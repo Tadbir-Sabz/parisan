@@ -330,3 +330,20 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [~] Add contact-inquiry-to-existing-customer linkage by phone, only when a matching booking is within the current user's editable-specialist scope.
 - [ ] Runtime WordPress/MariaDB migration, finance adjustment, CSV export, CRM privacy-scope and browser workflows on the disposable integration environment.
 - [ ] Decide a formal finance correction policy, retention period, and whether accounting-grade P&L/tax reporting is in scope.
+
+
+## Finance integrity and CRM follow-up operations — 2026-11-11
+
+### Task 1: Finance adjustment integrity
+- [x] Lock the source ledger entry during correction and calculate the current adjusted balance before accepting another adjustment.
+- [x] Reject a decrease that would make the adjusted source entry negative; roll back failed writes.
+- [x] Calculate income and expense adjustment deltas independently so an expense correction cannot alter recognized ledger income, and vice versa.
+- [ ] Execute exact-head PHP lint, WordPress/MariaDB adjustment integration, concurrent correction, and CSV regression tests before runtime acceptance.
+
+### Task 2: CRM follow-up work queue
+- [x] Add a global open-follow-up queue to the customer relationship workspace, scoped to bookings for specialists the current operator may edit.
+- [x] Surface overdue count and individual overdue tasks without exposing unrelated customers.
+- [x] Render due times in the salon's configured WordPress timezone and link each task to its permission-checked customer record.
+- [ ] Validate role boundaries, overdue/timezone edge cases, seeded MariaDB data, and browser RTL layout on the exact head SHA.
+
+These changes do not enable public booking, payment processing, or SMS delivery.
