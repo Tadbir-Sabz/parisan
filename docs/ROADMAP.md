@@ -302,3 +302,18 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [x] Add contextual contact CTAs to both catalogue archives and detail pages; do not route visitors into a disabled online booking flow.
 - [x] Show service duration/pricing and specialist role/services using escaped public content and existing media/card helpers.
 - [ ] Browser-check Persian RTL, image fallback, archive pagination, mobile layout, and contact-page destination; production contact details and live content remain owner-verifiable.
+
+
+## Financial ledger and contact inquiry workflow — 2026-11-11
+
+### Task 1: Auditable manual finance ledger
+- [x] Add additive DB v6 finance-entry table with immutable-by-UI records, actor provenance, type, category, description, amount, optional specialist, and UTC occurrence time.
+- [x] Add administrator-only income/expense registration with nonce, validation, toman-to-IRR conversion, and a latest-200 register.
+- [x] Keep manually recorded receipts distinct from completed-booking recognized revenue and from gateway transactions.
+- [ ] Seeded WordPress/MariaDB validation, accounting reconciliation, correction workflow, and owner-defined categories remain pending; no bank/gateway integration is claimed.
+
+### Task 2: Secure public contact and private inbox
+- [x] Add a public Persian inquiry form with nonce, field validation, phone normalization, honeypot, short-window abuse throttle, and safe post/redirect/get feedback.
+- [x] Persist inquiries in an additive DB v6 table without storing requester IP addresses.
+- [x] Add administrator-only inbox and controlled new/in-progress/closed status updates.
+- [ ] Browser accessibility/RTL review, disposable DB integration, retention/deletion policy, and real email/SMS notifications remain pending.
