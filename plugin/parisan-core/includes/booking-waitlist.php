@@ -150,8 +150,13 @@ function parisan_core_handle_waitlist_status() {
 	}
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_booking_waitlist';
-	$updated = $wpdb->update( $table, array( 'status' => $status, 'handled_by' => get_current_user_id(), 'handled_at_utc' => current_time( 'mysql', true ), 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'id' => $id ), array( '%s','%d','%s','%s' ), array( '%d' ) );
-	if ( false === $updated ) {
+	$current_status = $wpdb->get_var( $wpdb->prepare( "SELECT status FROM {$table} WHERE id=%d", $id ) );
+	$allowed_from = 'contacted' === $status ? array( 'waiting' ) : array( 'waiting', 'contacted' );
+	if ( ! in_array( $current_status, $allowed_from, true ) ) {
+		wp_die( esc_html__( 'این درخواست قبلاً تعیین تکلیف شده یا وضعیت آن تغییر کرده است.', 'parisan-core' ), '', array( 'response' => 409 ) );
+	}
+	$updated = $wpdb->update( $table, array( 'status' => $status, 'handled_by' => get_current_user_id(), 'handled_at_utc' => current_time( 'mysql', true ), 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'id' => $id, 'status' => $current_status ), array( '%s','%d','%s','%s' ), array( '%d','%s' ) );
+	if ( false === $updated || 1 !== $updated ) {
 		wp_die( esc_html__( 'به‌روزرسانی وضعیت انجام نشد.', 'parisan-core' ), '', array( 'response' => 503 ) );
 	}
 	wp_safe_redirect( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-waitlist', 'updated' => 1 ), admin_url( 'edit.php' ) ) );
