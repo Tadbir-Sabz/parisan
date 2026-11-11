@@ -335,6 +335,7 @@ function parisan_core_rest_public_create_booking( $request ) {
 		'customer_name' => $request->get_param( 'customer_name' ),
 		'customer_phone' => $request->get_param( 'customer_phone' ),
 		'customer_email' => $request->get_param( 'customer_email' ),
+		'customer_email_consent' => $request->get_param( 'customer_email_consent' ),
 		'idempotency_token' => $idempotency,
 		'customer_access_token' => $customer_token,
 	);
@@ -877,6 +878,7 @@ function parisan_core_booking_shortcode() {
 				<p class="parisan-booking-field parisan-booking-field-wide">
 					<label for="parisan-booking-email"><?php esc_html_e( 'ایمیل (اختیاری)', 'parisan-core' ); ?></label>
 					<input id="parisan-booking-email" name="customer_email" type="email" maxlength="190" autocomplete="email">
+					<label><input type="checkbox" name="customer_email_consent" value="1"> <?php esc_html_e( 'مایلم یادآوری نوبت را از طریق ایمیل دریافت کنم.', 'parisan-core' ); ?></label>
 				</p>
 			</div>
 			<p class="parisan-booking-privacy-note"><?php esc_html_e( 'اطلاعات تماس شما فقط برای ثبت و مدیریت درخواست نوبت استفاده می‌شود.', 'parisan-core' ); ?>
