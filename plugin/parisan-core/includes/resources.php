@@ -398,7 +398,11 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 		),
 		ARRAY_A
 	);
-	foreach ( is_array( $maintenance_rows ) ? $maintenance_rows : array() as $maintenance ) {
+	// Never offer a resource slot when maintenance state cannot be read.
+	if ( null === $maintenance_rows || '' !== $wpdb->last_error ) {
+		return array();
+	}
+	foreach ( $maintenance_rows as $maintenance ) {
 		$maintenance_resource_id = absint( $maintenance['resource_id'] );
 		try {
 			$maintenance_start = new DateTimeImmutable( $maintenance['starts_at_utc'], new DateTimeZone( 'UTC' ) );
