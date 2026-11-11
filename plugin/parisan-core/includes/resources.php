@@ -176,6 +176,18 @@ function parisan_core_get_service_resource_ids( $service_id ) {
 }
 
 /**
+ * Determine whether a service has a resource requirement configured, even if
+ * every configured resource is currently unpublished or unavailable.
+ *
+ * @param int $service_id Service ID.
+ * @return bool
+ */
+function parisan_core_service_requires_resources( $service_id ) {
+	$configured = get_post_meta( absint( $service_id ), '_parisan_service_resources', true );
+	return is_array( $configured ) && ! empty( $configured );
+}
+
+/**
  * Acquire deterministic advisory locks for a resource pool.
  *
  * @param int[] $resource_ids Resource IDs.
@@ -229,6 +241,9 @@ function parisan_core_release_resource_schedule_locks( $lock_names ) {
 function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_start, $range_end, $buffer_before = 0, $buffer_after = 0, $exclude_booking_id = 0 ) {
 	global $wpdb;
 	$resource_ids = parisan_core_get_service_resource_ids( $service_id );
+	if ( ! $resource_ids && parisan_core_service_requires_resources( $service_id ) ) {
+		return array();
+	}
 	if ( ! $resource_ids ) {
 		foreach ( $slots as &$slot ) {
 			$slot['resource_id'] = 0;
