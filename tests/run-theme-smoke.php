@@ -237,7 +237,10 @@ parisan_core_render_booking_admin_page();
 $daily_booking_html = ob_get_clean();
 parisan_theme_smoke_assert( false !== strpos( $daily_booking_html, 'مدیریت نوبت‌ها' ) && false !== strpos( $daily_booking_html, 'برنامه روزانه' ) && false !== strpos( $daily_booking_html, 'parisan-booking-date' ), 'booking operations screen renders the date-filtered daily schedule without a fatal error' );
 parisan_theme_smoke_assert( false !== strpos( $daily_booking_html, 'همه متخصصان' ) && false !== strpos( $daily_booking_html, 'نمایش برنامه' ), 'daily schedule exposes specialist selection and a clear submit action' );
-unset( $_GET['page'], $_GET['booking_date'], $_GET['staff_id'], $_GET['status'] );
+parisan_theme_smoke_assert( false !== strpos( $daily_booking_html, 'تقویم عملیاتی روز' ) && false !== strpos( $daily_booking_html, 'parisan-calendar-lanes' ), 'daily booking calendar renders its operational lane structure' );
+parisan_theme_smoke_assert( false !== strpos( $daily_booking_html, 'parisan-booking-resource' ) && false !== strpos( $daily_booking_html, 'همه منابع' ), 'booking operations expose a resource filter alongside specialist and status filters' );
+parisan_theme_smoke_assert( false !== strpos( $daily_booking_html, 'روز قبل' ) && false !== strpos( $daily_booking_html, 'روز بعد' ), 'daily calendar provides timezone-local previous and next day navigation' );
+unset( $_GET['page'], $_GET['booking_date'], $_GET['staff_id'], $_GET['status'], $_GET['resource_id'] );
 wp_set_current_user( 0 );
 
 parisan_theme_smoke_assert( function_exists( 'parisan_core_public_booking_admin_notice' ), 'booking owner-readiness notice is registered' );
