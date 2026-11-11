@@ -310,7 +310,7 @@ parisan_theme_smoke_assert( false !== strpos( $theme_styles, '.parisan-content-i
 parisan_theme_smoke_assert( function_exists( 'parisan_core_register_finance_admin_page' ) && function_exists( 'parisan_core_render_finance_admin_page' ), 'read-only salon finance workspace is registered and renderable' );
 $finance_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/finance-admin.php' );
 parisan_theme_smoke_assert( false !== strpos( $finance_source, "status='completed'" ) && false !== strpos( $finance_source, 'recognized_irr' ), 'finance revenue is derived only from completed booking snapshots' );
-parisan_theme_smoke_assert( false !== strpos( $finance_source, "current_user_can( 'edit_post', $id )" ) && false !== strpos( $finance_source, 'staff_id IN (' ), 'finance aggregate queries are constrained to editable specialist IDs' );
+parisan_theme_smoke_assert( false !== strpos( $finance_source, "current_user_can( 'edit_post', " ) && false !== strpos( $finance_source, 'staff_id IN (' ), 'finance aggregate queries are constrained to editable specialist IDs' );
 parisan_theme_smoke_assert( false !== strpos( $finance_source, 'parisan_core_finance_range' ) && false !== strpos( $finance_source, 'wp_timezone()' ), 'finance report uses salon-local date boundaries converted to UTC' );
 $public_service_archive = file_get_contents( $theme_root . '/archive-parisan_service.php' );
 $public_staff_archive = file_get_contents( $theme_root . '/archive-parisan_staff.php' );
