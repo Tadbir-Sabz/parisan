@@ -230,6 +230,27 @@ function parisan_core_register_privacy_exporter( $exporters ) {
 }
 add_filter( 'wp_privacy_personal_data_exporters', 'parisan_core_register_privacy_exporter' );
 
+function parisan_core_register_contact_inquiry_exporter( $exporters ) {
+	$exporters['parisan-contact-inquiries'] = array( 'exporter_friendly_name' => __( 'پیام‌های تماس پاریسان', 'parisan-core' ), 'callback' => 'parisan_core_contact_inquiry_exporter_callback' );
+	return $exporters;
+}
+add_filter( 'wp_privacy_personal_data_exporters', 'parisan_core_register_contact_inquiry_exporter' );
+
+function parisan_core_contact_inquiry_exporter_callback( $email_address, $page = 1 ) {
+	global $wpdb;
+	$items = array();
+	if ( is_email( $email_address ) ) {
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id,customer_name,customer_phone,customer_email,subject_key,message_body,created_at_utc,status FROM {$wpdb->prefix}parisan_contact_inquiries WHERE customer_email=%s ORDER BY id ASC LIMIT 50 OFFSET %d", $email_address, max( 0, ( absint( $page ) - 1 ) * 50 ) ), ARRAY_A );
+		foreach ( (array) $rows as $row ) {
+			$data = array();
+			foreach ( $row as $key => $value ) { $data[] = array( 'name' => sanitize_text_field( $key ), 'value' => (string) $value ); }
+			$items[] = array( 'group_id' => 'parisan-contact-inquiries', 'group_label' => __( 'پیام‌های تماس پاریسان', 'parisan-core' ), 'item_id' => 'contact-inquiry-' . (int) $row['id'], 'data' => $data );
+		}
+	}
+	return array( 'data' => $items, 'done' => count( $items ) < 50 );
+}
+
+
 /**
  * WordPress privacy exporter callback.
  *
@@ -260,6 +281,27 @@ function parisan_core_register_privacy_eraser( $erasers ) {
 	return $erasers;
 }
 add_filter( 'wp_privacy_personal_data_erasers', 'parisan_core_register_privacy_eraser' );
+
+function parisan_core_register_contact_inquiry_eraser( $erasers ) {
+	$erasers['parisan-contact-inquiries'] = array( 'eraser_friendly_name' => __( 'پیام‌های تماس پاریسان', 'parisan-core' ), 'callback' => 'parisan_core_contact_inquiry_eraser_callback' );
+	return $erasers;
+}
+add_filter( 'wp_privacy_personal_data_erasers', 'parisan_core_register_contact_inquiry_eraser' );
+
+function parisan_core_contact_inquiry_eraser_callback( $email_address, $page = 1 ) {
+	global $wpdb;
+	if ( ! is_email( $email_address ) ) { return array( 'items_removed' => false, 'items_retained' => false, 'messages' => array(), 'done' => true ); }
+	$table = $wpdb->prefix . 'parisan_contact_inquiries';
+	$ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$table} WHERE customer_email=%s ORDER BY id ASC LIMIT 50", $email_address ) );
+	if ( $ids ) {
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE id IN ({$placeholders})", array_map( 'absint', $ids ) ) );
+		if ( false === $deleted ) { return array( 'items_removed' => false, 'items_retained' => true, 'messages' => array( __( 'حذف پیام‌های تماس کامل نشد.', 'parisan-core' ) ), 'done' => false ); }
+	}
+	$remaining = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE customer_email=%s", $email_address ) );
+	return array( 'items_removed' => (bool) $ids, 'items_retained' => false, 'messages' => array(), 'done' => 0 === $remaining );
+}
+
 
 /**
  * Anonymize terminal booking records; retain active appointments for fulfilment.
