@@ -315,6 +315,20 @@ function parisan_core_resource_schedule_allows_interval( $resource_id, $start_ut
  * @param int    $buffer_after Buffer after service.
  * @return array
  */
+/**
+ * Allocate one resource from every required resource type for each slot.
+ * Selecting both a room and a device on a service therefore requires both;
+ * selecting several beds of the same type means any one bed can satisfy it.
+ *
+ * @param array  $slots Candidate staff slots.
+ * @param int    $service_id Service ID.
+ * @param string $range_start UTC range start.
+ * @param string $range_end UTC range end.
+ * @param int    $buffer_before Buffer before.
+ * @param int    $buffer_after Buffer after.
+ * @param int    $exclude_booking_id Booking excluded during reschedule.
+ * @return array
+ */
 function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_start, $range_end, $buffer_before = 0, $buffer_after = 0, $exclude_booking_id = 0 ) {
 	global $wpdb;
 	$resource_ids = parisan_core_get_service_resource_ids( $service_id );
@@ -324,41 +338,51 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 	if ( ! $resource_ids ) {
 		foreach ( $slots as &$slot ) {
 			$slot['resource_id'] = 0;
+			$slot['resource_ids'] = array();
 		}
 		unset( $slot );
 		return $slots;
 	}
+
+	$groups = array();
+	foreach ( $resource_ids as $resource_id ) {
+		$type = get_post_meta( $resource_id, '_parisan_resource_type', true );
+		$type = in_array( $type, array( 'room', 'bed', 'chair', 'device', 'other' ), true ) ? $type : 'other';
+		$groups[ $type ][] = $resource_id;
+	}
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
+	$booking_resources_table = $wpdb->prefix . 'parisan_booking_resources';
 	$placeholders = implode( ',', array_fill( 0, count( $resource_ids ), '%d' ) );
 	$query_start = ( new DateTimeImmutable( $range_start, new DateTimeZone( 'UTC' ) ) )->modify( '-240 minutes' )->format( 'Y-m-d H:i:s' );
 	$query_end = ( new DateTimeImmutable( $range_end, new DateTimeZone( 'UTC' ) ) )->modify( '+240 minutes' )->format( 'Y-m-d H:i:s' );
 	$shared_service_ids = array( absint( $service_id ) );
 	foreach ( $resource_ids as $resource_id ) {
-		$service_meta_rows = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
-				'_parisan_service_resources',
-				'%' . $wpdb->esc_like( 'i:' . $resource_id . ';' ) . '%'
-			)
-		);
+		$service_meta_rows = $wpdb->get_col( $wpdb->prepare(
+			"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
+			'_parisan_service_resources',
+			'%' . $wpdb->esc_like( 'i:' . $resource_id . ';' ) . '%'
+		) );
 		foreach ( is_array( $service_meta_rows ) ? $service_meta_rows : array() as $shared_service_id ) {
 			$shared_service_ids[] = absint( $shared_service_id );
 		}
 	}
 	$shared_service_ids = array_values( array_unique( array_filter( $shared_service_ids ) ) );
 	$service_placeholders = implode( ',', array_fill( 0, count( $shared_service_ids ), '%d' ) );
-	$sql = "SELECT resource_id, service_id, starts_at_utc, ends_at_utc FROM {$bookings_table}
-		WHERE status IN ('pending','confirmed') AND starts_at_utc < %s AND ends_at_utc > %s
-		AND (resource_id IN ({$placeholders}) OR (resource_id = 0 AND service_id IN ({$service_placeholders})))";
-	$sql .= ' AND id <> %d';
-	$args = array_merge( array( $query_end, $query_start ), $resource_ids, $shared_service_ids, array( absint( $exclude_booking_id ) ) );
+	$sql = "SELECT b.id, b.resource_id, b.service_id, b.starts_at_utc, b.ends_at_utc, br.resource_id AS assigned_resource_id
+		FROM {$bookings_table} b
+		LEFT JOIN {$booking_resources_table} br ON br.booking_id = b.id
+		WHERE b.status IN ('pending','confirmed') AND b.starts_at_utc < %s AND b.ends_at_utc > %s
+		AND (b.resource_id IN ({$placeholders}) OR br.resource_id IN ({$placeholders}) OR (b.resource_id = 0 AND b.service_id IN ({$service_placeholders})))
+		AND b.id <> %d";
+	$args = array_merge( array( $query_end, $query_start ), $resource_ids, $resource_ids, $shared_service_ids, array( absint( $exclude_booking_id ) ) );
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
 	$busy_by_resource = array();
 	foreach ( is_array( $rows ) ? $rows : array() as $row ) {
-		$resource_id = absint( $row['resource_id'] );
+		$assigned_id = absint( $row['assigned_resource_id'] );
+		$legacy_id = absint( $row['resource_id'] );
+		$targets = $assigned_id ? array( $assigned_id ) : ( $legacy_id ? array( $legacy_id ) : $resource_ids );
 		$busy_start = ( new DateTimeImmutable( $row['starts_at_utc'], new DateTimeZone( 'UTC' ) ) )->modify( '-' . min( 240, max( 0, (int) $buffer_before ) ) . ' minutes' );
 		$busy_end = ( new DateTimeImmutable( $row['ends_at_utc'], new DateTimeZone( 'UTC' ) ) )->modify( '+' . min( 240, max( 0, (int) $buffer_after ) ) . ' minutes' );
-		$targets = $resource_id ? array( $resource_id ) : $resource_ids;
 		foreach ( $targets as $target_id ) {
 			$busy_by_resource[ $target_id ][] = array( 'start' => $busy_start, 'end' => $busy_end );
 		}
@@ -371,23 +395,80 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 		} catch ( Exception $exception ) {
 			continue;
 		}
-		foreach ( $resource_ids as $resource_id ) {
-			if ( ! parisan_core_resource_schedule_allows_interval( $resource_id, $start, $end ) ) {
-				continue;
-			}
-			$conflict = false;
-			foreach ( isset( $busy_by_resource[ $resource_id ] ) ? $busy_by_resource[ $resource_id ] : array() as $busy ) {
-				if ( $start < $busy['end'] && $end > $busy['start'] ) {
-					$conflict = true;
+		$chosen = array();
+		foreach ( $groups as $group_resources ) {
+			$group_choice = 0;
+			foreach ( $group_resources as $resource_id ) {
+				if ( ! parisan_core_resource_schedule_allows_interval( $resource_id, $start, $end ) ) {
+					continue;
+				}
+				$conflict = false;
+				foreach ( isset( $busy_by_resource[ $resource_id ] ) ? $busy_by_resource[ $resource_id ] : array() as $busy ) {
+					if ( $start < $busy['end'] && $end > $busy['start'] ) {
+						$conflict = true;
+						break;
+					}
+				}
+				if ( ! $conflict ) {
+					$group_choice = $resource_id;
 					break;
 				}
 			}
-			if ( ! $conflict ) {
-				$slot['resource_id'] = $resource_id;
-				$available[] = $slot;
+			if ( ! $group_choice ) {
+				$chosen = array();
 				break;
 			}
+			$chosen[] = $group_choice;
+		}
+		if ( count( $chosen ) === count( $groups ) ) {
+			sort( $chosen, SORT_NUMERIC );
+			$slot['resource_ids'] = $chosen;
+			$slot['resource_id'] = reset( $chosen );
+			$available[] = $slot;
 		}
 	}
 	return $available;
+}
+
+/**
+ * Persist the complete resource assignment for a booking.
+ *
+ * @param int   $booking_id Booking row ID.
+ * @param int[] $resource_ids Assigned resource IDs.
+ * @return bool
+ */
+function parisan_core_store_booking_resources( $booking_id, $resource_ids ) {
+	global $wpdb;
+	$table = $wpdb->prefix . 'parisan_booking_resources';
+	$booking_id = absint( $booking_id );
+	$ids = is_array( $resource_ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $resource_ids ) ) ) ) : array();
+	if ( ! $booking_id ) {
+		return false;
+	}
+	if ( false === $wpdb->delete( $table, array( 'booking_id' => $booking_id ), array( '%d' ) ) ) {
+		return false;
+	}
+	foreach ( $ids as $resource_id ) {
+		if ( false === $wpdb->insert( $table, array( 'booking_id' => $booking_id, 'resource_id' => $resource_id ), array( '%d', '%d' ) ) ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Get all resources assigned to a booking, including legacy single-resource rows.
+ *
+ * @param int $booking_id Booking row ID.
+ * @return int[]
+ */
+function parisan_core_get_booking_resource_ids( $booking_id ) {
+	global $wpdb;
+	$table = $wpdb->prefix . 'parisan_booking_resources';
+	$ids = $wpdb->get_col( $wpdb->prepare( "SELECT resource_id FROM {$table} WHERE booking_id = %d ORDER BY resource_id ASC", absint( $booking_id ) ) );
+	if ( ! is_array( $ids ) || ! $ids ) {
+		$legacy = (int) $wpdb->get_var( $wpdb->prepare( "SELECT resource_id FROM {$wpdb->prefix}parisan_bookings WHERE id = %d", absint( $booking_id ) ) );
+		$ids = $legacy ? array( $legacy ) : array();
+	}
+	return array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
 }
