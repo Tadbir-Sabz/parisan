@@ -226,7 +226,7 @@ function parisan_core_release_resource_schedule_locks( $lock_names ) {
  * @param int    $buffer_after Buffer after service.
  * @return array
  */
-function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_start, $range_end, $buffer_before = 0, $buffer_after = 0 ) {
+function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_start, $range_end, $buffer_before = 0, $buffer_after = 0, $exclude_booking_id = 0 ) {
 	global $wpdb;
 	$resource_ids = parisan_core_get_service_resource_ids( $service_id );
 	if ( ! $resource_ids ) {
@@ -243,7 +243,8 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 	$sql = "SELECT resource_id, service_id, starts_at_utc, ends_at_utc FROM {$bookings_table}
 		WHERE status IN ('pending','confirmed') AND starts_at_utc < %s AND ends_at_utc > %s
 		AND (resource_id IN ({$placeholders}) OR (resource_id = 0 AND service_id = %d))";
-	$args = array_merge( array( $query_end, $query_start ), $resource_ids, array( absint( $service_id ) ) );
+	$sql .= ' AND id <> %d';
+	$args = array_merge( array( $query_end, $query_start ), $resource_ids, array( absint( $service_id ), absint( $exclude_booking_id ) ) );
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
 	$busy_by_resource = array();
 	foreach ( is_array( $rows ) ? $rows : array() as $row ) {
