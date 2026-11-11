@@ -40,6 +40,14 @@ parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'booking_da
 parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'ORDER BY b.starts_at_utc ' ) && false !== strpos( $booking_admin_source, "? 'ASC' : 'DESC'" ), 'daily schedule is chronological while the unfiltered history remains newest-first' );
 parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'FROM {$bookings_table} b' ), 'booking detail metrics use the correctly scoped bookings table' );
 
+$customer_admin_source = file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/customers-admin.php' );
+$service_catalog_source = file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/service-catalog-admin.php' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_render_customer_admin_page' ) && false !== strpos( $customer_admin_source, 'staff_id IN (' ), 'customer CRM is registered and scopes personal data to specialists the current operator may edit' );
+parisan_theme_smoke_assert( false !== strpos( $customer_admin_source, 'completed_total' ) && false !== strpos( $customer_admin_source, 'customer_phone' ) && false !== strpos( $customer_admin_source, 'تاریخچه مشتری' ), 'customer CRM provides visit totals, contact search, and individual booking history' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_service_catalog_columns' ) && false !== strpos( $service_catalog_source, 'parisan_resources' ) && false !== strpos( $service_catalog_source, 'parisan_assignment' ), 'service catalogue exposes resource requirements and specialist-assignment filters' );
+parisan_theme_smoke_assert( false !== strpos( $service_catalog_source, 'manage_parisan_service_posts_columns' ) && false !== strpos( $service_catalog_source, 'meta_value_num' ), 'service catalogue supports operational columns and numeric duration/price sorting' );
+
+
 
 parisan_theme_smoke_assert( function_exists( 'parisan_home_content' ), 'owner-editable homepage content helper is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_customize_homepage_content_register' ), 'homepage copy controls are registered in the Customizer' );
