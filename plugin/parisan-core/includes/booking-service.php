@@ -73,7 +73,7 @@ function parisan_core_create_booking( $input ) {
 	$phone      = isset( $input['customer_phone'] ) && is_string( $input['customer_phone'] ) ? trim( $input['customer_phone'] ) : '';
 	$phone      = strtr( $phone, array( '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9' ) );
 	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';
-	$email_consent = ! empty( $input['customer_email_consent'] ) && in_array( $input['customer_email_consent'], array( true, 1, '1', 'yes' ), true );
+	$email_consent = ! empty( $input['customer_email_consent'] ) && in_array( $input['customer_email_consent'], array( true, 1, '1' ), true );
 	$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
 	$customer_access_token = isset( $input['customer_access_token'] ) && is_string( $input['customer_access_token'] ) ? trim( $input['customer_access_token'] ) : '';
