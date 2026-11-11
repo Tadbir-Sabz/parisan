@@ -47,7 +47,7 @@ add_action( 'init', 'parisan_core_register_resource_post_type', 6 );
  * @return void
  */
 function parisan_core_add_resource_meta_box() {
-	add_meta_box( 'parisan-resource-details', __( 'مشخصات منبع', 'parisan-core' ), 'parisan_core_render_resource_meta_box', 'parisan_resource', 'side', 'high' );
+	add_meta_box( 'parisan-resource-details', __( 'مشخصات منبع', 'parisan-core' ), 'parisan_core_render_resource_meta_box', 'parisan_resource', 'normal', 'high' );
 }
 add_action( 'add_meta_boxes_parisan_resource', 'parisan_core_add_resource_meta_box' );
 
