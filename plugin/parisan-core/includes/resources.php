@@ -152,7 +152,7 @@ function parisan_core_render_service_resources_meta_box( $post ) {
 	$selected = get_post_meta( $post->ID, '_parisan_service_resources', true );
 	$selected = is_array( $selected ) ? array_map( 'absint', $selected ) : array();
 	$resources = get_posts( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'posts_per_page' => 300, 'orderby' => 'title', 'order' => 'ASC' ) );
-	echo '<p>' . esc_html__( 'از بین منابع انتخاب‌شده، یک منبع آزاد برای هر نوبت اختصاص داده می‌شود. یک منبع می‌تواند بین چند خدمت مشترک باشد.', 'parisan-core' ) . '</p>';
+	echo '<p>' . esc_html__( 'از هر نوع منبع انتخاب‌شده، یک مورد آزاد برای هر نوبت اختصاص داده می‌شود؛ مثلاً انتخاب اتاق و دستگاه یعنی هر دو هم‌زمان لازم‌اند. چند منبع از یک نوع، گزینه‌های جایگزین هستند و یکی از آن‌ها انتخاب می‌شود.', 'parisan-core' ) . '</p>';
 	if ( ! $resources ) {
 		echo '<p><em>' . esc_html__( 'هنوز منبع منتشرشده‌ای تعریف نشده است. از بخش متخصصان ← منابع سالن، اتاق، تخت، جایگاه یا دستگاه اضافه کنید.', 'parisan-core' ) . '</em></p>';
 		return;
