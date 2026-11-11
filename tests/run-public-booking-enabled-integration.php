@@ -336,7 +336,18 @@ $expected_two_hour_reminder = $booking_date . ' 12:00:00';
 $customer_booking = parisan_core_resolve_customer_access_token( $customer_token );
 parisan_public_enabled_assert( is_array( $customer_booking ), 'customer token resolves the exact booking used by the reschedule test' );
 $actual_two_hour_reminder = $wpdb->get_var( $wpdb->prepare( "SELECT scheduled_at_utc FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d AND reminder_kind='2h'", (int) $customer_booking['id'] ) );
-parisan_public_enabled_assert( $expected_two_hour_reminder === $actual_two_hour_reminder, 'rescheduling recalculates the pending two-hour reminder against the new appointment time' );
+$reminder_debug = $wpdb->get_row( $wpdb->prepare( "SELECT status,last_error,attempts,scheduled_at_utc FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d AND reminder_kind='2h'", (int) $customer_booking['id'] ), ARRAY_A );
+parisan_public_enabled_assert(
+	$expected_two_hour_reminder === $actual_two_hour_reminder,
+	sprintf(
+		'rescheduling recalculates the pending two-hour reminder against the new appointment time (expected=%s actual=%s status=%s last_error=%s attempts=%s)',
+		$expected_two_hour_reminder,
+		(string) $actual_two_hour_reminder,
+		is_array( $reminder_debug ) ? (string) $reminder_debug['status'] : 'missing',
+		is_array( $reminder_debug ) ? (string) $reminder_debug['last_error'] : 'missing',
+		is_array( $reminder_debug ) ? (string) $reminder_debug['attempts'] : 'missing'
+	)
+);
 
 $customer_view_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booking' );
 $customer_view_request->set_header( 'X-Parisan-Booking-Token', $customer_token );
