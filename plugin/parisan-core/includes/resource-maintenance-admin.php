@@ -70,7 +70,7 @@ function parisan_core_handle_resource_maintenance_create() {
 		$end->format( 'Y-m-d H:i:s' ),
 		$start->format( 'Y-m-d H:i:s' )
 	) );
-	$query_failed = '' !== $wpdb->last_error;
+	$query_failed = $conflict_query_failed || '' !== $wpdb->last_error;
 	$inserted = false;
 	if ( ! $query_failed && ! $conflicts && ! $overlaps ) {
 		$inserted = $wpdb->insert( $table, array(
