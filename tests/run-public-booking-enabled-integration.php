@@ -69,6 +69,11 @@ parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-booking' )
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-create-form' ), 'booking shortcode renders the create form' );
 parisan_public_enabled_assert( false !== strpos( $html, 'data-parisan-reschedule-form' ), 'booking shortcode renders token-based customer rescheduling controls' );
 parisan_public_enabled_assert( shortcode_exists( 'parisan_waitlist' ), 'consent-based customer waitlist shortcode is registered' );
+$waitlist_html = parisan_core_waitlist_shortcode();
+parisan_public_enabled_assert( false !== strpos( $waitlist_html, 'parisan_waitlist_submit' ) && false !== strpos( $waitlist_html, 'contact_consent' ), 'public waitlist form renders its nonce-protected consent flow when the owner enables public booking' );
+$waitlist_engine = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $wpdb->prefix . 'parisan_booking_waitlist' ) ), ARRAY_A );
+$reminder_engine = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $wpdb->prefix . 'parisan_booking_reminders' ) ), ARRAY_A );
+parisan_public_enabled_assert( is_array( $waitlist_engine ) && 'innodb' === strtolower( $waitlist_engine['Engine'] ) && is_array( $reminder_engine ) && 'innodb' === strtolower( $reminder_engine['Engine'] ), 'waitlist and reminder queues use transactional InnoDB storage' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Service' ), 'published services are offered in the wizard' );
 parisan_public_enabled_assert( false !== strpos( $html, 'تومان' ) && false !== strpos( $html, 'دقیقه' ), 'wizard displays fixed service price and duration before booking' );
 parisan_public_enabled_assert( false !== strpos( $html, 'Synthetic Public Booking Specialist' ), 'eligible specialists are offered in the wizard' );
