@@ -41,6 +41,38 @@ function parisan_core_handle_customer_followup() {
 }
 add_action('admin_post_parisan_customer_followup','parisan_core_handle_customer_followup');
 
+
+function parisan_core_handle_inquiry_customer_link() {
+	if ( ! current_user_can( 'edit_others_posts' ) ) { wp_die( esc_html__( 'اجازه اتصال درخواست را ندارید.', 'parisan-core' ), '', array( 'response'=>403 ) ); }
+	check_admin_referer( 'parisan_inquiry_customer_link', 'parisan_link_nonce' );
+	$inquiry_id = isset($_POST['inquiry_id']) ? absint($_POST['inquiry_id']) : 0;
+	global $wpdb;
+	$inquiries = $wpdb->prefix . 'parisan_contact_inquiries';
+	$inquiry = $wpdb->get_row($wpdb->prepare("SELECT id,customer_phone FROM {$inquiries} WHERE id=%d",$inquiry_id),ARRAY_A);
+	if(!$inquiry){wp_die(esc_html__('درخواست تماس پیدا نشد.','parisan-core'),'',array('response'=>404));}
+	$staff = $wpdb->get_col($wpdb->prepare("SELECT DISTINCT staff_id FROM {$wpdb->prefix}parisan_bookings WHERE customer_phone=%s",$inquiry['customer_phone']));
+	$allowed = false;
+	foreach((array)$staff as $staff_id){if(current_user_can('edit_post',(int)$staff_id)){$allowed=true;break;}}
+	if(!$allowed){wp_die(esc_html__('رزرو مرتبطی در محدوده دسترسی شما وجود ندارد؛ اتصال انجام نشد.','parisan-core'),'',array('response'=>403));}
+	$wpdb->replace($wpdb->prefix.'parisan_inquiry_customer_links',array('inquiry_id'=>$inquiry_id,'customer_phone'=>$inquiry['customer_phone'],'linked_by'=>get_current_user_id(),'linked_at_utc'=>current_time('mysql',true)),array('%d','%s','%d','%s'));
+	wp_safe_redirect(add_query_arg(array('post_type'=>'parisan_staff','page'=>'parisan-customer-followups','linked'=>1),admin_url('edit.php')));exit;
+}
+add_action('admin_post_parisan_link_inquiry_customer','parisan_core_handle_inquiry_customer_link');
+
+function parisan_core_handle_customer_followup_complete() {
+	if(!current_user_can('edit_others_posts')){wp_die(esc_html__('اجازه تغییر وضعیت پیگیری را ندارید.','parisan-core'),'',array('response'=>403));}
+	$id=isset($_POST['followup_id'])?absint($_POST['followup_id']):0;
+	check_admin_referer('parisan_followup_complete_'.$id,'parisan_complete_nonce');
+	global $wpdb;
+	$phone=$wpdb->get_var($wpdb->prepare("SELECT customer_phone FROM {$wpdb->prefix}parisan_customer_followups WHERE id=%d",$id));
+	$staff=$phone?$wpdb->get_col($wpdb->prepare("SELECT DISTINCT staff_id FROM {$wpdb->prefix}parisan_bookings WHERE customer_phone=%s",$phone)):array();
+	$allowed=false;foreach((array)$staff as $staff_id){if(current_user_can('edit_post',(int)$staff_id)){$allowed=true;break;}}
+	if(!$allowed){wp_die(esc_html__('برای این پیگیری دسترسی ندارید.','parisan-core'),'',array('response'=>403));}
+	$wpdb->update($wpdb->prefix.'parisan_customer_followups',array('status'=>'done'),array('id'=>$id),array('%s'),array('%d'));
+	wp_safe_redirect(add_query_arg(array('post_type'=>'parisan_staff','page'=>'parisan-customer-followups','customer_phone'=>$phone,'completed'=>1),admin_url('edit.php')));exit;
+}
+add_action('admin_post_parisan_complete_customer_followup','parisan_core_handle_customer_followup_complete');
+
 function parisan_core_render_customer_relationship_page() {
 	if(!current_user_can('edit_others_posts')){wp_die(esc_html__('اجازه مشاهده پیگیری مشتریان را ندارید.','parisan-core'),'',array('response'=>403));}
 	global $wpdb;
@@ -61,7 +93,7 @@ function parisan_core_render_customer_relationship_page() {
 		if(!$notes){echo '<tr><td colspan="3">یادداشتی ثبت نشده است.</td></tr>';}echo '</tbody></table>';
 		$followups=$wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}parisan_customer_followups WHERE customer_phone=%s ORDER BY FIELD(status,'open','done'),due_at_utc ASC LIMIT 100",$phone),ARRAY_A);
 		echo '<h3>برنامه پیگیری</h3><table class="widefat striped"><thead><tr><th>موعد UTC</th><th>شرح</th><th>وضعیت</th></tr></thead><tbody>';
-		foreach((array)$followups as $f){echo '<tr><td>'.esc_html($f['due_at_utc']).'</td><td>'.esc_html($f['task']).'</td><td>'.esc_html($f['status']==='done'?'انجام‌شده':'باز').'</td></tr>';}
+		foreach((array)$followups as $f){echo '<tr><td>'.esc_html($f['due_at_utc']).'</td><td>'.esc_html($f['task']).'</td><td>'.esc_html($f['status']==='done'?'انجام‌شده':'باز');if($f['status']==='open'){echo '<form method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="parisan_complete_customer_followup"><input type="hidden" name="followup_id" value="'.esc_attr($f['id']).'">';wp_nonce_field('parisan_followup_complete_'.(int)$f['id'],'parisan_complete_nonce');echo '<button class="button">انجام شد</button></form>';}echo '</td></tr>';}
 		if(!$followups){echo '<tr><td colspan="3">پیگیری ثبت نشده است.</td></tr>';}echo '</tbody></table>';
 		echo '</div>';return;
 	}
