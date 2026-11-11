@@ -511,6 +511,7 @@ function parisan_core_render_booking_admin_page() {
 		'no_show' => __( 'عدم مراجعه', 'parisan-core' ),
 	);
 	$error_messages = array(
+		'parisan_booking_reason_required' => __( 'برای لغو یا ثبت عدم مراجعه، درج دلیل الزامی است.', 'parisan-core' ),
 		'parisan_booking_not_found' => __( 'رزرو موردنظر پیدا نشد.', 'parisan-core' ),
 		'parisan_booking_transition_forbidden' => __( 'اجازه تغییر وضعیت این رزرو را ندارید.', 'parisan-core' ),
 		'parisan_invalid_booking_transition' => __( 'این تغییر وضعیت در چرخه رزرو مجاز نیست.', 'parisan-core' ),
