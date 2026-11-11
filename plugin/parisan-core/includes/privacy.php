@@ -73,7 +73,8 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	$events_table   = $wpdb->prefix . 'parisan_booking_events';
 	$tokens_table   = $wpdb->prefix . 'parisan_customer_tokens';
 	$finance_events_table = $wpdb->prefix . 'parisan_booking_finance_events';
-	foreach ( array( $bookings_table, $events_table, $tokens_table, $finance_events_table ) as $table ) {
+	$reminders_table = $wpdb->prefix . 'parisan_booking_reminders';
+	foreach ( array( $bookings_table, $events_table, $tokens_table, $finance_events_table, $reminders_table ) as $table ) {
 		$status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $status ) || empty( $status['Engine'] ) || 'innodb' !== strtolower( $status['Engine'] ) ) {
 			return new WP_Error( 'parisan_privacy_storage_unavailable', __( 'ذخیره‌ساز امن برای اجرای درخواست حریم خصوصی آماده نیست.', 'parisan-core' ) );
@@ -87,7 +88,7 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	$updated = $wpdb->query(
 		$wpdb->prepare(
 			"UPDATE {$bookings_table}
-			SET customer_name = %s, customer_phone = %s, customer_email = %s, customer_user_id = NULL
+			SET customer_name = %s, customer_phone = %s, customer_email = %s, customer_email_consent = 0, customer_user_id = NULL
 			WHERE id IN ({$placeholders})",
 			array_merge( array( __( 'اطلاعات حذف‌شده', 'parisan-core' ), '', '' ), $booking_ids )
 		)
@@ -106,6 +107,14 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	if ( false === $tokens_updated ) {
 		$wpdb->query( 'ROLLBACK' );
 		return new WP_Error( 'parisan_privacy_token_revoke_failed', __( 'لغو دسترسی مشتری به رزرو انجام نشد.', 'parisan-core' ) );
+	}
+
+	$reminders_updated = $wpdb->query(
+		$wpdb->prepare( "UPDATE {$reminders_table} SET status = 'skipped', last_error = %s, updated_at_utc = %s WHERE booking_id IN ({$placeholders}) AND status IN ('pending','failed')", array_merge( array( 'privacy_erasure', current_time( 'mysql', true ) ), $booking_ids ) )
+	);
+	if ( false === $reminders_updated ) {
+		$wpdb->query( 'ROLLBACK' );
+		return new WP_Error( 'parisan_privacy_reminder_update_failed', __( 'غیرفعال‌سازی یادآورهای رزرو انجام نشد.', 'parisan-core' ) );
 	}
 
 	$events_updated = $wpdb->query(
@@ -160,7 +169,7 @@ function parisan_core_export_booking_personal_data( $email_address, $user_id, $p
 	$offset = ( max( 1, absint( $page ) ) - 1 ) * $limit;
 	$sql = "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email,
 		starts_at_utc, ends_at_utc, duration_minutes, salon_timezone, status, price_amount,
-		currency_code, created_at_utc, updated_at_utc
+		currency_code, customer_email_consent, created_at_utc, updated_at_utc
 		FROM {$table} WHERE {$identity['sql']} ORDER BY id ASC LIMIT %d OFFSET %d";
 	$args = array_merge( $identity['args'], array( $limit, $offset ) );
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
@@ -176,6 +185,7 @@ function parisan_core_export_booking_personal_data( $email_address, $user_id, $p
 			array( 'name' => __( 'نام مشتری', 'parisan-core' ), 'value' => $row['customer_name'] ),
 			array( 'name' => __( 'شماره تماس', 'parisan-core' ), 'value' => $row['customer_phone'] ),
 			array( 'name' => __( 'ایمیل', 'parisan-core' ), 'value' => $row['customer_email'] ),
+			array( 'name' => __( 'رضایت ایمیل یادآوری', 'parisan-core' ), 'value' => (int) $row['customer_email_consent'] ? 'yes' : 'no' ),
 			array( 'name' => __( 'خدمت', 'parisan-core' ), 'value' => $service ? $service : (string) $row['service_id'] ),
 			array( 'name' => __( 'متخصص', 'parisan-core' ), 'value' => $staff ? $staff : (string) $row['staff_id'] ),
 			array( 'name' => __( 'شروع رزرو (UTC)', 'parisan-core' ), 'value' => $row['starts_at_utc'] ),
