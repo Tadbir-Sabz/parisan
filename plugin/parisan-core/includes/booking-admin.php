@@ -444,7 +444,7 @@ function parisan_core_render_booking_admin_page() {
 		$count_args[] = $staff_filter;
 	}
 	if ( $resource_filter ) {
-		$where_parts[] = 'EXISTS ( SELECT 1 FROM ' . $wpdb->prefix . 'parisan_booking_resources calendar_br WHERE calendar_br.booking_id = b.id AND calendar_br.resource_id = %d ) OR ( b.resource_id = %d AND NOT EXISTS ( SELECT 1 FROM ' . $wpdb->prefix . 'parisan_booking_resources legacy_br WHERE legacy_br.booking_id = b.id ) )';
+		$where_parts[] = '( EXISTS ( SELECT 1 FROM ' . $wpdb->prefix . 'parisan_booking_resources calendar_br WHERE calendar_br.booking_id = b.id AND calendar_br.resource_id = %d ) OR ( b.resource_id = %d AND NOT EXISTS ( SELECT 1 FROM ' . $wpdb->prefix . 'parisan_booking_resources legacy_br WHERE legacy_br.booking_id = b.id ) ) )';
 		$count_args[] = $resource_filter;
 		$count_args[] = $resource_filter;
 	}
