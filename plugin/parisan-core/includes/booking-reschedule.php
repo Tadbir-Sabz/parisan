@@ -53,7 +53,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 		return new WP_Error( 'parisan_booking_lock_unavailable', __( 'رزرو در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
 
-	$resource_ids = parisan_core_get_service_resource_ids( (int) $lock_booking['service_id'] );
+	$resource_ids = array_merge( parisan_core_get_service_resource_ids( (int) $lock_booking['service_id'] ), parisan_core_get_booking_resource_ids( $booking_id ) );
 	if ( ! empty( $lock_booking['resource_id'] ) ) {
 		$resource_ids[] = (int) $lock_booking['resource_id'];
 	}
@@ -164,10 +164,12 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 		}
 		$slot_available = false;
 		$selected_resource_id = 0;
+		$selected_resource_ids = array();
 		foreach ( $slots as $slot ) {
 			if ( isset( $slot['starts_at_local'] ) && hash_equals( $slot['starts_at_local'], $new_start_local ) ) {
 				$slot_available = true;
 				$selected_resource_id = isset( $slot['resource_id'] ) ? absint( $slot['resource_id'] ) : 0;
+				$selected_resource_ids = isset( $slot['resource_ids'] ) && is_array( $slot['resource_ids'] ) ? array_values( array_unique( array_map( 'absint', $slot['resource_ids'] ) ) ) : ( $selected_resource_id ? array( $selected_resource_id ) : array() );
 				break;
 			}
 		}
@@ -194,6 +196,11 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			array( '%s', '%s', '%d', '%d', '%s', '%s' ),
 			array( '%d', '%s' )
 		);
+		if ( ! parisan_core_store_booking_resources( $booking_id, $selected_resource_ids ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			$transaction_started = false;
+			return new WP_Error( 'parisan_booking_resources_store_failed', __( 'ذخیره منابع زمان جدید انجام نشد؛ زمان نوبت تغییر نکرد.', 'parisan-core' ) );
+		}
 		if ( false === $updated || 1 !== $updated ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
@@ -214,7 +221,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			return new WP_Error( 'parisan_booking_token_expiry_update_failed', __( 'به‌روزرسانی اعتبار دسترسی مشتری انجام نشد؛ زمان رزرو تغییر نکرد.', 'parisan-core' ) );
 		}
 
-		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql . '؛ منبع قبلی: ' . absint( $booking['resource_id'] ) . '؛ منبع جدید: ' . $selected_resource_id;
+		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql . '؛ منابع قبلی: #' . implode( ', #', parisan_core_get_booking_resource_ids( $booking_id ) ) . '؛ منابع جدید: #' . implode( ', #', $selected_resource_ids );
 		if ( '' !== $note ) {
 			$event_note .= ' — ' . $note;
 		}
