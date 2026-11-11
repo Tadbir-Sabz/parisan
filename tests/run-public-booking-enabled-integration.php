@@ -215,6 +215,8 @@ sort( $bundle_assignments, SORT_NUMERIC );
 $expected_bundle = array( (int) $bundle_room, (int) $bundle_device );
 sort( $expected_bundle, SORT_NUMERIC );
 parisan_public_enabled_assert( $expected_bundle === $bundle_assignments, 'booking resource relation stores both assigned resources' );
+// The staff reschedule path requires an authenticated manager with edit access.
+wp_set_current_user( 1 );
 $bundle_reschedule = parisan_core_reschedule_booking( (int) $bundle_booking['booking_id'], $booking_date . ' 16:00', 'bundle reschedule integration' );
 parisan_public_enabled_assert( ! is_wp_error( $bundle_reschedule ) && $expected_bundle === ( $actual_bundle = parisan_core_get_booking_resource_ids( (int) $bundle_booking['booking_id'] ) ), 'rescheduling preserves and atomically reassigns the complete resource bundle' );
 
