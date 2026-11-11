@@ -17,7 +17,8 @@ const { chromium, firefox, webkit } = require('playwright');
 			targetPage.on('console', message => {
 				if (message.type() === 'error') consoleErrors.push(message.text() + ' @ ' + JSON.stringify(message.location()));
 			});
-			targetPage.on('requestfailed', request => failedRequests.push(request.method() + ' ' + request.url() + ': ' + (request.failure() ? request.failure().errorText : 'unknown failure')));\n\t\t\ttargetPage.on('response', response => { if (response.status() >= 400) failedRequests.push('HTTP ' + response.status() + ' ' + response.request().method() + ' ' + response.url()); });
+			targetPage.on('requestfailed', request => failedRequests.push(request.method() + ' ' + request.url() + ': ' + (request.failure() ? request.failure().errorText : 'unknown failure')));
+			targetPage.on('response', response => { if (response.status() >= 400) failedRequests.push('HTTP ' + response.status() + ' ' + response.request().method() + ' ' + response.url()); });
 		}
 		async function runAccessibilityAudit(targetPage, label) {
 			await targetPage.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
