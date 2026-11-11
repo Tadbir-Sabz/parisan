@@ -250,6 +250,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			return new WP_Error( 'parisan_booking_commit_failed', __( 'تأیید نهایی تغییر زمان انجام نشد.', 'parisan-core' ) );
 		}
 		$transaction_started = false;
+		if ( function_exists( 'parisan_core_sync_booking_reminders' ) ) { parisan_core_sync_booking_reminders( $booking_id ); }
 		return array( 'booking_id' => $booking_id, 'starts_at_utc' => $new_start_sql, 'ends_at_utc' => $new_end_sql, 'duration_minutes' => $duration, 'reused' => false );
 	} finally {
 		if ( $transaction_started ) {
