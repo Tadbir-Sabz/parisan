@@ -37,15 +37,14 @@ function parisan_core_render_customer_admin_page() {
 	if ( '' !== $search ) { $like = '%' . $wpdb->esc_like( $search ) . '%'; $where = ' WHERE staff_id IN (' . $staff_placeholders . ') AND (customer_name LIKE %s OR customer_phone LIKE %s OR customer_email LIKE %s)'; $args = array_merge( $staff_ids, array( $like, $like, $like ) ); }
 	$scope = ' WHERE staff_id IN (' . $staff_placeholders . ') AND customer_phone <> %s';
 	$scope_args = array_merge( $staff_ids, array( '' ) );
-	$sql = "SELECT customer_phone, MAX(customer_name) customer_name, MAX(customer_email) customer_email, COUNT(*) visit_count, SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed_count, SUM(CASE WHEN status='completed' THEN price_amount ELSE 0 END) completed_total, MAX(starts_at_utc) last_visit FROM {$table}" . ( $where ? $where : $scope ) . ' GROUP BY customer_phone ORDER BY last_visit DESC LIMIT 300';
+	$sql = "SELECT customer_phone, MAX(customer_name) customer_name, MAX(customer_email) customer_email, COUNT(*) visit_count, SUM(CASE WHEN status='completed' THEN 1 ELSE 0 END) completed_count, SUM(CASE WHEN status='completed' THEN price_amount ELSE 0 END) completed_total, COALESCE(MAX(CASE WHEN status='completed' THEN starts_at_utc END), MAX(starts_at_utc)) last_visit FROM {$table}" . ( $where ? $where : $scope ) . ' GROUP BY customer_phone ORDER BY last_visit DESC LIMIT 300';
 	if ( $where ) { $args = array_merge( $staff_ids, array_slice( $args, count( $staff_ids ) ) ); } else { $args = $scope_args; }
 	$customers = $wpdb->get_results( $args ? $wpdb->prepare( $sql, $args ) : $sql, ARRAY_A );
-	$visible = array();
 	$visible = (array) $customers;
 	echo '<form method="get"><input type="hidden" name="post_type" value="parisan_staff"><input type="hidden" name="page" value="parisan-customers"><label for="parisan-customer-search">' . esc_html__( 'جستجوی نام، شماره تماس یا ایمیل', 'parisan-core' ) . '</label> <input id="parisan-customer-search" type="search" name="customer_search" value="' . esc_attr( $search ) . '"> <button class="button button-primary">جستجو</button></form>';
 	echo '<p>' . esc_html( sprintf( __( '%s مشتری در نتایج', 'parisan-core' ), number_format_i18n( count( $visible ) ) ) ) . '</p>';
 	if ( $visible ) {
-		echo '<table class="widefat striped"><thead><tr><th>مشتری</th><th>شماره تماس</th><th>ایمیل</th><th>مراجعه</th><th>انجام‌شده</th><th>مجموع خدمات انجام‌شده</th><th>آخرین مراجعه</th><th></th></tr></thead><tbody>';
+		echo '<table class="widefat striped"><thead><tr><th>مشتری</th><th>شماره تماس</th><th>ایمیل</th><th>تعداد نوبت‌ها</th><th>انجام‌شده</th><th>مجموع خدمات انجام‌شده</th><th>آخرین نوبت</th><th></th></tr></thead><tbody>';
 		foreach ( $visible as $customer ) {
 			$last = ( new DateTimeImmutable( $customer['last_visit'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
 			$url = add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-customers', 'customer_phone' => $customer['customer_phone'] ), admin_url( 'edit.php' ) );
