@@ -117,11 +117,11 @@ function parisan_core_install_database() {
 
 	$finance_entries_table = $wpdb->prefix . 'parisan_finance_entries';
 	$finance_entries_sql = "CREATE TABLE {$finance_entries_table} (\n\t\tid bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n\t\tentry_type varchar(12) NOT NULL,\n\t\tcategory varchar(100) NOT NULL,\n\t\tdescription text NOT NULL,\n\t\tamount_irr bigint(20) unsigned NOT NULL,\n\t\tstaff_id bigint(20) unsigned NOT NULL DEFAULT 0,\n\t\toccurred_at_utc datetime NOT NULL,\n\t\tcreated_by bigint(20) unsigned NOT NULL,\n\t\tcreated_at_utc datetime NOT NULL,\n\t\tPRIMARY KEY  (id),\n\t\tKEY type_occurred (entry_type,occurred_at_utc),\n\t\tKEY staff_occurred (staff_id,occurred_at_utc),\n\t\tKEY created_by (created_by)\n\t) ENGINE=InnoDB {$charset_collate};";
-\tdbDelta( $finance_entries_sql );
+	dbDelta( $finance_entries_sql );
 
 	$contact_inquiries_table = $wpdb->prefix . 'parisan_contact_inquiries';
 	$contact_inquiries_sql = "CREATE TABLE {$contact_inquiries_table} (\n\t\tid bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n\t\tcustomer_name varchar(120) NOT NULL,\n\t\tcustomer_phone varchar(24) NOT NULL,\n\t\tcustomer_email varchar(190) NOT NULL DEFAULT '',\n\t\tsubject_key varchar(24) NOT NULL,\n\t\tmessage_body text NOT NULL,\n\t\tstatus varchar(20) NOT NULL DEFAULT 'new',\n\t\tcreated_at_utc datetime NOT NULL,\n\t\tupdated_at_utc datetime NULL DEFAULT NULL,\n\t\tPRIMARY KEY  (id),\n\t\tKEY status_created (status,created_at_utc),\n\t\tKEY phone_created (customer_phone,created_at_utc)\n\t) ENGINE=InnoDB {$charset_collate};";
-\tdbDelta( $contact_inquiries_sql );
+	dbDelta( $contact_inquiries_sql );
 
 
 	$finance_adjustments_table = $wpdb->prefix . 'parisan_finance_adjustments';
