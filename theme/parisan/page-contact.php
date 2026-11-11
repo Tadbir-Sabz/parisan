@@ -22,6 +22,7 @@ $hours = parisan_public_setting( 'parisan_contact_hours' );
 				<?php if ( $hours ) : ?><section class="parisan-contact-card"><h2><?php esc_html_e( 'ساعات پاسخ‌گویی', 'parisan' ); ?></h2><p><?php echo esc_html( $hours ); ?></p></section><?php endif; ?>
 			</div>
 			<article class="entry-content"><?php the_content(); ?></article>
+			<section class="parisan-contact-request"><h2><?php esc_html_e( 'ارسال درخواست و پیام', 'parisan' ); ?></h2><?php if ( function_exists( 'parisan_core_render_contact_form' ) ) { parisan_core_render_contact_form(); } ?></section>
 		</div>
 	<?php endwhile; ?>
 </main>
