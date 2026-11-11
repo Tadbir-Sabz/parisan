@@ -40,6 +40,10 @@ $valid = parisan_core_normalize_weekly_schedule(
 parisan_test_expect( array( 'off' => false, 'start' => '09:00', 'end' => '18:00' ) === $valid[6], 'accepts a valid Saturday time window' );
 parisan_test_expect( array( 'off' => true ) === $valid[0], 'respects an explicitly closed day' );
 parisan_test_expect( array( 'off' => false, 'start' => '10:15', 'end' => '16:45' ) === $valid[1], 'accepts zero-padded 24-hour times' );
+$with_break = parisan_core_normalize_weekly_schedule( array( 1 => array( 'start' => '09:00', 'end' => '18:00', 'break_start' => '13:00', 'break_end' => '14:00' ) ) );
+parisan_test_expect( array( 'off' => false, 'start' => '09:00', 'end' => '18:00', 'break_start' => '13:00', 'break_end' => '14:00' ) === $with_break[1], 'accepts a valid recurring break contained within working hours' );
+parisan_test_expect( array( 'off' => true ) === parisan_core_normalize_weekly_schedule( array( 1 => array( 'start' => '09:00', 'end' => '18:00', 'break_start' => '13:00' ) ) )[1], 'fails closed when only one break boundary is provided' );
+parisan_test_expect( array( 'off' => true ) === parisan_core_normalize_weekly_schedule( array( 1 => array( 'start' => '09:00', 'end' => '18:00', 'break_start' => '08:30', 'break_end' => '09:30' ) ) )[1], 'fails closed when a recurring break falls outside working hours' );
 parisan_test_expect( array( 'off' => true ) === $valid[2], 'missing day defaults to unavailable' );
 parisan_test_expect( array( 'off' => true ) === parisan_core_normalize_weekly_schedule( array( 3 => array( 'start' => '9:00', 'end' => '18:00' ) ) )[3], 'rejects non-zero-padded time input' );
 parisan_test_expect( array( 'off' => true ) === parisan_core_normalize_weekly_schedule( array( 3 => array( 'start' => '17:00', 'end' => '09:00' ) ) )[3], 'rejects end time earlier than start time' );
@@ -66,6 +70,10 @@ parisan_test_expect( 2 === count( $without_exception ), 'excludes slots overlapp
 $buffered = parisan_core_calculate_available_slots( '2026-11-09', $weekly, 'Europe/Berlin', 60, 30, array(), array(), 15, 15 );
 parisan_test_expect( 3 === count( $buffered ), 'reserves before/after buffers and keeps them inside working hours' );
 parisan_test_expect( '2026-11-09 09:30' === $buffered[0]['starts_at_local'], 'buffer prevents a slot from starting at opening time' );
+$break_slots = parisan_core_calculate_available_slots( '2026-11-09', $with_break, 'Europe/Berlin', 60, 30 );
+$break_starts = array_column( $break_slots, 'starts_at_local' );
+parisan_test_expect( ! in_array( '2026-11-09 12:00', $break_starts, true ) && ! in_array( '2026-11-09 12:30', $break_starts, true ), 'excludes appointments overlapping the recurring break' );
+parisan_test_expect( in_array( '2026-11-09 14:00', $break_starts, true ) && ! in_array( '2026-11-09 13:00', $break_starts, true ), 'resumes availability after the recurring break ends' );
 
 $closed = parisan_core_calculate_available_slots( '2026-11-08', $weekly, 'Europe/Berlin', 60, 30 );
 parisan_test_expect( 0 === count( $closed ), 'returns no slots for a closed weekday' );
