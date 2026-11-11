@@ -155,7 +155,7 @@ function parisan_core_handle_manual_booking_create() {
 	$name = isset( $_POST['customer_name'] ) && is_string( $_POST['customer_name'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_name'] ) ) : '';
 	$phone = isset( $_POST['customer_phone'] ) && is_string( $_POST['customer_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_phone'] ) ) : '';
 	$email = isset( $_POST['customer_email'] ) && is_string( $_POST['customer_email'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['customer_email'] ) ) ) : '';
-	$email_consent = ! empty( $_POST['customer_email_consent'] );
+	$email_consent = isset( $_POST['customer_email_consent'] ) && is_scalar( $_POST['customer_email_consent'] ) && '1' === (string) wp_unslash( $_POST['customer_email_consent'] );
 	$token = isset( $_POST['idempotency_token'] ) && is_string( $_POST['idempotency_token'] ) ? sanitize_text_field( wp_unslash( $_POST['idempotency_token'] ) ) : '';
 
 	if ( ! $staff_id || ! $service_id || 'parisan_staff' !== get_post_type( $staff_id ) || 'parisan_service' !== get_post_type( $service_id ) || ! current_user_can( 'edit_post', $staff_id ) || ! current_user_can( 'edit_post', $service_id ) ) {
