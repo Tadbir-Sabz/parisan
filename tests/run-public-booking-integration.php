@@ -34,7 +34,7 @@ $wpdb->query( "DROP TABLE IF EXISTS {$tokens_table}" );
 update_option( 'parisan_core_db_version', 2, false );
 parisan_core_install_database();
 $schema = (int) get_option( 'parisan_core_db_version', 0 );
-parisan_public_integration_assert( 5 === $schema, 'schema v2 upgrades directly to schema v5' );
+parisan_public_integration_assert( 9 === $schema, 'schema v2 upgrades directly to the current additive schema v9' );
 parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tokens_table ) ) === $tokens_table, 'customer token table is created by the v2-to-v5 upgrade' );
 $resource_column = $wpdb->get_row( $wpdb->prepare( "SHOW COLUMNS FROM {$bookings_table} LIKE %s", 'resource_id' ), ARRAY_A );
 parisan_public_integration_assert( is_array( $resource_column ) && '0' === (string) $resource_column['Default'], 'v5 migration preserves the backward-compatible primary resource assignment column' );
