@@ -385,3 +385,24 @@ No public booking, payment, SMS, production deployment, or PR merge is enabled b
 - [x] Explicitly prevent points from being represented as cash value, redeemable credit, discounts, or payment evidence.
 - [ ] Validate seeded customer segments, salon timezone boundaries, and role/capability isolation in disposable WordPress/MariaDB integration.
 - [ ] Configurable reward rules, point redemption, expiry, and customer-facing loyalty portal remain NOT IMPLEMENTED pending owner policy.
+
+
+## Resource maintenance and utilization — 2026-11-12
+
+### Task 1: Controlled resource maintenance windows
+- [x] Add additive DB v9 maintenance records with resource, UTC interval, reason, status, creator, and cancellation actor/timestamp.
+- [x] Add a Persian-first admin workspace to create future maintenance windows and cancel them without deleting history.
+- [x] Serialize maintenance writes with the same per-resource advisory locks used by booking allocation.
+- [x] Reject maintenance intervals that overlap active bookings or another active maintenance window.
+- [x] Enforce active maintenance windows in the shared resource allocator so public/admin slot suggestions and transactional booking rechecks exclude blocked capacity.
+- [ ] Verify maintenance/booking concurrency, DST conversion, rollback/error paths, and schema upgrade on disposable WordPress/MariaDB.
+
+### Task 2: Resource operations report
+- [x] Add a salon-local date-range report by resource and resource type.
+- [x] Separate pending/confirmed reserved time, completed service time, and active maintenance time; clip durations to the selected report window.
+- [x] Include both legacy single-resource assignments and v5 multi-resource booking relations without duplicate booking counts.
+- [x] Scope all rows to resources editable by the current operator.
+- [x] Add nonce-protected UTF-8 CSV export with spreadsheet formula protection for resource names.
+- [ ] Validate report totals against seeded multi-resource fixtures, role boundaries, and CSV import behavior in disposable WordPress/MariaDB.
+
+The report deliberately does not calculate utilization percentages or theoretical free capacity because resource weekly schedules may be unrestricted or vary by weekday. Maintenance windows do not cancel or move existing appointments; creation is rejected when an active appointment conflicts.
