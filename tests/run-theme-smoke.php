@@ -383,6 +383,7 @@ parisan_theme_smoke_assert( false !== strpos( $resource_report_source, 'parisan_
 parisan_theme_smoke_assert( false !== strpos( $resource_report_source, 'parisan_resource_report_csv' ) && false !== strpos( $resource_report_source, 'text/csv; charset=UTF-8' ), 'resource report provides nonce-protected UTF-8 CSV export' );
 parisan_theme_smoke_assert( false !== strpos( $resource_report_source, 'GREATEST(b.starts_at_utc,%s)' ) && false !== strpos( $resource_report_source, 'GREATEST(starts_at_utc,%s)' ), 'resource report clips booking and maintenance durations to the selected date range' );
 parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 11 )" ) && false !== strpos( $db_source, 'parisan_resource_maintenance' ), 'database schema v11 adds resource maintenance and waitlist tables' );
+$booking_service_source = file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/booking-service.php' );
 $waitlist_source = file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/booking-waitlist.php' );
 $reminder_source = file_get_contents( WP_PLUGIN_DIR . '/parisan-core/includes/booking-reminders.php' );
 parisan_theme_smoke_assert( function_exists( 'parisan_core_waitlist_shortcode' ) && function_exists( 'parisan_core_render_waitlist_admin_page' ), 'customer waitlist shortcode and permission-scoped admin queue are registered' );
