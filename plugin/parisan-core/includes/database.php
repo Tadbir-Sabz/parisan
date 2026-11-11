@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 10 );
+define( 'PARISAN_CORE_DB_VERSION', 11 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -38,6 +38,7 @@ function parisan_core_install_database() {
 		customer_name varchar(190) NOT NULL,
 		customer_phone varchar(40) NOT NULL,
 		customer_email varchar(190) NOT NULL DEFAULT '',
+		customer_email_consent tinyint(1) NOT NULL DEFAULT 0,
 		starts_at_utc datetime NOT NULL,
 		ends_at_utc datetime NOT NULL,
 		duration_minutes smallint(5) unsigned NOT NULL DEFAULT 0,
@@ -237,6 +238,25 @@ function parisan_core_install_database() {
 		KEY email_created (customer_email,created_at_utc)
 	) ENGINE=InnoDB {$charset_collate};";
 	dbDelta( $waitlist_sql );
+
+	$reminders_table = $wpdb->prefix . 'parisan_booking_reminders';
+	$reminders_sql = "CREATE TABLE {$reminders_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		booking_id bigint(20) unsigned NOT NULL,
+		reminder_kind varchar(12) NOT NULL,
+		status varchar(16) NOT NULL DEFAULT 'pending',
+		scheduled_at_utc datetime NOT NULL,
+		sent_at_utc datetime NULL DEFAULT NULL,
+		attempts tinyint(3) unsigned NOT NULL DEFAULT 0,
+		last_error varchar(255) NOT NULL DEFAULT '',
+		created_at_utc datetime NOT NULL,
+		updated_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		UNIQUE KEY booking_kind (booking_id,reminder_kind),
+		KEY status_due (status,scheduled_at_utc),
+		KEY booking_id (booking_id)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $reminders_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
