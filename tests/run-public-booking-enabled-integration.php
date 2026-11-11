@@ -165,6 +165,46 @@ foreach ( $shared_resource_slots as $candidate_slot ) {
 }
 parisan_public_enabled_assert( is_array( $shared_slot ) && (int) $resource_two === (int) $shared_slot['resource_id'], 'legacy booking of another service sharing resource A leaves only resource B available' );
 
+$bundle_room = wp_insert_post( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'post_title' => 'Synthetic Bundle Room' ), true );
+$bundle_device = wp_insert_post( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'post_title' => 'Synthetic Bundle Device' ), true );
+parisan_public_enabled_assert( ! is_wp_error( $bundle_room ) && ! is_wp_error( $bundle_device ), 'room and device resources for a bundle are created' );
+update_post_meta( $bundle_room, '_parisan_resource_type', 'room' );
+update_post_meta( $bundle_device, '_parisan_resource_type', 'device' );
+$bundle_service = wp_insert_post( array( 'post_type' => 'parisan_service', 'post_status' => 'publish', 'post_title' => 'Synthetic Room And Device Service' ), true );
+parisan_public_enabled_assert( ! is_wp_error( $bundle_service ), 'synthetic room-and-device service is created' );
+update_post_meta( $bundle_service, '_parisan_duration', 45 );
+update_post_meta( $bundle_service, '_parisan_price', 180000 );
+update_post_meta( $bundle_service, '_parisan_price_type', 'fixed' );
+update_post_meta( $bundle_service, '_parisan_service_resources', array( (int) $bundle_room, (int) $bundle_device ) );
+$bundle_staff = wp_insert_post( array( 'post_type' => 'parisan_staff', 'post_status' => 'publish', 'post_title' => 'Synthetic Bundle Specialist' ), true );
+parisan_public_enabled_assert( ! is_wp_error( $bundle_staff ), 'specialist for bundle service is created' );
+update_post_meta( $bundle_staff, '_parisan_staff_services', array( (int) $bundle_service ) );
+update_post_meta( $bundle_staff, '_parisan_staff_weekly_schedule', array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) ) );
+$bundle_slots = parisan_core_get_available_slots( (int) $bundle_staff, (int) $bundle_service, $booking_date );
+$bundle_slot = null;
+foreach ( is_array( $bundle_slots ) ? $bundle_slots : array() as $candidate ) {
+	if ( $booking_date . ' 15:00' === $candidate['starts_at_local'] ) {
+		$bundle_slot = $candidate;
+		break;
+	}
+}
+parisan_public_enabled_assert( is_array( $bundle_slot ) && 2 === count( $bundle_slot['resource_ids'] ) && in_array( (int) $bundle_room, $bundle_slot['resource_ids'], true ) && in_array( (int) $bundle_device, $bundle_slot['resource_ids'], true ), 'availability requires one room and one device simultaneously' );
+$bundle_input = $base_input;
+$bundle_input['service_id'] = (int) $bundle_service;
+$bundle_input['staff_id'] = (int) $bundle_staff;
+$bundle_input['starts_at_local'] = $booking_date . ' 15:00';
+$bundle_input['idempotency_token'] = str_repeat( '9', 64 );
+$bundle_input['customer_access_token'] = '';
+$bundle_booking = parisan_core_create_booking( $bundle_input );
+parisan_public_enabled_assert( ! is_wp_error( $bundle_booking ), 'booking creation persists a simultaneous room-and-device bundle' );
+$bundle_assignments = parisan_core_get_booking_resource_ids( (int) $bundle_booking['booking_id'] );
+sort( $bundle_assignments, SORT_NUMERIC );
+$expected_bundle = array( (int) $bundle_room, (int) $bundle_device );
+sort( $expected_bundle, SORT_NUMERIC );
+parisan_public_enabled_assert( $expected_bundle === $bundle_assignments, 'booking resource relation stores both assigned resources' );
+$bundle_reschedule = parisan_core_reschedule_booking( (int) $bundle_booking['booking_id'], $booking_date . ' 16:00', 'bundle reschedule integration' );
+parisan_public_enabled_assert( ! is_wp_error( $bundle_reschedule ) && $expected_bundle === ( $actual_bundle = parisan_core_get_booking_resource_ids( (int) $bundle_booking['booking_id'] ) ), 'rescheduling preserves and atomically reassigns the complete resource bundle' );
+
 $conflicting_input = $base_input;
 $conflicting_input['customer_name'] = 'Different Synthetic Customer';
 $conflicting_input['customer_access_token'] = bin2hex( random_bytes( 32 ) );
