@@ -80,7 +80,13 @@ function parisan_core_render_finance_admin_page() {
 	foreach ( (array) $staff as $row ) { echo '<tr><td>' . esc_html( get_the_title( (int) $row['staff_id'] ) ?: __( 'متخصص حذف‌شده', 'parisan-core' ) ) . '</td><td>' . esc_html( number_format_i18n( (int) $row['booking_count'] ) ) . '</td><td>' . esc_html( number_format_i18n( (int) $row['completed_count'] ) ) . '</td><td>' . esc_html( $money( $row['revenue_irr'] ) ) . '</td></tr>'; }
 	if ( ! $staff ) { echo '<tr><td colspan="4">' . esc_html__( 'داده‌ای برای نمایش وجود ندارد.', 'parisan-core' ) . '</td></tr>'; }
 	echo '</tbody></table><div class="notice notice-info inline"><p>' . esc_html__( 'درآمد فقط از رزروهای تکمیل‌شده محاسبه می‌شود. رزروهای باز صرفاً ارزش بالقوه‌اند؛ هزینه‌ها، تخفیف‌ها، استرداد، دریافت وجه و تسویه در سامانه دفترکل/پرداخت ثبت نمی‌شوند و این گزارش معادل جریان نقدی یا سود خالص نیست.', 'parisan-core' ) . '</p></div></div>';
+	// Styles are enqueued on admin_enqueue_scripts, before the document head renders.
+}
+function parisan_core_enqueue_finance_admin_assets( $hook_suffix ) {
+	if ( false === strpos( (string) $hook_suffix, 'parisan-finance' ) ) { return; }
 	wp_register_style( 'parisan-finance-admin', false, array(), PARISAN_CORE_VERSION );
 	wp_enqueue_style( 'parisan-finance-admin' );
 	wp_add_inline_style( 'parisan-finance-admin', '.parisan-finance-filters{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin:18px 0}.parisan-finance-filters label{display:grid;gap:5px}.parisan-finance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:18px 0 26px}.parisan-finance-card{background:#fff;border:1px solid #dcdcde;border-radius:9px;padding:16px}.parisan-finance-card h2{font-size:13px;color:#646970;margin:0 0 10px}.parisan-finance-card strong{font-size:22px;color:#1d2327}.parisan-finance table{margin:12px 0 24px}' );
+}
+add_action( 'admin_enqueue_scripts', 'parisan_core_enqueue_finance_admin_assets' );
 }
