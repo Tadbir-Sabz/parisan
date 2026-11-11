@@ -72,7 +72,8 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table   = $wpdb->prefix . 'parisan_booking_events';
 	$tokens_table   = $wpdb->prefix . 'parisan_customer_tokens';
-	foreach ( array( $bookings_table, $events_table, $tokens_table ) as $table ) {
+	$finance_events_table = $wpdb->prefix . 'parisan_booking_finance_events';
+	foreach ( array( $bookings_table, $events_table, $tokens_table, $finance_events_table ) as $table ) {
 		$status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $status ) || empty( $status['Engine'] ) || 'innodb' !== strtolower( $status['Engine'] ) ) {
 			return new WP_Error( 'parisan_privacy_storage_unavailable', __( 'ذخیره‌ساز امن برای اجرای درخواست حریم خصوصی آماده نیست.', 'parisan-core' ) );
@@ -116,6 +117,18 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	if ( false === $events_updated ) {
 		$wpdb->query( 'ROLLBACK' );
 		return new WP_Error( 'parisan_privacy_event_update_failed', __( 'پاک‌سازی توضیحات سوابق رزرو انجام نشد.', 'parisan-core' ) );
+	}
+
+
+	$finance_notes_updated = $wpdb->query(
+		$wpdb->prepare(
+			"UPDATE {$finance_events_table} SET note = %s WHERE booking_id IN ({$placeholders})",
+			array_merge( array( __( 'توضیحات حذف‌شده طبق درخواست حریم خصوصی', 'parisan-core' ) ), $booking_ids )
+		)
+	);
+	if ( false === $finance_notes_updated ) {
+		$wpdb->query( 'ROLLBACK' );
+		return new WP_Error( 'parisan_privacy_finance_event_update_failed', __( 'پاک‌سازی توضیحات رویدادهای مالی رزرو انجام نشد.', 'parisan-core' ) );
 	}
 
 	if ( false === $wpdb->query( 'COMMIT' ) ) {
@@ -204,6 +217,19 @@ function parisan_core_export_booking_personal_data( $email_address, $user_id, $p
 				'value' => $event_value,
 			);
 		}
+
+		$finance_events_table = $wpdb->prefix . 'parisan_booking_finance_events';
+		$finance_events = $wpdb->get_results(
+			$wpdb->prepare( "SELECT event_kind, amount_irr, note, created_at_utc FROM {$finance_events_table} WHERE booking_id = %d ORDER BY id ASC", $booking_id ),
+			ARRAY_A
+		);
+		foreach ( (array) $finance_events as $index => $finance_event ) {
+			$data[] = array(
+				'name' => sprintf( __( 'رویداد مالی %d', 'parisan-core' ), $index + 1 ),
+				'value' => implode( ' | ', array( $finance_event['event_kind'], (string) $finance_event['amount_irr'], $finance_event['created_at_utc'], $finance_event['note'] ) ),
+			);
+		}
+
 		$export[] = array(
 			'group_id'    => 'parisan-bookings',
 			'group_label' => __( 'رزروهای سالن', 'parisan-core' ),
