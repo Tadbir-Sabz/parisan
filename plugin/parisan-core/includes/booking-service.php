@@ -258,7 +258,7 @@ function parisan_core_create_booking( $input ) {
 			'event_type' => 'created',
 			'from_status' => '',
 			'to_status' => 'pending',
-			'event_note' => null,
+			'event_note' => $selected_resource_id ? 'منبع اختصاص‌یافته: #' . $selected_resource_id : null,
 			'created_at_utc' => $now,
 		);
 		if ( $actor_id ) {
