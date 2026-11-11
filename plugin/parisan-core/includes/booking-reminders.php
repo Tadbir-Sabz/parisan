@@ -43,7 +43,7 @@ function parisan_core_sync_booking_reminders( $booking_id ) {
 			}
 			continue;
 		}
-		$wpdb->insert( $queue, array(
+		$inserted = $wpdb->insert( $queue, array(
 			'booking_id' => $booking_id,
 			'reminder_kind' => $kind,
 			'status' => $future ? 'pending' : 'skipped',
@@ -52,7 +52,7 @@ function parisan_core_sync_booking_reminders( $booking_id ) {
 			'created_at_utc' => current_time( 'mysql', true ),
 			'updated_at_utc' => current_time( 'mysql', true ),
 		), array( '%d','%s','%s','%s','%s','%s','%s' ) );
-		if ( false === $wpdb->insert_id && '' !== $wpdb->last_error ) {
+		if ( false === $inserted ) {
 			return new WP_Error( 'parisan_reminder_queue_failed', __( 'ثبت یادآور رزرو انجام نشد.', 'parisan-core' ) );
 		}
 	}
