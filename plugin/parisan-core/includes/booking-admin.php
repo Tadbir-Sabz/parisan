@@ -332,7 +332,7 @@ function parisan_core_render_booking_detail( $booking_id ) {
 					<input type="hidden" name="booking_detail_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
 					<input type="hidden" name="to_status" value="<?php echo esc_attr( $target_status ); ?>">
 					<?php if ( in_array( $target_status, array( 'cancelled', 'no_show' ), true ) ) : ?>
-						<label class="screen-reader-text" for="parisan-booking-reason-<?php echo esc_attr( $row['id'] . '-' . $target_status ); ?>"><?php esc_html_e( 'دلیل لغو یا عدم مراجعه', 'parisan-core' ); ?></label>
+						<label class="screen-reader-text" for="parisan-booking-reason-<?php echo esc_attr( $booking['id'] . '-' . $target_status ); ?>"><?php esc_html_e( 'دلیل لغو یا عدم مراجعه', 'parisan-core' ); ?></label>
 						<input required maxlength="1000" type="text" name="booking_event_note" id="parisan-booking-reason-<?php echo esc_attr( $row['id'] . '-' . $target_status ); ?>" placeholder="<?php esc_attr_e( 'ثبت دلیل الزامی', 'parisan-core' ); ?>">
 					<?php endif; ?>
 					<?php wp_nonce_field( 'parisan_transition_booking_' . $booking['id'], 'parisan_booking_nonce' ); ?>
