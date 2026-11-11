@@ -46,16 +46,16 @@ function parisan_core_get_resource_report_rows( $range, $type_filter = '' ) {
 		$booking_rows = $wpdb->get_row( $wpdb->prepare(
 			"SELECT
 			COUNT(DISTINCT CASE WHEN b.status IN ('pending','confirmed') THEN b.id END) AS reserved_count,
-			COALESCE(SUM(CASE WHEN b.status IN ('pending','confirmed') THEN TIMESTAMPDIFF(MINUTE,b.starts_at_utc,b.ends_at_utc) ELSE 0 END),0) AS reserved_minutes,
+			COALESCE(SUM(CASE WHEN b.status IN ('pending','confirmed') THEN TIMESTAMPDIFF(MINUTE,GREATEST(b.starts_at_utc,%s),LEAST(b.ends_at_utc,%s)) ELSE 0 END),0) AS reserved_minutes,
 			COUNT(DISTINCT CASE WHEN b.status='completed' THEN b.id END) AS completed_count,
-			COALESCE(SUM(CASE WHEN b.status='completed' THEN TIMESTAMPDIFF(MINUTE,b.starts_at_utc,b.ends_at_utc) ELSE 0 END),0) AS completed_minutes
+			COALESCE(SUM(CASE WHEN b.status='completed' THEN TIMESTAMPDIFF(MINUTE,GREATEST(b.starts_at_utc,%s),LEAST(b.ends_at_utc,%s)) ELSE 0 END),0) AS completed_minutes
 			FROM {$bookings} b
 			WHERE (b.resource_id=%d OR EXISTS (SELECT 1 FROM {$relations} br WHERE br.booking_id=b.id AND br.resource_id=%d))
 			AND b.starts_at_utc < %s AND b.ends_at_utc > %s",
-			$resource_id, $resource_id, $range['end_utc'], $range['start_utc']
+			$range['start_utc'], $range['end_utc'], $range['start_utc'], $range['end_utc'], $resource_id, $range['start_utc'], $range['end_utc'], $resource_id, $range['end_utc'], $range['start_utc']
 		), ARRAY_A );
 		$maintenance_rows = $wpdb->get_row( $wpdb->prepare(
-			"SELECT COUNT(*) AS maintenance_count, COALESCE(SUM(TIMESTAMPDIFF(MINUTE,starts_at_utc,ends_at_utc)),0) AS maintenance_minutes
+			"SELECT COUNT(*) AS maintenance_count, COALESCE(SUM(TIMESTAMPDIFF(MINUTE,GREATEST(starts_at_utc,%s),LEAST(ends_at_utc,%s))),0) AS maintenance_minutes
 			FROM {$maintenance} WHERE resource_id=%d AND status='active' AND starts_at_utc < %s AND ends_at_utc > %s",
 			$resource_id, $range['end_utc'], $range['start_utc']
 		), ARRAY_A );
