@@ -17,9 +17,28 @@ function parisan_core_handle_finance_adjustment() {
 	if ( ! $entry_id || ! in_array( $kind, array( 'increase', 'decrease' ), true ) || $amount < 1 || $amount > 999999999999 || '' === $reason || strlen( $reason ) > 1500 ) { wp_die( esc_html__( 'اطلاعات اصلاحیه معتبر نیست.', 'parisan-core' ), '', array( 'response' => 400 ) ); }
 	global $wpdb;
 	$entries = $wpdb->prefix . 'parisan_finance_entries';
-	$original = $wpdb->get_row( $wpdb->prepare( "SELECT id, entry_type FROM {$entries} WHERE id=%d", $entry_id ), ARRAY_A );
-	if ( ! $original ) { wp_die( esc_html__( 'سند مبنا پیدا نشد.', 'parisan-core' ), '', array( 'response' => 404 ) ); }
-	$ok = $wpdb->insert( $wpdb->prefix . 'parisan_finance_adjustments', array( 'entry_id'=>$entry_id, 'adjustment_kind'=>$kind, 'amount_irr'=>$amount * 10, 'reason'=>$reason, 'created_by'=>get_current_user_id(), 'created_at_utc'=>current_time( 'mysql', true ) ), array( '%d','%s','%d','%s','%d','%s' ) );
+	$adjustment_irr = $amount * 10;
+	$wpdb->query( 'START TRANSACTION' );
+	$original = $wpdb->get_row( $wpdb->prepare( "SELECT id, entry_type, amount_irr FROM {$entries} WHERE id=%d FOR UPDATE", $entry_id ), ARRAY_A );
+	if ( ! $original ) {
+		$wpdb->query( 'ROLLBACK' );
+		wp_die( esc_html__( 'سند مبنا پیدا نشد.', 'parisan-core' ), '', array( 'response' => 404 ) );
+	}
+	$current_delta = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COALESCE(SUM(CASE WHEN adjustment_kind='increase' THEN amount_irr ELSE -amount_irr END),0) FROM {$wpdb->prefix}parisan_finance_adjustments WHERE entry_id=%d",
+		$entry_id
+	) );
+	$current_total = (int) $original['amount_irr'] + $current_delta;
+	if ( $current_total < 0 || ( 'decrease' === $kind && $adjustment_irr > $current_total ) || ( 'increase' === $kind && $adjustment_irr > PHP_INT_MAX - $current_total ) ) {
+		$wpdb->query( 'ROLLBACK' );
+		wp_die( esc_html__( 'مبلغ اصلاحیه از مانده قابل اصلاح سند بیشتر است.', 'parisan-core' ), '', array( 'response' => 400 ) );
+	}
+	$ok = $wpdb->insert( $wpdb->prefix . 'parisan_finance_adjustments', array( 'entry_id'=>$entry_id, 'adjustment_kind'=>$kind, 'amount_irr'=>$adjustment_irr, 'reason'=>$reason, 'created_by'=>get_current_user_id(), 'created_at_utc'=>current_time( 'mysql', true ) ), array( '%d','%s','%d','%s','%d','%s' ) );
+	if ( false === $ok ) {
+		$wpdb->query( 'ROLLBACK' );
+	} else {
+		$wpdb->query( 'COMMIT' );
+	}
 	wp_safe_redirect( add_query_arg( array( 'post_type'=>'parisan_staff','page'=>'parisan-finance-operations', ( $ok ? 'adjusted' : 'error' )=>1 ), admin_url( 'edit.php' ) ) ); exit;
 }
 add_action( 'admin_post_parisan_finance_adjustment', 'parisan_core_handle_finance_adjustment' );
@@ -48,9 +67,12 @@ function parisan_core_render_finance_operations_page() {
 	$entries = $wpdb->prefix . 'parisan_finance_entries';
 	$adjustments = $wpdb->prefix . 'parisan_finance_adjustments';
 	$totals = $wpdb->get_row( "SELECT COALESCE(SUM(CASE WHEN entry_type='income' THEN amount_irr ELSE 0 END),0) AS income_irr, COALESCE(SUM(CASE WHEN entry_type='expense' THEN amount_irr ELSE 0 END),0) AS expense_irr FROM {$entries}", ARRAY_A );
-	$adj = $wpdb->get_row( "SELECT COALESCE(SUM(CASE WHEN a.adjustment_kind='increase' AND e.entry_type='income' THEN a.amount_irr WHEN a.adjustment_kind='decrease' AND e.entry_type='expense' THEN a.amount_irr ELSE 0 END),0) AS positive_irr, COALESCE(SUM(CASE WHEN a.adjustment_kind='decrease' AND e.entry_type='income' THEN a.amount_irr WHEN a.adjustment_kind='increase' AND e.entry_type='expense' THEN a.amount_irr ELSE 0 END),0) AS negative_irr FROM {$adjustments} a INNER JOIN {$entries} e ON e.id=a.entry_id", ARRAY_A );
-	$income = (int) ($totals['income_irr'] ?? 0) + (int) ($adj['positive_irr'] ?? 0) - (int) ($adj['negative_irr'] ?? 0);
-	$expense = (int) ($totals['expense_irr'] ?? 0) + (int) ($adj['negative_irr'] ?? 0) - (int) ($adj['positive_irr'] ?? 0);
+	$adj = $wpdb->get_row( "SELECT
+		COALESCE(SUM(CASE WHEN e.entry_type='income' AND a.adjustment_kind='increase' THEN a.amount_irr WHEN e.entry_type='income' AND a.adjustment_kind='decrease' THEN -a.amount_irr ELSE 0 END),0) AS income_delta_irr,
+		COALESCE(SUM(CASE WHEN e.entry_type='expense' AND a.adjustment_kind='increase' THEN a.amount_irr WHEN e.entry_type='expense' AND a.adjustment_kind='decrease' THEN -a.amount_irr ELSE 0 END),0) AS expense_delta_irr
+		FROM {$adjustments} a INNER JOIN {$entries} e ON e.id=a.entry_id", ARRAY_A );
+	$income = (int) ($totals['income_irr'] ?? 0) + (int) ($adj['income_delta_irr'] ?? 0);
+	$expense = (int) ($totals['expense_irr'] ?? 0) + (int) ($adj['expense_delta_irr'] ?? 0);
 	$recent = $wpdb->get_results( "SELECT e.id,e.entry_type,e.category,e.description,e.amount_irr,e.occurred_at_utc,COALESCE(SUM(CASE WHEN a.adjustment_kind='increase' THEN a.amount_irr ELSE -a.amount_irr END),0) AS net_adjustment FROM {$entries} e LEFT JOIN {$adjustments} a ON a.entry_id=e.id GROUP BY e.id ORDER BY e.occurred_at_utc DESC LIMIT 100", ARRAY_A );
 	$export = wp_nonce_url( admin_url( 'admin-post.php?action=parisan_finance_csv_export' ), 'parisan_finance_csv' );
 	echo '<div class="wrap"><h1>گزارش دفتر مالی</h1><p>این صورت‌حساب فقط دفتر دستی ثبت‌شده را جمع‌بندی می‌کند؛ درآمد رزروهای تکمیل‌شده در گزارش عملیاتی جداگانه نمایش داده می‌شود و بدون مدرک دریافت وجه با این دفتر ادغام نمی‌شود.</p>';
