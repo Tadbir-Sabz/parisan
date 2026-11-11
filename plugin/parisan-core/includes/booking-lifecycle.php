@@ -153,6 +153,7 @@ function parisan_core_transition_booking( $booking_id, $to_status, $note = '' ) 
 			return new WP_Error( 'parisan_booking_commit_failed', __( 'تأیید نهایی تغییر وضعیت انجام نشد.', 'parisan-core' ) );
 		}
 		$transaction_started = false;
+		if ( in_array( $to_status, array( 'cancelled', 'expired', 'completed', 'no_show' ), true ) && function_exists( 'parisan_core_skip_booking_reminders' ) ) { parisan_core_skip_booking_reminders( $booking_id, 'booking_' . $to_status ); }
 		return array( 'booking_id' => $booking_id, 'from_status' => $current_status, 'to_status' => $to_status, 'reused' => false );
 	} finally {
 		if ( $transaction_started ) {
