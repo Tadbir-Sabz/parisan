@@ -34,13 +34,11 @@ function parisan_core_handle_contact_inquiry() {
 	$subject = isset( $_POST['contact_subject'] ) && is_string( $_POST['contact_subject'] ) ? sanitize_key( wp_unslash( $_POST['contact_subject'] ) ) : '';
 	$message = isset( $_POST['contact_message'] ) && is_string( $_POST['contact_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['contact_message'] ) ) : '';
 	if ( '' === $name || strlen( $name ) > 120 || ! preg_match( '/^\+?[0-9]{7,20}$/D', $phone ) || ( '' !== $email_raw && ( ! is_email( $email ) || '' === $email ) ) || ! in_array( $subject, array( 'service','specialist','appointment','other' ), true ) || '' === $message || strlen( $message ) > 3000 ) { $fail( 'invalid' ); }
-	$ip = isset( $_SERVER['REMOTE_ADDR'] ) && is_string( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
-	$rate_key = 'parisan_contact_' . hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) );
-	if ( get_transient( $rate_key ) ) { $fail( 'limited' ); }
-	set_transient( $rate_key, 1, 5 * MINUTE_IN_SECONDS );
+	$rate = function_exists( 'parisan_core_check_rate_limit' ) ? parisan_core_check_rate_limit( 'contact_inquiry', 3, 300 ) : new WP_Error( 'parisan_rate_limit_unavailable' );
+	if ( is_wp_error( $rate ) ) { $fail( 'limited' ); }
 	global $wpdb;
 	$ok = $wpdb->insert( $wpdb->prefix . 'parisan_contact_inquiries', array( 'customer_name'=>$name, 'customer_phone'=>$phone, 'customer_email'=>$email, 'subject_key'=>$subject, 'message_body'=>$message, 'status'=>'new', 'created_at_utc'=>current_time( 'mysql', true ) ), array( '%s','%s','%s','%s','%s','%s','%s' ) );
-	if ( ! $ok ) { delete_transient( $rate_key ); $fail( 'invalid' ); }
+	if ( ! $ok ) { $fail( 'invalid' ); }
 	$fail( 'sent' );
 }
 
