@@ -350,5 +350,12 @@ parisan_theme_smoke_assert( false !== strpos( $finance_ops_source, 'income_delta
 parisan_theme_smoke_assert( false !== strpos( $crm_ops_source, 'صف پیگیری باز' ) && false !== strpos( $crm_ops_source, 'سررسید گذشته' ) && false !== strpos( $crm_ops_source, 'setTimezone( wp_timezone() )' ), 'CRM renders a permission-scoped open and overdue follow-up queue in salon-local time' );
 parisan_theme_smoke_assert( false !== strpos( $crm_ops_source, 'staff_id IN ({$ids})' ) && false !== strpos( $crm_ops_source, 'current_user_can' ), 'CRM relationship views and writes enforce specialist ownership scope' );
 parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 7 )" ) && false !== strpos( $db_source, 'parisan_inquiry_customer_links' ), 'database schema includes additive CRM and finance workflow tables' );
+$booking_admin_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/booking-admin.php' );
+$booking_report_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/booking-operations-report.php' );
+parisan_theme_smoke_assert( false !== strpos( $booking_admin_source, 'booking_event_note' ) && false !== strpos( $booking_admin_source, 'parisan_booking_reason_required' ), 'booking cancellation and no-show transitions require an audit reason' );
+parisan_theme_smoke_assert( false !== strpos( $booking_report_source, 'parisan_core_get_booking_report_rows' ) && false !== strpos( $booking_report_source, 'staff_id IN (' ), 'operational booking report aggregates only specialists editable by the current user' );
+parisan_theme_smoke_assert( false !== strpos( $booking_report_source, 'parisan_booking_report_csv' ) && false !== strpos( $booking_report_source, 'text/csv; charset=UTF-8' ) && false !== strpos( $booking_report_source, 'booking_report_csv_cell' ), 'operational report exports UTF-8 CSV with spreadsheet formula-injection protection' );
+parisan_theme_smoke_assert( false !== strpos( $booking_report_source, 'parisan_core_booking_report_range' ) && false !== strpos( $booking_report_source, 'wp_timezone()' ) && false !== strpos( $booking_report_source, 'completed_value_irr' ), 'operational report uses salon-local date boundaries and separates completed booking value' );
+
 
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
