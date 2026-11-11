@@ -451,6 +451,16 @@ function parisan_core_render_booking_admin_page() {
 	$query_args[] = $per_page;
 	$query_args[] = $offset;
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $query_args ), ARRAY_A );
+	foreach ( is_array( $rows ) ? $rows : array() as &$booking_row ) {
+		$assigned_ids = parisan_core_get_booking_resource_ids( (int) $booking_row['id'] );
+		$assigned_names = array();
+		foreach ( $assigned_ids as $assigned_id ) {
+			$assigned_names[] = get_the_title( $assigned_id );
+		}
+		$booking_row['resource_label'] = $assigned_names ? implode( '، ', array_filter( $assigned_names ) ) : '—';
+	}
+	unset( $booking_row );
+
 
 	$status_labels = array(
 		'pending' => __( 'در انتظار تأیید', 'parisan-core' ),
@@ -575,7 +585,7 @@ function parisan_core_render_booking_admin_page() {
 						<td dir="ltr"><?php echo esc_html( $row['customer_phone'] ); ?></td>
 						<td><?php echo esc_html( $row['service_title'] ? $row['service_title'] : '—' ); ?></td>
 						<td><?php echo esc_html( $row['staff_title'] ? $row['staff_title'] : '—' ); ?></td>
-						<td><?php echo esc_html( ! empty( $row['resource_title'] ) ? $row['resource_title'] : '—' ); ?></td>
+						<td><?php echo esc_html( ! empty( $row['resource_label'] ) ? $row['resource_label'] : '—' ); ?></td>
 						<td><?php echo esc_html( number_format_i18n( $price_toman ) . ' تومان' ); ?></td>
 						<td><?php echo esc_html( isset( $status_labels[ $row['status'] ] ) ? $status_labels[ $row['status'] ] : $row['status'] ); ?></td>
 						<td>
