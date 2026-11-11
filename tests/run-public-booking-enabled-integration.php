@@ -119,12 +119,30 @@ parisan_public_enabled_assert( 200 === $availability_response->get_status(), 'pu
 $available_times = wp_list_pluck( $availability_response->get_data()['slots'], 'starts_at_local' );
 parisan_public_enabled_assert( ! in_array( $booking_date . ' 10:00', $available_times, true ) && in_array( $booking_date . ' 11:00', $available_times, true ), 'public availability omits the occupied slot and retains a free slot' );
 
+update_option( 'parisan_booking_lead_time_minutes', 60 );
+update_option( 'parisan_booking_horizon_days', 3 );
+$window_now = new DateTimeImmutable( '2026-01-01 10:00:00', new DateTimeZone( 'UTC' ) );
+$window_slots = array(
+	array( 'starts_at_utc' => '2026-01-01 10:59:59', 'starts_at_local' => '2026-01-01 10:59' ),
+	array( 'starts_at_utc' => '2026-01-01 11:00:00', 'starts_at_local' => '2026-01-01 11:00' ),
+	array( 'starts_at_utc' => '2026-01-04 10:00:00', 'starts_at_local' => '2026-01-04 10:00' ),
+	array( 'starts_at_utc' => '2026-01-04 10:00:01', 'starts_at_local' => '2026-01-04 10:00' ),
+);
+$window_filtered = parisan_core_filter_booking_window_slots( $window_slots, $window_now );
+parisan_public_enabled_assert( 2 === count( $window_filtered ) && '2026-01-01 11:00' === $window_filtered[0]['starts_at_local'] && '2026-01-04 10:00' === $window_filtered[1]['starts_at_local'], 'lead-time and horizon filter enforce exact inclusive boundaries' );
+parisan_public_enabled_assert( 60 === parisan_core_sanitize_booking_lead_time( 60 ) && 10080 === parisan_core_sanitize_booking_lead_time( 99999 ), 'lead-time setting is bounded to seven days' );
+parisan_public_enabled_assert( 1 === parisan_core_sanitize_booking_horizon( 0 ) && 365 === parisan_core_sanitize_booking_horizon( 999 ), 'booking horizon is bounded to 1–365 days' );
+update_option( 'parisan_booking_lead_time_minutes', 0 );
+update_option( 'parisan_booking_horizon_days', 90 );
+
 $availability_horizon_request = new WP_REST_Request( 'GET', '/parisan/v1/availability' );
 $availability_horizon_request->set_param( 'staff_id', (int) $staff_id );
 $availability_horizon_request->set_param( 'service_id', (int) $service_id );
-$availability_horizon_request->set_param( 'date', current_datetime()->modify( '+91 days' )->format( 'Y-m-d' ) );
+update_option( 'parisan_booking_horizon_days', 30 );
+$availability_horizon_request->set_param( 'date', current_datetime()->modify( '+31 days' )->format( 'Y-m-d' ) );
 $availability_horizon_response = parisan_core_rest_public_availability( $availability_horizon_request );
-parisan_public_enabled_assert( 400 === $availability_horizon_response->get_status(), 'public availability route enforces the 90-day horizon' );
+parisan_public_enabled_assert( 400 === $availability_horizon_response->get_status(), 'public availability route enforces the owner-configured 30-day horizon' );
+update_option( 'parisan_booking_horizon_days', 90 );
 
 $invalid_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
 $invalid_request->set_header( 'Origin', home_url( '/' ) );
@@ -135,9 +153,11 @@ parisan_public_enabled_assert( 400 === $invalid_key_response->get_status(), 'pub
 $horizon_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
 $horizon_request->set_header( 'Origin', home_url( '/' ) );
 $horizon_request->set_header( 'Idempotency-Key', bin2hex( random_bytes( 32 ) ) );
-$horizon_request->set_param( 'starts_at_local', current_datetime()->modify( '+91 days' )->format( 'Y-m-d' ) . ' 10:00' );
+update_option( 'parisan_booking_horizon_days', 30 );
+$horizon_request->set_param( 'starts_at_local', current_datetime()->modify( '+31 days' )->format( 'Y-m-d' ) . ' 10:00' );
 $horizon_response = parisan_core_rest_public_create_booking( $horizon_request );
-parisan_public_enabled_assert( 400 === $horizon_response->get_status(), 'public create route enforces the 90-day booking horizon' );
+parisan_public_enabled_assert( 400 === $horizon_response->get_status(), 'public create route enforces the owner-configured 30-day booking horizon' );
+update_option( 'parisan_booking_horizon_days', 90 );
 
 $public_request = new WP_REST_Request( 'POST', '/parisan/v1/bookings' );
 $public_request->set_header( 'Origin', home_url( '/' ) );
@@ -183,9 +203,11 @@ parisan_public_enabled_assert( is_array( $customer_token_row ) && $expected_cust
 $customer_reschedule_horizon = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
 $customer_reschedule_horizon->set_header( 'Origin', home_url( '/' ) );
 $customer_reschedule_horizon->set_header( 'X-Parisan-Booking-Token', $customer_token );
-$customer_reschedule_horizon->set_param( 'starts_at_local', current_datetime()->modify( '+91 days' )->format( 'Y-m-d' ) . ' 12:00' );
+update_option( 'parisan_booking_horizon_days', 30 );
+$customer_reschedule_horizon->set_param( 'starts_at_local', current_datetime()->modify( '+31 days' )->format( 'Y-m-d' ) . ' 12:00' );
 $customer_reschedule_horizon_response = parisan_core_rest_customer_reschedule_booking( $customer_reschedule_horizon );
-parisan_public_enabled_assert( 400 === $customer_reschedule_horizon_response->get_status(), 'customer reschedule route enforces the 90-day horizon' );
+parisan_public_enabled_assert( 400 === $customer_reschedule_horizon_response->get_status(), 'customer reschedule route enforces the owner-configured 30-day booking horizon' );
+update_option( 'parisan_booking_horizon_days', 90 );
 
 $invalid_customer_reschedule = new WP_REST_Request( 'POST', '/parisan/v1/customer-booking/reschedule' );
 $invalid_customer_reschedule->set_header( 'Origin', home_url( '/' ) );
