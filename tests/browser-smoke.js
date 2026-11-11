@@ -22,7 +22,14 @@ const { chromium, firefox, webkit } = require('playwright');
 					consoleErrors.push(message.text() + ' @ ' + JSON.stringify(message.location()));
 				}
 			});
-			targetPage.on('requestfailed', request => failedRequests.push(request.method() + ' ' + request.url() + ': ' + (request.failure() ? request.failure().errorText : 'unknown failure')));
+			targetPage.on('requestfailed', request => {
+				const failure = request.failure() ? request.failure().errorText : 'unknown failure';
+				// WebKit reports normal navigation/lazy-image cancellation as a failed request.
+				// Keep genuine transport failures fatal while ignoring only explicit cancellations.
+				if ( ! /^(?:net::ERR_ABORTED|Load request cancelled)$/i.test( failure ) ) {
+					failedRequests.push(request.method() + ' ' + request.url() + ': ' + failure);
+				}
+			});
 			targetPage.on('response', response => {
 				const request = response.request();
 				const url = new URL(response.url());
