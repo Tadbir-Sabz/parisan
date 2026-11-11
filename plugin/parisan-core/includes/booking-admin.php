@@ -376,6 +376,7 @@ function parisan_core_render_booking_admin_page() {
 	$staff_options = array_values( array_filter( $staff_options, static function ( $person ) { return current_user_can( 'edit_post', $person->ID ); } ) );
 	$service_options = get_posts( array( 'post_type' => 'parisan_service', 'post_status' => 'publish', 'posts_per_page' => 200, 'orderby' => 'title', 'order' => 'ASC' ) );
 	$service_options = array_values( array_filter( $service_options, static function ( $service ) { return current_user_can( 'edit_post', $service->ID ); } ) );
+	$resource_options = get_posts( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'posts_per_page' => 300, 'orderby' => 'title', 'order' => 'ASC' ) );
 
 	global $wpdb;
 	$table = $wpdb->prefix . 'parisan_bookings';
@@ -415,6 +416,10 @@ function parisan_core_render_booking_admin_page() {
 	if ( $staff_filter && ( 'parisan_staff' !== get_post_type( $staff_filter ) || ! current_user_can( 'edit_post', $staff_filter ) ) ) {
 		$staff_filter = 0;
 	}
+	$resource_filter = isset( $_GET['resource_id'] ) ? absint( wp_unslash( $_GET['resource_id'] ) ) : 0;
+	if ( $resource_filter && 'parisan_resource' !== get_post_type( $resource_filter ) ) {
+		$resource_filter = 0;
+	}
 	$paged = isset( $_GET['paged'] ) ? max( 1, absint( wp_unslash( $_GET['paged'] ) ) ) : 1;
 	$per_page = 30;
 	$offset = ( $paged - 1 ) * $per_page;
@@ -435,6 +440,11 @@ function parisan_core_render_booking_admin_page() {
 		$where_parts[] = 'b.staff_id = %d';
 		$count_args[] = $staff_filter;
 	}
+	if ( $resource_filter ) {
+		$where_parts[] = 'EXISTS ( SELECT 1 FROM ' . $wpdb->prefix . 'parisan_booking_resources calendar_br WHERE calendar_br.booking_id = b.id AND calendar_br.resource_id = %d ) OR ( b.resource_id = %d AND NOT EXISTS ( SELECT 1 FROM ' . $wpdb->prefix . 'parisan_booking_resources legacy_br WHERE legacy_br.booking_id = b.id ) )';
+		$count_args[] = $resource_filter;
+		$count_args[] = $resource_filter;
+	}
 	$where = $where_parts ? ' WHERE ' . implode( ' AND ', $where_parts ) : '';
 	$count_sql = "SELECT COUNT(*) FROM {$table} b{$where}";
 	$total = (int) $wpdb->get_var( $count_args ? $wpdb->prepare( $count_sql, $count_args ) : $count_sql );
@@ -451,6 +461,20 @@ function parisan_core_render_booking_admin_page() {
 	$query_args[] = $per_page;
 	$query_args[] = $offset;
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $query_args ), ARRAY_A );
+	$calendar_rows = array();
+	if ( $booking_date_value instanceof DateTimeImmutable ) {
+		$calendar_sql = "SELECT b.id, b.staff_id, b.service_id, b.resource_id, b.customer_name, b.customer_phone, b.starts_at_utc, b.ends_at_utc, b.status, service_post.post_title AS service_title, staff_post.post_title AS staff_title FROM {$table} b LEFT JOIN {$wpdb->posts} service_post ON service_post.ID = b.service_id LEFT JOIN {$wpdb->posts} staff_post ON staff_post.ID = b.staff_id{$where} ORDER BY b.starts_at_utc ASC";
+		$calendar_rows = $wpdb->get_results( $count_args ? $wpdb->prepare( $calendar_sql, $count_args ) : $calendar_sql, ARRAY_A );
+		$calendar_rows = is_array( $calendar_rows ) ? $calendar_rows : array();
+		foreach ( $calendar_rows as &$calendar_row ) {
+			$calendar_resource_names = array();
+			foreach ( parisan_core_get_booking_resource_ids( (int) $calendar_row['id'] ) as $calendar_resource_id ) {
+				$calendar_resource_names[] = get_the_title( $calendar_resource_id );
+			}
+			$calendar_row['resource_label'] = $calendar_resource_names ? implode( '، ', array_filter( $calendar_resource_names ) ) : '—';
+		}
+		unset( $calendar_row );
+	}
 	if ( is_array( $rows ) ) {
 		foreach ( $rows as &$booking_row ) {
 			$assigned_ids = parisan_core_get_booking_resource_ids( (int) $booking_row['id'] );
@@ -543,6 +567,13 @@ function parisan_core_render_booking_admin_page() {
 				<?php endforeach; ?>
 			</select>
 			<label for="parisan-booking-status"><?php esc_html_e( 'وضعیت نوبت', 'parisan-core' ); ?></label>
+			<label for="parisan-booking-resource"><?php esc_html_e( 'منبع سالن', 'parisan-core' ); ?></label>
+			<select id="parisan-booking-resource" name="resource_id">
+				<option value="0"><?php esc_html_e( 'همه منابع', 'parisan-core' ); ?></option>
+				<?php foreach ( $resource_options as $resource_option ) : ?>
+					<option value="<?php echo esc_attr( $resource_option->ID ); ?>" <?php selected( $resource_filter, $resource_option->ID ); ?>><?php echo esc_html( get_the_title( $resource_option ) ); ?></option>
+				<?php endforeach; ?>
+			</select>
 			<select id="parisan-booking-status" name="status">
 				<option value=""><?php esc_html_e( 'همه وضعیت‌ها', 'parisan-core' ); ?></option>
 				<?php foreach ( $status_labels as $status => $label ) : ?>
@@ -552,6 +583,28 @@ function parisan_core_render_booking_admin_page() {
 			<button type="submit" class="button button-secondary"><?php esc_html_e( 'نمایش برنامه', 'parisan-core' ); ?></button>
 			<a class="button button-secondary" href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings' ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'همه تاریخ‌ها', 'parisan-core' ); ?></a>
 		</form>
+
+		<?php if ( $booking_date_value instanceof DateTimeImmutable ) : ?>
+			<?php $previous_day = $booking_date_value->modify( '-1 day' )->format( 'Y-m-d' ); $next_day = $booking_date_value->modify( '+1 day' )->format( 'Y-m-d' ); ?>
+			<section class="parisan-booking-calendar" aria-labelledby="parisan-calendar-title">
+				<div class="parisan-calendar-heading"><h2 id="parisan-calendar-title"><?php esc_html_e( 'تقویم عملیاتی روز', 'parisan-core' ); ?> <span><?php echo esc_html( wp_date( 'l، j F Y', $booking_date_value->getTimestamp(), wp_timezone() ) ); ?></span></h2>
+					<nav aria-label="<?php esc_attr_e( 'جابجایی روز تقویم', 'parisan-core' ); ?>"><a class="button" href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'booking_date' => $previous_day, 'staff_id' => $staff_filter, 'resource_id' => $resource_filter, 'status' => $status_filter ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'روز قبل', 'parisan-core' ); ?></a> <a class="button" href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'booking_date' => $next_day, 'staff_id' => $staff_filter, 'resource_id' => $resource_filter, 'status' => $status_filter ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'روز بعد', 'parisan-core' ); ?></a></nav>
+				</div>
+				<?php if ( $calendar_rows ) : ?>
+					<div class="parisan-calendar-lanes">
+						<?php foreach ( $staff_options as $calendar_staff ) : ?>
+							<?php $staff_day_rows = array_values( array_filter( $calendar_rows, static function ( $calendar_item ) use ( $calendar_staff ) { return (int) $calendar_item['staff_id'] === (int) $calendar_staff->ID; } ) ); if ( ! $staff_day_rows ) { continue; } ?>
+							<section class="parisan-calendar-lane"><h3><?php echo esc_html( get_the_title( $calendar_staff ) ); ?><small><?php echo esc_html( sprintf( _n( '%d نوبت', '%d نوبت', count( $staff_day_rows ), 'parisan-core' ), count( $staff_day_rows ) ) ); ?></small></h3>
+								<ol><?php foreach ( $staff_day_rows as $calendar_item ) : ?>
+									<?php $calendar_start = ( new DateTimeImmutable( $calendar_item['starts_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() ); $calendar_end = ( new DateTimeImmutable( $calendar_item['ends_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() ); ?>
+									<li class="is-<?php echo esc_attr( sanitize_html_class( $calendar_item['status'] ) ); ?>"><time><?php echo esc_html( $calendar_start->format( 'H:i' ) . ' – ' . $calendar_end->format( 'H:i' ) ); ?></time><a href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'booking_id' => (int) $calendar_item['id'] ), admin_url( 'edit.php' ) ) ); ?>"><strong><?php echo esc_html( $calendar_item['customer_name'] ); ?></strong><span><?php echo esc_html( $calendar_item['service_title'] ? $calendar_item['service_title'] : '—' ); ?></span></a><small><?php echo esc_html( $calendar_item['resource_label'] ); ?> · <?php echo esc_html( isset( $status_labels[ $calendar_item['status'] ] ) ? $status_labels[ $calendar_item['status'] ] : $calendar_item['status'] ); ?></small></li>
+								<?php endforeach; ?></ol>
+							</section>
+						<?php endforeach; ?>
+					</div>
+				<?php else : ?><p><?php esc_html_e( 'برای این روز و فیلترها نوبتی ثبت نشده است.', 'parisan-core' ); ?></p><?php endif; ?>
+			</section>
+		<?php endif; ?>
 
 		<p><?php printf( esc_html__( 'تعداد نوبت‌ها: %d', 'parisan-core' ), $total ); ?></p>
 		<?php if ( $rows ) : ?>
@@ -613,7 +666,7 @@ function parisan_core_render_booking_admin_page() {
 			<?php if ( $total_pages > 1 ) : ?>
 				<div class="tablenav"><div class="tablenav-pages">
 					<?php
-					$base_url = add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'status' => $status_filter, 'booking_date' => $booking_date_filter, 'staff_id' => $staff_filter, 'paged' => 999999999 ), admin_url( 'edit.php' ) );
+					$base_url = add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'status' => $status_filter, 'booking_date' => $booking_date_filter, 'staff_id' => $staff_filter, 'resource_id' => $resource_filter, 'paged' => 999999999 ), admin_url( 'edit.php' ) );
 					$base_url = str_replace( '999999999', '%#%', esc_url( $base_url ) );
 					echo wp_kses_post( paginate_links( array( 'base' => $base_url, 'format' => '', 'current' => $paged, 'total' => $total_pages ) ) );
 					?>
