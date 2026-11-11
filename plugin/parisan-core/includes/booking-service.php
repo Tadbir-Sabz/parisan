@@ -134,6 +134,12 @@ function parisan_core_create_booking( $input ) {
 	if ( is_wp_error( $lock_name ) ) {
 		return new WP_Error( 'parisan_booking_lock_unavailable', __( 'سامانه در حال پردازش رزرو دیگری است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
+	$resource_locks = parisan_core_acquire_resource_schedule_locks( parisan_core_get_service_resource_ids( $service_id ) );
+	if ( is_wp_error( $resource_locks ) ) {
+		parisan_core_release_resource_schedule_locks( $resource_locks );
+		parisan_core_release_staff_schedule_lock( $lock_name );
+		return new WP_Error( 'parisan_resource_lock_unavailable', __( 'ظرفیت منابع خدمت در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
+	}
 
 	$transaction_started = false;
 	try {
@@ -182,9 +188,11 @@ function parisan_core_create_booking( $input ) {
 			return new WP_Error( 'parisan_booking_availability_failed', __( 'امکان بررسی ظرفیت رزرو وجود ندارد.', 'parisan-core' ) );
 		}
 		$slot_available = false;
+		$selected_resource_id = 0;
 		foreach ( $slots as $slot ) {
 			if ( isset( $slot['starts_at_local'] ) && hash_equals( $slot['starts_at_local'], $local_start ) ) {
 				$slot_available = true;
+				$selected_resource_id = isset( $slot['resource_id'] ) ? absint( $slot['resource_id'] ) : 0;
 				break;
 			}
 		}
@@ -202,6 +210,7 @@ function parisan_core_create_booking( $input ) {
 				'public_id' => $public_id,
 				'service_id' => $service_id,
 				'staff_id' => $staff_id,
+				'resource_id' => $selected_resource_id,
 				'customer_name' => $name,
 				'customer_phone' => $phone,
 				'customer_email' => $email,
@@ -216,7 +225,7 @@ function parisan_core_create_booking( $input ) {
 				'created_at_utc' => $now,
 				'updated_at_utc' => $now,
 			),
-			array( '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
+			array( '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
 		);
 		if ( false === $inserted ) {
 			$wpdb->query( 'ROLLBACK' );
