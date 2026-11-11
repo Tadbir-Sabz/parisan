@@ -56,6 +56,7 @@ get_header();
 		<?php endif; ?>
 	</div>
 
+	<section class="container archive-contact-cta"><h2><?php esc_html_e( 'برای دریافت راهنمایی با سالن در تماس باشید.', 'parisan' ); ?></h2><a class="button" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'تماس با سالن', 'parisan' ); ?></a></section>
 	<div class="container catalog-pagination"><?php the_posts_pagination(); ?></div>
 </main>
 <?php get_footer(); ?>
