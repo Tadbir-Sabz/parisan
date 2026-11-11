@@ -219,10 +219,11 @@ function parisan_core_render_booking_detail( $booking_id ) {
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
 	$booking = $wpdb->get_row(
 		$wpdb->prepare(
-			"SELECT b.*, service_post.post_title AS service_title, staff_post.post_title AS staff_title
+			"SELECT b.*, service_post.post_title AS service_title, staff_post.post_title AS staff_title, resource_post.post_title AS resource_title
 			FROM {$bookings_table} b
 			LEFT JOIN {$wpdb->posts} service_post ON service_post.ID = b.service_id
 			LEFT JOIN {$wpdb->posts} staff_post ON staff_post.ID = b.staff_id
+			LEFT JOIN {$wpdb->posts} resource_post ON resource_post.ID = b.resource_id
 			WHERE b.id = %d",
 			$booking_id
 		),
@@ -285,6 +286,7 @@ function parisan_core_render_booking_detail( $booking_id ) {
 			<tr><th><?php esc_html_e( 'ایمیل', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['customer_email'] ? $booking['customer_email'] : '—' ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['service_title'] ? $booking['service_title'] : '—' ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></th><td><?php echo esc_html( $booking['staff_title'] ? $booking['staff_title'] : '—' ); ?></td></tr>
+			<tr><th><?php esc_html_e( 'منبع اختصاص‌یافته', 'parisan-core' ); ?></th><td><?php echo esc_html( ! empty( $booking['resource_title'] ) ? $booking['resource_title'] : __( 'بدون منبع اختصاصی', 'parisan-core' ) ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'زمان', 'parisan-core' ); ?></th><td><?php echo esc_html( wp_date( 'Y/m/d H:i', $start->getTimestamp(), wp_timezone() ) . ' تا ' . wp_date( 'H:i', $end->getTimestamp(), wp_timezone() ) ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'مبلغ ثبت‌شده', 'parisan-core' ); ?></th><td><?php echo esc_html( number_format_i18n( $price_toman ) . ' تومان' ); ?></td></tr>
 			<tr><th><?php esc_html_e( 'وضعیت', 'parisan-core' ); ?></th><td><?php echo esc_html( isset( $status_labels[ $booking['status'] ] ) ? $status_labels[ $booking['status'] ] : $booking['status'] ); ?></td></tr>
@@ -292,7 +294,7 @@ function parisan_core_render_booking_detail( $booking_id ) {
 
 		<?php if ( in_array( $booking['status'], array( 'pending', 'confirmed' ), true ) ) : ?>
 			<h2><?php esc_html_e( 'تغییر زمان نوبت', 'parisan-core' ); ?></h2>
-			<p><?php esc_html_e( 'مدت ثبت‌شده و مبلغ نوبت حفظ می‌شود؛ زمان جدید فقط در صورت آزاد بودن ظرفیت و خارج نبودن از برنامه متخصص ذخیره خواهد شد.', 'parisan-core' ); ?></p>
+			<p><?php esc_html_e( 'مدت ثبت‌شده و مبلغ نوبت حفظ می‌شود؛ زمان جدید فقط در صورت آزاد بودن ظرفیت متخصص و منبع موردنیاز خدمت ذخیره خواهد شد.', 'parisan-core' ); ?></p>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="parisan_reschedule_booking">
 				<input type="hidden" name="booking_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
@@ -432,10 +434,11 @@ function parisan_core_render_booking_admin_page() {
 	$total = (int) $wpdb->get_var( $count_args ? $wpdb->prepare( $count_sql, $count_args ) : $count_sql );
 	$total_pages = max( 1, (int) ceil( $total / $per_page ) );
 
-	$sql = "SELECT b.id, b.service_id, b.staff_id, b.customer_name, b.customer_phone, b.starts_at_utc, b.ends_at_utc, b.status, b.price_amount, b.currency_code, service_post.post_title AS service_title, staff_post.post_title AS staff_title
+	$sql = "SELECT b.id, b.service_id, b.staff_id, b.resource_id, b.customer_name, b.customer_phone, b.starts_at_utc, b.ends_at_utc, b.status, b.price_amount, b.currency_code, service_post.post_title AS service_title, staff_post.post_title AS staff_title, resource_post.post_title AS resource_title
 		FROM {$table} b
 		LEFT JOIN {$wpdb->posts} service_post ON service_post.ID = b.service_id
-		LEFT JOIN {$wpdb->posts} staff_post ON staff_post.ID = b.staff_id{$where}
+		LEFT JOIN {$wpdb->posts} staff_post ON staff_post.ID = b.staff_id
+		LEFT JOIN {$wpdb->posts} resource_post ON resource_post.ID = b.resource_id{$where}
 		ORDER BY b.starts_at_utc " . ( $booking_date_value instanceof DateTimeImmutable ? 'ASC' : 'DESC' ) . "
 		LIMIT %d OFFSET %d";
 	$query_args = $count_args;
@@ -540,6 +543,7 @@ function parisan_core_render_booking_admin_page() {
 					<th scope="col"><?php esc_html_e( 'شماره تماس', 'parisan-core' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'خدمت', 'parisan-core' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'متخصص', 'parisan-core' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'منبع', 'parisan-core' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'مبلغ', 'parisan-core' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'وضعیت', 'parisan-core' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'عملیات', 'parisan-core' ); ?></th>
@@ -564,6 +568,7 @@ function parisan_core_render_booking_admin_page() {
 						<td dir="ltr"><?php echo esc_html( $row['customer_phone'] ); ?></td>
 						<td><?php echo esc_html( $row['service_title'] ? $row['service_title'] : '—' ); ?></td>
 						<td><?php echo esc_html( $row['staff_title'] ? $row['staff_title'] : '—' ); ?></td>
+						<td><?php echo esc_html( ! empty( $row['resource_title'] ) ? $row['resource_title'] : '—' ); ?></td>
 						<td><?php echo esc_html( number_format_i18n( $price_toman ) . ' تومان' ); ?></td>
 						<td><?php echo esc_html( isset( $status_labels[ $row['status'] ] ) ? $status_labels[ $row['status'] ] : $row['status'] ); ?></td>
 						<td>
