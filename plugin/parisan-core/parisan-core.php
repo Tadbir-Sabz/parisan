@@ -3,7 +3,7 @@
  * Plugin Name: Parisan Core
  * Plugin URI: https://github.com/Tadbir-Sabz/parisan
  * Description: First-party salon operations foundation for the Parisan Beauty theme.
- * Version: 0.23.0
+ * Version: 0.24.0
  * Author: Tadbir-Sabz
  * License: GPL-2.0-or-later
  * Text Domain: parisan-core
