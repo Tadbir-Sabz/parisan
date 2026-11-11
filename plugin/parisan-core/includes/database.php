@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 7 );
+define( 'PARISAN_CORE_DB_VERSION', 8 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -178,6 +178,23 @@ function parisan_core_install_database() {
 		KEY customer_phone (customer_phone)
 	) ENGINE=InnoDB {$charset_collate};";
 	dbDelta( $inquiry_links_sql );
+
+
+	$booking_finance_events_table = $wpdb->prefix . 'parisan_booking_finance_events';
+	$booking_finance_events_sql = "CREATE TABLE {$booking_finance_events_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		booking_id bigint(20) unsigned NOT NULL,
+		event_kind varchar(16) NOT NULL,
+		amount_irr bigint(20) unsigned NOT NULL,
+		note text NOT NULL,
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY booking_id (booking_id),
+		KEY event_kind (event_kind),
+		KEY created_at_utc (created_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $booking_finance_events_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
