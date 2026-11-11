@@ -72,7 +72,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 		$transaction_started = true;
 		$booking = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, service_id, staff_id, starts_at_utc, ends_at_utc, duration_minutes, salon_timezone, status
+				"SELECT id, service_id, staff_id, resource_id, starts_at_utc, ends_at_utc, duration_minutes, salon_timezone, status
 				FROM {$bookings_table} WHERE id = %d FOR UPDATE",
 				$booking_id
 			),
@@ -214,7 +214,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			return new WP_Error( 'parisan_booking_token_expiry_update_failed', __( 'به‌روزرسانی اعتبار دسترسی مشتری انجام نشد؛ زمان رزرو تغییر نکرد.', 'parisan-core' ) );
 		}
 
-		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql;
+		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql . '؛ منبع قبلی: ' . absint( $booking['resource_id'] ) . '؛ منبع جدید: ' . $selected_resource_id;
 		if ( '' !== $note ) {
 			$event_note .= ' — ' . $note;
 		}
