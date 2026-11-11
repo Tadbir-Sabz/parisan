@@ -356,6 +356,7 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 	$query_start = ( new DateTimeImmutable( $range_start, new DateTimeZone( 'UTC' ) ) )->modify( '-240 minutes' )->format( 'Y-m-d H:i:s' );
 	$query_end = ( new DateTimeImmutable( $range_end, new DateTimeZone( 'UTC' ) ) )->modify( '+240 minutes' )->format( 'Y-m-d H:i:s' );
 	$shared_service_ids = array( absint( $service_id ) );
+	$legacy_service_resources = array( absint( $service_id ) => $resource_ids );
 	// Resolve legacy bookings against the actual serialized resource arrays.
 	// A LIKE-only scan is fragile across serialized formats and can silently
 	// omit services whose old bookings have no explicit resource assignment.
@@ -373,8 +374,11 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 			continue;
 		}
 		$configured_ids = array_values( array_unique( array_filter( array_map( 'absint', $configured_ids ) ) ) );
-		if ( array_intersect( $resource_ids, $configured_ids ) ) {
-			$shared_service_ids[] = absint( $service_meta_row['post_id'] );
+		$shared_resource_ids = array_values( array_intersect( $resource_ids, $configured_ids ) );
+		if ( $shared_resource_ids ) {
+			$legacy_service_id = absint( $service_meta_row['post_id'] );
+			$shared_service_ids[] = $legacy_service_id;
+			$legacy_service_resources[ $legacy_service_id ] = $shared_resource_ids;
 		}
 	}
 	$shared_service_ids = array_values( array_unique( array_filter( $shared_service_ids ) ) );
@@ -395,7 +399,8 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 	foreach ( is_array( $rows ) ? $rows : array() as $row ) {
 		$assigned_id = absint( $row['assigned_resource_id'] );
 		$legacy_id = absint( $row['resource_id'] );
-		$targets = $assigned_id ? array( $assigned_id ) : ( $legacy_id ? array( $legacy_id ) : $resource_ids );
+		$legacy_service_id = absint( $row['service_id'] );
+		$targets = $assigned_id ? array( $assigned_id ) : ( $legacy_id ? array( $legacy_id ) : ( isset( $legacy_service_resources[ $legacy_service_id ] ) ? $legacy_service_resources[ $legacy_service_id ] : $resource_ids ) );
 		$busy_start = ( new DateTimeImmutable( $row['starts_at_utc'], new DateTimeZone( 'UTC' ) ) )->modify( '-' . min( 240, max( 0, (int) $buffer_before ) ) . ' minutes' );
 		$busy_end = ( new DateTimeImmutable( $row['ends_at_utc'], new DateTimeZone( 'UTC' ) ) )->modify( '+' . min( 240, max( 0, (int) $buffer_after ) ) . ' minutes' );
 		foreach ( $targets as $target_id ) {
