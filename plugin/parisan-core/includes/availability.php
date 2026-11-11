@@ -174,5 +174,6 @@ function parisan_core_get_available_slots( $staff_id, $service_id, $date, $exclu
 		min( 240, $before ),
 		min( 240, $after )
 	);
+	$slots = parisan_core_assign_resources_to_slots( $slots, $service_id, $range_start, $range_end, min( 240, $before ), min( 240, $after ) );
 	return parisan_core_filter_booking_window_slots( $slots );
 }
