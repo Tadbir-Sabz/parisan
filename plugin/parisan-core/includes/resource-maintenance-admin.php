@@ -70,8 +70,9 @@ function parisan_core_handle_resource_maintenance_create() {
 		$end->format( 'Y-m-d H:i:s' ),
 		$start->format( 'Y-m-d H:i:s' )
 	) );
+	$query_failed = '' !== $wpdb->last_error;
 	$inserted = false;
-	if ( ! $conflicts && ! $overlaps ) {
+	if ( ! $query_failed && ! $conflicts && ! $overlaps ) {
 		$inserted = $wpdb->insert( $table, array(
 			'resource_id' => $resource_id,
 			'starts_at_utc' => $start->format( 'Y-m-d H:i:s' ),
@@ -84,8 +85,8 @@ function parisan_core_handle_resource_maintenance_create() {
 	}
 	parisan_core_release_resource_schedule_locks( $locks );
 	if ( $conflicts || $overlaps || false === $inserted ) {
-		$code = $conflicts ? 'parisan_maintenance_booking_conflict' : ( $overlaps ? 'parisan_maintenance_overlap' : 'parisan_maintenance_write_failed' );
-		$message = $conflicts ? __( 'در این بازه برای منبع رزرو فعال وجود دارد؛ توقف ثبت نشد.', 'parisan-core' ) : ( $overlaps ? __( 'با یک توقف فعال دیگر هم‌پوشانی دارد.', 'parisan-core' ) : __( 'ثبت توقف منبع انجام نشد.', 'parisan-core' ) );
+		$code = $query_failed ? 'parisan_maintenance_check_failed' : ( $conflicts ? 'parisan_maintenance_booking_conflict' : ( $overlaps ? 'parisan_maintenance_overlap' : 'parisan_maintenance_write_failed' ) );
+		$message = $query_failed ? __( 'بررسی تداخل‌ها با خطای پایگاه داده مواجه شد؛ توقف ثبت نشد.', 'parisan-core' ) : ( $conflicts ? __( 'در این بازه برای منبع رزرو فعال وجود دارد؛ توقف ثبت نشد.', 'parisan-core' ) : ( $overlaps ? __( 'با یک توقف فعال دیگر هم‌پوشانی دارد.', 'parisan-core' ) : __( 'ثبت توقف منبع انجام نشد.', 'parisan-core' ) ) );
 		wp_die( esc_html( $message . ' (' . $code . ')' ), '', array( 'response' => 409 ) );
 	}
 	wp_safe_redirect( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-resource-maintenance', 'saved' => 1 ), admin_url( 'edit.php' ) ) );
