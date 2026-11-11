@@ -233,8 +233,8 @@ function parisan_core_release_resource_schedule_locks( $lock_names ) {
 
 /**
  * Attach an available resource to each eligible slot, omitting slots where all
- * configured resources are occupied. Legacy unassigned bookings for the same
- * service conservatively block the whole pool until they finish.
+ * configured resources are occupied. Legacy unassigned bookings for every service sharing the pool conservatively
+ * block the affected resources until they finish.
  *
  * @param array  $slots Candidate staff slots.
  * @param int    $service_id Service ID.
@@ -261,11 +261,26 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 	$placeholders = implode( ',', array_fill( 0, count( $resource_ids ), '%d' ) );
 	$query_start = ( new DateTimeImmutable( $range_start, new DateTimeZone( 'UTC' ) ) )->modify( '-240 minutes' )->format( 'Y-m-d H:i:s' );
 	$query_end = ( new DateTimeImmutable( $range_end, new DateTimeZone( 'UTC' ) ) )->modify( '+240 minutes' )->format( 'Y-m-d H:i:s' );
+	$shared_service_ids = array( absint( $service_id ) );
+	foreach ( $resource_ids as $resource_id ) {
+		$service_meta_rows = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
+				'_parisan_service_resources',
+				'%' . $wpdb->esc_like( 'i:' . $resource_id . ';' ) . '%'
+			)
+		);
+		foreach ( is_array( $service_meta_rows ) ? $service_meta_rows : array() as $shared_service_id ) {
+			$shared_service_ids[] = absint( $shared_service_id );
+		}
+	}
+	$shared_service_ids = array_values( array_unique( array_filter( $shared_service_ids ) ) );
+	$service_placeholders = implode( ',', array_fill( 0, count( $shared_service_ids ), '%d' ) );
 	$sql = "SELECT resource_id, service_id, starts_at_utc, ends_at_utc FROM {$bookings_table}
 		WHERE status IN ('pending','confirmed') AND starts_at_utc < %s AND ends_at_utc > %s
-		AND (resource_id IN ({$placeholders}) OR (resource_id = 0 AND service_id = %d))";
+		AND (resource_id IN ({$placeholders}) OR (resource_id = 0 AND service_id IN ({$service_placeholders})))";
 	$sql .= ' AND id <> %d';
-	$args = array_merge( array( $query_end, $query_start ), $resource_ids, array( absint( $service_id ), absint( $exclude_booking_id ) ) );
+	$args = array_merge( array( $query_end, $query_start ), $resource_ids, $shared_service_ids, array( absint( $exclude_booking_id ) ) );
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
 	$busy_by_resource = array();
 	foreach ( is_array( $rows ) ? $rows : array() as $row ) {
