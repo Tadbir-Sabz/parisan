@@ -358,4 +358,17 @@ parisan_theme_smoke_assert( false !== strpos( $booking_report_source, 'parisan_b
 parisan_theme_smoke_assert( false !== strpos( $booking_report_source, 'parisan_core_booking_report_range' ) && false !== strpos( $booking_report_source, 'wp_timezone()' ) && false !== strpos( $booking_report_source, 'completed_value_irr' ), 'operational report uses salon-local date boundaries and separates completed booking value' );
 
 
+
+$booking_finance_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/booking-finance.php' );
+$loyalty_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/customer-loyalty.php' );
+$privacy_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/privacy.php' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_render_booking_finance_page' ) && false !== strpos( $booking_finance_source, 'FOR UPDATE' ), 'booking invoice adjustments are registered and serialize event writes against the source booking' );
+parisan_theme_smoke_assert( false !== strpos( $booking_finance_source, "array( 'discount', 'surcharge', 'refund' )" ) && false !== strpos( $booking_finance_source, 'invoice_total - $refunds' ), 'booking finance validates discount, surcharge, and cumulative refund ceilings' );
+parisan_theme_smoke_assert( false !== strpos( $booking_finance_source, 'قیمت اولیه رزرو حفظ می‌شود' ) && false !== strpos( $booking_finance_source, 'تأییدیه درگاه' ), 'booking finance preserves original price and disclaims payment verification' );
+parisan_theme_smoke_assert( function_exists( 'parisan_core_render_customer_loyalty_page' ) && false !== strpos( $loyalty_source, "status='completed'" ) && false !== strpos( $loyalty_source, '60 days' ), 'customer loyalty tiers and inactivity are derived from completed booking history' );
+parisan_theme_smoke_assert( false !== strpos( $loyalty_source, 'staff_id IN ({$ids})' ) && false !== strpos( $loyalty_source, 'current_user_can' ), 'customer loyalty insights remain scoped to editable specialists' );
+parisan_theme_smoke_assert( false !== strpos( $loyalty_source, 'ارزش نقدی' ) && false !== strpos( $loyalty_source, 'اعتبار قابل‌خرج' ), 'loyalty points are explicitly non-monetary and non-redeemable' );
+parisan_theme_smoke_assert( false !== strpos( $privacy_source, 'parisan_booking_finance_events' ) && false !== strpos( $privacy_source, 'finance_notes_updated' ), 'booking finance event notes participate in privacy export and terminal-booking anonymization' );
+parisan_theme_smoke_assert( false !== strpos( $db_source, "define( 'PARISAN_CORE_DB_VERSION', 8 )" ) && false !== strpos( $db_source, 'parisan_booking_finance_events' ), 'database schema v8 adds append-only booking finance events' );
+
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
