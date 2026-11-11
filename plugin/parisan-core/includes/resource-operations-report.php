@@ -54,11 +54,16 @@ function parisan_core_get_resource_report_rows( $range, $type_filter = '' ) {
 			AND b.starts_at_utc < %s AND b.ends_at_utc > %s",
 			$range['start_utc'], $range['end_utc'], $range['start_utc'], $range['end_utc'], $resource_id, $resource_id, $range['end_utc'], $range['start_utc']
 		), ARRAY_A );
+		$booking_query_failed = null === $booking_rows || '' !== $wpdb->last_error;
 		$maintenance_rows = $wpdb->get_row( $wpdb->prepare(
 			"SELECT COUNT(*) AS maintenance_count, COALESCE(SUM(TIMESTAMPDIFF(MINUTE,GREATEST(starts_at_utc,%s),LEAST(ends_at_utc,%s))),0) AS maintenance_minutes
 			FROM {$maintenance} WHERE resource_id=%d AND status='active' AND starts_at_utc < %s AND ends_at_utc > %s",
 			$range['start_utc'], $range['end_utc'], $resource_id, $range['end_utc'], $range['start_utc']
 		), ARRAY_A );
+		$maintenance_query_failed = null === $maintenance_rows || '' !== $wpdb->last_error;
+		if ( $booking_query_failed || $maintenance_query_failed ) {
+			return new WP_Error( 'parisan_resource_report_query_failed', __( 'خواندن داده‌های گزارش منابع با خطای پایگاه داده مواجه شد.', 'parisan-core' ) );
+		}
 		$rows[] = array(
 			'resource_id' => $resource_id,
 			'name' => get_the_title( $resource_id ),
@@ -82,6 +87,7 @@ function parisan_core_handle_resource_report_csv() {
 	$type = isset( $_GET['resource_type'] ) && is_string( $_GET['resource_type'] ) ? sanitize_key( wp_unslash( $_GET['resource_type'] ) ) : '';
 	if ( ! in_array( $type, array( '', 'room', 'bed', 'chair', 'device', 'other' ), true ) ) { $type = ''; }
 	$rows = parisan_core_get_resource_report_rows( $range, $type );
+	if ( is_wp_error( $rows ) ) { wp_die( esc_html( $rows->get_error_message() ), 500 ); }
 	$filename = 'parisan-resource-report-' . $range['from'] . '-' . $range['to'] . '.csv';
 	nocache_headers();
 	header( 'Content-Type: text/csv; charset=UTF-8' );
@@ -117,6 +123,7 @@ function parisan_core_render_resource_report_page() {
 	foreach ( $types as $key => $label ) { echo '<option value="' . esc_attr( $key ) . '"' . selected( $type, $key, false ) . '>' . esc_html( $label ) . '</option>'; }
 	echo '</select></label> <button class="button">اعمال</button></form>';
 	$rows = parisan_core_get_resource_report_rows( $range, $type );
+	if ( is_wp_error( $rows ) ) { echo '<div class="notice notice-error"><p>' . esc_html( $rows->get_error_message() ) . '</p></div></div>'; return; }
 	echo '<form method="get" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="parisan_resource_report_csv"><input type="hidden" name="from" value="' . esc_attr( $range['from'] ) . '"><input type="hidden" name="to" value="' . esc_attr( $range['to'] ) . '"><input type="hidden" name="resource_type" value="' . esc_attr( $type ) . '">';
 	wp_nonce_field( 'parisan_resource_report_csv', 'parisan_resource_report_nonce' );
 	echo '<button class="button">دریافت CSV</button></form>';
