@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 9 );
+define( 'PARISAN_CORE_DB_VERSION', 10 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -214,6 +214,29 @@ function parisan_core_install_database() {
 		KEY status_window (status,starts_at_utc,ends_at_utc)
 	) ENGINE=InnoDB {$charset_collate};";
 	dbDelta( $resource_maintenance_sql );
+
+	$waitlist_table = $wpdb->prefix . 'parisan_booking_waitlist';
+	$waitlist_sql = "CREATE TABLE {$waitlist_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		service_id bigint(20) unsigned NOT NULL,
+		preferred_staff_id bigint(20) unsigned NOT NULL DEFAULT 0,
+		preferred_date date NOT NULL,
+		preferred_period varchar(16) NOT NULL DEFAULT 'any',
+		customer_name varchar(190) NOT NULL,
+		customer_phone varchar(24) NOT NULL,
+		customer_email varchar(190) NOT NULL DEFAULT '',
+		contact_consent_at_utc datetime NOT NULL,
+		status varchar(16) NOT NULL DEFAULT 'waiting',
+		handled_by bigint(20) unsigned NOT NULL DEFAULT 0,
+		handled_at_utc datetime NULL DEFAULT NULL,
+		created_at_utc datetime NOT NULL,
+		updated_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY status_date (status,preferred_date),
+		KEY phone_created (customer_phone,created_at_utc),
+		KEY email_created (customer_email,created_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $waitlist_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
