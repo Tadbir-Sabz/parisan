@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 8 );
+define( 'PARISAN_CORE_DB_VERSION', 9 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -195,6 +195,25 @@ function parisan_core_install_database() {
 		KEY created_at_utc (created_at_utc)
 	) ENGINE=InnoDB {$charset_collate};";
 	dbDelta( $booking_finance_events_sql );
+
+
+	$resource_maintenance_table = $wpdb->prefix . 'parisan_resource_maintenance';
+	$resource_maintenance_sql = "CREATE TABLE {$resource_maintenance_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		resource_id bigint(20) unsigned NOT NULL,
+		starts_at_utc datetime NOT NULL,
+		ends_at_utc datetime NOT NULL,
+		reason varchar(500) NOT NULL,
+		status varchar(16) NOT NULL DEFAULT 'active',
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		cancelled_by bigint(20) unsigned NOT NULL DEFAULT 0,
+		cancelled_at_utc datetime NULL DEFAULT NULL,
+		PRIMARY KEY  (id),
+		KEY resource_window (resource_id,starts_at_utc,ends_at_utc),
+		KEY status_window (status,starts_at_utc,ends_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $resource_maintenance_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
