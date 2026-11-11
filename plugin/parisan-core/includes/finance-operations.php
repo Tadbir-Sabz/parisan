@@ -20,7 +20,7 @@ function parisan_core_handle_finance_adjustment() {
 	$original = $wpdb->get_row( $wpdb->prepare( "SELECT id, entry_type FROM {$entries} WHERE id=%d", $entry_id ), ARRAY_A );
 	if ( ! $original ) { wp_die( esc_html__( 'سند مبنا پیدا نشد.', 'parisan-core' ), '', array( 'response' => 404 ) ); }
 	$ok = $wpdb->insert( $wpdb->prefix . 'parisan_finance_adjustments', array( 'entry_id'=>$entry_id, 'adjustment_kind'=>$kind, 'amount_irr'=>$amount * 10, 'reason'=>$reason, 'created_by'=>get_current_user_id(), 'created_at_utc'=>current_time( 'mysql', true ) ), array( '%d','%s','%d','%s','%d','%s' ) );
-	wp_safe_redirect( add_query_arg( array( 'post_type'=>'parisan_staff','page'=>'parisan-finance-operations', $ok ? 'adjusted' : 'error'=>1 ), admin_url( 'edit.php' ) ) ); exit;
+	wp_safe_redirect( add_query_arg( array( 'post_type'=>'parisan_staff','page'=>'parisan-finance-operations', ( $ok ? 'adjusted' : 'error' )=>1 ), admin_url( 'edit.php' ) ) ); exit;
 }
 add_action( 'admin_post_parisan_finance_adjustment', 'parisan_core_handle_finance_adjustment' );
 
