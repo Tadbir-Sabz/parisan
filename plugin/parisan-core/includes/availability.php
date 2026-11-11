@@ -38,7 +38,7 @@ function parisan_core_filter_booking_window_slots( $slots, $now_utc = null ) {
 	$lead_minutes = get_option( 'parisan_booking_lead_time_minutes', 0 );
 	$lead_minutes = is_scalar( $lead_minutes ) ? min( 10080, max( 0, (int) $lead_minutes ) ) : 0;
 	$earliest = $now_utc->modify( '+' . $lead_minutes . ' minutes' );
-	$horizon_local = ( new DateTimeImmutable( 'now', wp_timezone() ) )->modify( '+' . parisan_core_get_booking_horizon_days() . ' days' );
+	$horizon_local = $now_utc->setTimezone( wp_timezone() )->modify( '+' . parisan_core_get_booking_horizon_days() . ' days' );
 	$latest_utc = $horizon_local->setTimezone( new DateTimeZone( 'UTC' ) );
 	$filtered = array();
 	foreach ( $slots as $slot ) {
