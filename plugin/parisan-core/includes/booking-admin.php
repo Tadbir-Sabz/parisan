@@ -451,15 +451,17 @@ function parisan_core_render_booking_admin_page() {
 	$query_args[] = $per_page;
 	$query_args[] = $offset;
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $query_args ), ARRAY_A );
-	foreach ( is_array( $rows ) ? $rows : array() as &$booking_row ) {
-		$assigned_ids = parisan_core_get_booking_resource_ids( (int) $booking_row['id'] );
-		$assigned_names = array();
-		foreach ( $assigned_ids as $assigned_id ) {
-			$assigned_names[] = get_the_title( $assigned_id );
+	if ( is_array( $rows ) ) {
+		foreach ( $rows as &$booking_row ) {
+			$assigned_ids = parisan_core_get_booking_resource_ids( (int) $booking_row['id'] );
+			$assigned_names = array();
+			foreach ( $assigned_ids as $assigned_id ) {
+				$assigned_names[] = get_the_title( $assigned_id );
+			}
+			$booking_row['resource_label'] = $assigned_names ? implode( '، ', array_filter( $assigned_names ) ) : '—';
 		}
-		$booking_row['resource_label'] = $assigned_names ? implode( '، ', array_filter( $assigned_names ) ) : '—';
+		unset( $booking_row );
 	}
-	unset( $booking_row );
 
 
 	$status_labels = array(
