@@ -268,3 +268,20 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [x] Add a resource-specific filter that includes both v5 booking-resource relations and legacy single-resource bookings, while retaining status/date/specialist scoping.
 - [x] Add responsive admin styling and focused WordPress smoke assertions for the calendar, resource filter, and date navigation.
 - [ ] Exact-head CI execution and seeded multi-resource operational display validation remain pending.
+
+
+## Product development — customer CRM and service catalogue — 2026-11-11
+
+### Task 1: Customer operations workspace
+- [x] Add a Persian-first customer directory under Specialists, derived from booking history without duplicating customer PII into a second customer database.
+- [x] Search by customer name, phone, and email; show visit count, completed service count, completed-booking amount total, and last visit.
+- [x] Add customer-specific chronological booking history with links to the existing permission-checked booking detail and audit screen.
+- [x] Scope all directory aggregates and history to specialists the current operator is authorized to edit; exclude empty-phone records from customer identity grouping.
+- [ ] Validate seeded guest/customer data and role/capability boundaries in disposable WordPress/MariaDB integration.
+
+### Task 2: Actionable service catalogue
+- [x] Add service-list columns for duration, price/price-from, assigned specialist count, and required resource types.
+- [x] Add numeric sorting for duration and price, preserving the native WordPress catalogue and existing hierarchical service-category taxonomy.
+- [x] Add an assignment filter for services with or without a published specialist; retain existing edit screens as the source of truth for duration, pricing, specialist assignment, and resource requirements.
+- [x] Add focused WordPress smoke assertions for CRM access scoping and catalogue columns/filter/sorting.
+- [ ] Execute exact-head PHP syntax, WordPress activation/smoke, privacy integration, and browser CI before marking runtime acceptance PASS.
