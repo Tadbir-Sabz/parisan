@@ -189,10 +189,12 @@ function parisan_core_create_booking( $input ) {
 		}
 		$slot_available = false;
 		$selected_resource_id = 0;
+		$selected_resource_ids = array();
 		foreach ( $slots as $slot ) {
 			if ( isset( $slot['starts_at_local'] ) && hash_equals( $slot['starts_at_local'], $local_start ) ) {
 				$slot_available = true;
 				$selected_resource_id = isset( $slot['resource_id'] ) ? absint( $slot['resource_id'] ) : 0;
+				$selected_resource_ids = isset( $slot['resource_ids'] ) && is_array( $slot['resource_ids'] ) ? array_values( array_unique( array_map( 'absint', $slot['resource_ids'] ) ) ) : ( $selected_resource_id ? array( $selected_resource_id ) : array() );
 				break;
 			}
 		}
@@ -248,6 +250,11 @@ function parisan_core_create_booking( $input ) {
 		}
 
 		$booking_id = (int) $wpdb->insert_id;
+		if ( ! parisan_core_store_booking_resources( $booking_id, $selected_resource_ids ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			$transaction_started = false;
+			return new WP_Error( 'parisan_booking_resources_store_failed', __( 'ثبت منابع موردنیاز نوبت انجام نشد؛ رزرو ذخیره نشد.', 'parisan-core' ) );
+		}
 		if ( '' !== $customer_access_token && ! parisan_core_store_customer_access_token( $booking_id, $customer_access_token ) ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
@@ -258,7 +265,7 @@ function parisan_core_create_booking( $input ) {
 			'event_type' => 'created',
 			'from_status' => '',
 			'to_status' => 'pending',
-			'event_note' => $selected_resource_id ? 'منبع اختصاص‌یافته: #' . $selected_resource_id : null,
+			'event_note' => $selected_resource_ids ? 'منابع اختصاص‌یافته: #' . implode( ', #', $selected_resource_ids ) : null,
 			'created_at_utc' => $now,
 		);
 		if ( $actor_id ) {
