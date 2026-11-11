@@ -162,7 +162,7 @@ $availability_request->set_param( 'date', $booking_date );
 $availability_response = parisan_core_rest_public_availability( $availability_request );
 parisan_public_enabled_assert( 200 === $availability_response->get_status(), 'public availability route returns candidate slots for a valid date' );
 $available_times = wp_list_pluck( $availability_response->get_data()['slots'], 'starts_at_local' );
-parisan_public_enabled_assert( ! in_array( $booking_date . ' 10:00', $available_times, true ) && in_array( $booking_date . ' 11:00', $available_times, true ), 'public availability omits the occupied slot and retains a free slot' );
+parisan_public_enabled_assert( ! in_array( $booking_date . ' 10:00', $available_times, true ) && ! in_array( $booking_date . ' 11:00', $available_times, true ) && in_array( $booking_date . ' 12:00', $available_times, true ), 'public availability omits staff-occupied and resource-exhausted slots while retaining a free slot' );
 
 update_option( 'parisan_booking_lead_time_minutes', 60 );
 update_option( 'parisan_booking_horizon_days', 3 );
