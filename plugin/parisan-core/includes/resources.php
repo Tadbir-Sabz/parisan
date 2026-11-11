@@ -356,14 +356,25 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 	$query_start = ( new DateTimeImmutable( $range_start, new DateTimeZone( 'UTC' ) ) )->modify( '-240 minutes' )->format( 'Y-m-d H:i:s' );
 	$query_end = ( new DateTimeImmutable( $range_end, new DateTimeZone( 'UTC' ) ) )->modify( '+240 minutes' )->format( 'Y-m-d H:i:s' );
 	$shared_service_ids = array( absint( $service_id ) );
-	foreach ( $resource_ids as $resource_id ) {
-		$service_meta_rows = $wpdb->get_col( $wpdb->prepare(
-			"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
-			'_parisan_service_resources',
-			'%' . $wpdb->esc_like( 'i:' . $resource_id . ';' ) . '%'
-		) );
-		foreach ( is_array( $service_meta_rows ) ? $service_meta_rows : array() as $shared_service_id ) {
-			$shared_service_ids[] = absint( $shared_service_id );
+	// Resolve legacy bookings against the actual serialized resource arrays.
+	// A LIKE-only scan is fragile across serialized formats and can silently
+	// omit services whose old bookings have no explicit resource assignment.
+	$wpdb->last_error = '';
+	$service_meta_rows = $wpdb->get_results(
+		$wpdb->prepare( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s", '_parisan_service_resources' ),
+		ARRAY_A
+	);
+	if ( null === $service_meta_rows || '' !== $wpdb->last_error ) {
+		return array();
+	}
+	foreach ( $service_meta_rows as $service_meta_row ) {
+		$configured_ids = maybe_unserialize( $service_meta_row['meta_value'] );
+		if ( ! is_array( $configured_ids ) ) {
+			continue;
+		}
+		$configured_ids = array_values( array_unique( array_filter( array_map( 'absint', $configured_ids ) ) ) );
+		if ( array_intersect( $resource_ids, $configured_ids ) ) {
+			$shared_service_ids[] = absint( $service_meta_row['post_id'] );
 		}
 	}
 	$shared_service_ids = array_values( array_unique( array_filter( $shared_service_ids ) ) );
@@ -375,7 +386,11 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 		AND (b.resource_id IN ({$placeholders}) OR br.resource_id IN ({$placeholders}) OR (b.resource_id = 0 AND b.service_id IN ({$service_placeholders})))
 		AND b.id <> %d";
 	$args = array_merge( array( $query_end, $query_start ), $resource_ids, $resource_ids, $shared_service_ids, array( absint( $exclude_booking_id ) ) );
+	$wpdb->last_error = '';
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
+	if ( null === $rows || '' !== $wpdb->last_error ) {
+		return array();
+	}
 	$busy_by_resource = array();
 	foreach ( is_array( $rows ) ? $rows : array() as $row ) {
 		$assigned_id = absint( $row['assigned_resource_id'] );
@@ -389,6 +404,7 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 	}
 
 	$maintenance_table = $wpdb->prefix . 'parisan_resource_maintenance';
+	$wpdb->last_error = '';
 	$maintenance_rows = $wpdb->get_results(
 		$wpdb->prepare(
 			"SELECT resource_id, starts_at_utc, ends_at_utc FROM {$maintenance_table}
