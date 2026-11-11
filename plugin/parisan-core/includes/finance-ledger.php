@@ -25,7 +25,7 @@ function parisan_core_handle_finance_entry_save() {
 	$utc = $local->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'Y-m-d H:i:s' );
 	$table = $wpdb->prefix . 'parisan_finance_entries';
 	$ok = $wpdb->insert( $table, array( 'entry_type' => $type, 'category' => $category, 'description' => $description, 'amount_irr' => $amount * 10, 'staff_id' => $staff_id, 'occurred_at_utc' => $utc, 'created_by' => get_current_user_id(), 'created_at_utc' => current_time( 'mysql', true ) ), array( '%s', '%s', '%s', '%d', '%d', '%s', '%d', '%s' ) );
-	wp_safe_redirect( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-finance-ledger', $ok ? 'ledger_saved' : 'ledger_error' => $ok ? 1 : 'database' ), admin_url( 'edit.php' ) ) ); exit;
+	wp_safe_redirect( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-finance-ledger', ( $ok ? 'ledger_saved' : 'ledger_error' ) => $ok ? 1 : 'database' ), admin_url( 'edit.php' ) ) ); exit;
 }
 add_action( 'admin_post_parisan_save_finance_entry', 'parisan_core_handle_finance_entry_save' );
 
