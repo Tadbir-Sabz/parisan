@@ -118,6 +118,8 @@ $resource_booking_input['idempotency_token'] = str_repeat( 'c', 64 );
 $resource_booking_input['customer_access_token'] = '';
 $resource_booking_one = parisan_core_create_booking( $resource_booking_input );
 parisan_public_enabled_assert( ! is_wp_error( $resource_booking_one ), 'first specialist reserves the first free shared resource' );
+$resource_booking_reminders = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d", (int) $resource_booking_one['booking_id'] ) );
+parisan_public_enabled_assert( 0 === $resource_booking_reminders, 'bookings without explicit email consent never receive reminder queue records' );
 $bookings_table = $wpdb->prefix . 'parisan_bookings';
 $assigned_one = (int) $wpdb->get_var( $wpdb->prepare( "SELECT resource_id FROM {$bookings_table} WHERE id = %d", (int) $resource_booking_one['booking_id'] ) );
 parisan_public_enabled_assert( (int) $resource_one === $assigned_one, 'booking persists the selected resource id' );
@@ -320,6 +322,9 @@ $customer_reschedule_request->set_header( 'X-Parisan-Booking-Token', $customer_t
 $customer_reschedule_request->set_param( 'starts_at_local', $booking_date . ' 12:00' );
 $customer_reschedule_response = parisan_core_rest_customer_reschedule_booking( $customer_reschedule_request );
 parisan_public_enabled_assert( 200 === $customer_reschedule_response->get_status(), 'customer can reschedule a token-owned pending booking' );
+$expected_two_hour_reminder = $booking_date . ' 10:00:00';
+$actual_two_hour_reminder = $wpdb->get_var( $wpdb->prepare( "SELECT scheduled_at_utc FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d AND reminder_kind='2h'", (int) $first_booking['booking_id'] ) );
+parisan_public_enabled_assert( $expected_two_hour_reminder === $actual_two_hour_reminder, 'rescheduling recalculates the pending two-hour reminder against the new appointment time' );
 
 $customer_view_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booking' );
 $customer_view_request->set_header( 'X-Parisan-Booking-Token', $customer_token );
