@@ -191,7 +191,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 				'updated_at_utc' => $now,
 			),
 			array( 'id' => $booking_id, 'status' => $booking['status'] ),
-			array( '%s', '%s', '%d', '%d', '%s' ),
+			array( '%s', '%s', '%d', '%d', '%s', '%s' ),
 			array( '%d', '%s' )
 		);
 		if ( false === $updated || 1 !== $updated ) {
