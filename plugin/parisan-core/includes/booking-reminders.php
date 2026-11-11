@@ -43,9 +43,9 @@ function parisan_core_sync_booking_reminders( $booking_id ) {
 	foreach ( array( '24h' => 24, '2h' => 2 ) as $kind => $hours ) {
 		$scheduled = $start->modify( '-' . $hours . ' hours' );
 		$future = $scheduled > $now;
-		$existing = $wpdb->get_row( $wpdb->prepare( "SELECT id,status FROM {$queue} WHERE booking_id=%d AND reminder_kind=%s", $booking_id, $kind ), ARRAY_A );
+		$existing = $wpdb->get_row( $wpdb->prepare( "SELECT id,status,attempts,last_error FROM {$queue} WHERE booking_id=%d AND reminder_kind=%s", $booking_id, $kind ), ARRAY_A );
 		if ( is_array( $existing ) ) {
-			if ( in_array( $existing['status'], array( 'pending', 'failed' ), true ) ) {
+			if ( ( in_array( $existing['status'], array( 'pending', 'failed' ), true ) && (int) $existing['attempts'] < 3 ) || ( 'skipped' === $existing['status'] && 'reminder_time_passed' === $existing['last_error'] ) ) {
 				$wpdb->update( $queue, array( 'status' => $future ? 'pending' : 'skipped', 'scheduled_at_utc' => $scheduled->format( 'Y-m-d H:i:s' ), 'last_error' => $future ? '' : 'reminder_time_passed', 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'id' => (int) $existing['id'] ), array( '%s','%s','%s','%s' ), array( '%d' ) );
 			}
 			continue;
