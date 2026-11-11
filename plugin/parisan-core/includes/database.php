@@ -259,6 +259,9 @@ function parisan_core_install_database() {
 	dbDelta( $reminders_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
+	if ( function_exists( 'wp_schedule_event' ) && ! wp_next_scheduled( 'parisan_core_process_booking_reminders' ) ) {
+		wp_schedule_event( time() + 300, 'parisan_fifteen_minutes', 'parisan_core_process_booking_reminders' );
+	}
 }
 
 /**
