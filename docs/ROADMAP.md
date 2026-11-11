@@ -285,3 +285,20 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [x] Add an assignment filter for services with or without a published specialist; retain existing edit screens as the source of truth for duration, pricing, specialist assignment, and resource requirements.
 - [x] Add focused WordPress smoke assertions for CRM access scoping and catalogue columns/filter/sorting.
 - [ ] Execute exact-head PHP syntax, WordPress activation/smoke, privacy integration, and browser CI before marking runtime acceptance PASS.
+
+
+## Salon finance and public catalogue — 2026-11-11
+
+### Task 1: Read-only financial operations
+- [x] Add a date-range financial workspace under «متخصصان ← گزارش مالی».
+- [x] Report completed-booking recognized revenue, completed/open/cancelled counts, and the non-final value of pending/confirmed bookings.
+- [x] Break down booking volume and completed revenue by service and specialist; scope every query to specialists the operator may edit.
+- [x] Convert UTC booking boundaries using the salon WordPress timezone and display IRR snapshots as toman.
+- [x] Explicitly distinguish recognized booking revenue from cash receipts/profit: expenses, discounts, refunds, payment transactions, and settlements are not represented by the current schema.
+- [ ] Validate financial totals against seeded WordPress/MariaDB fixtures and role boundaries; exact-head CI remains required.
+
+### Task 2: Public service and specialist journey
+- [x] Keep dedicated service and specialist archive/detail templates as the public catalogue source.
+- [x] Add contextual contact CTAs to both catalogue archives and detail pages; do not route visitors into a disabled online booking flow.
+- [x] Show service duration/pricing and specialist role/services using escaped public content and existing media/card helpers.
+- [ ] Browser-check Persian RTL, image fallback, archive pagination, mobile layout, and contact-page destination; production contact details and live content remain owner-verifiable.
