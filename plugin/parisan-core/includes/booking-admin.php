@@ -105,7 +105,14 @@ function parisan_core_handle_booking_admin_transition() {
 	check_admin_referer( 'parisan_transition_booking_' . $booking_id, 'parisan_booking_nonce' );
 
 	$to_status = isset( $_POST['to_status'] ) && is_string( $_POST['to_status'] ) ? sanitize_key( wp_unslash( $_POST['to_status'] ) ) : '';
-	$result = parisan_core_transition_booking( $booking_id, $to_status );
+	$event_note = isset( $_POST['booking_event_note'] ) && is_string( $_POST['booking_event_note'] ) ? sanitize_textarea_field( wp_unslash( $_POST['booking_event_note'] ) ) : '';
+	$event_note_length = function_exists( 'mb_strlen' ) ? mb_strlen( $event_note, 'UTF-8' ) : strlen( $event_note );
+	if ( $event_note_length > 1000 ) { $event_note = ''; }
+	if ( in_array( $to_status, array( 'cancelled', 'no_show' ), true ) && '' === trim( $event_note ) ) {
+		$result = new WP_Error( 'parisan_booking_reason_required', __( 'برای لغو یا ثبت عدم مراجعه، درج دلیل الزامی است.', 'parisan-core' ) );
+	} else {
+		$result = parisan_core_transition_booking( $booking_id, $to_status, $event_note );
+	}
 	$redirect_args = array( 'page' => 'parisan-bookings' );
 	if ( is_wp_error( $result ) ) {
 		$redirect_args['booking_error'] = $result->get_error_code();
@@ -324,6 +331,10 @@ function parisan_core_render_booking_detail( $booking_id ) {
 					<input type="hidden" name="booking_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
 					<input type="hidden" name="booking_detail_id" value="<?php echo esc_attr( $booking['id'] ); ?>">
 					<input type="hidden" name="to_status" value="<?php echo esc_attr( $target_status ); ?>">
+					<?php if ( in_array( $target_status, array( 'cancelled', 'no_show' ), true ) ) : ?>
+						<label class="screen-reader-text" for="parisan-booking-reason-<?php echo esc_attr( $row['id'] . '-' . $target_status ); ?>"><?php esc_html_e( 'دلیل لغو یا عدم مراجعه', 'parisan-core' ); ?></label>
+						<input required maxlength="1000" type="text" name="booking_event_note" id="parisan-booking-reason-<?php echo esc_attr( $row['id'] . '-' . $target_status ); ?>" placeholder="<?php esc_attr_e( 'ثبت دلیل الزامی', 'parisan-core' ); ?>">
+					<?php endif; ?>
 					<?php wp_nonce_field( 'parisan_transition_booking_' . $booking['id'], 'parisan_booking_nonce' ); ?>
 					<button type="submit" class="button <?php echo 'cancelled' === $target_status ? 'button-link-delete' : 'button-secondary'; ?>" onclick="<?php echo esc_attr( $confirm_action ); ?>"><?php echo esc_html( $action_label ); ?></button>
 				</form>
