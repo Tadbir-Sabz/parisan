@@ -13,12 +13,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_VERSION', '0.23.0' );
+define( 'PARISAN_CORE_VERSION', '0.24.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PARISAN_CORE_URL', plugin_dir_url( __FILE__ ) );
 
 require_once PARISAN_CORE_DIR . 'includes/database.php';
+require_once PARISAN_CORE_DIR . 'includes/resources.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule.php';
 require_once PARISAN_CORE_DIR . 'includes/availability.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-service.php';
@@ -63,6 +64,12 @@ function parisan_core_register_post_types() {
 			'icon'     => 'dashicons-format-gallery',
 			'slug'     => 'portfolio',
 		),
+		'parisan_resource' => array(
+			'singular' => __( 'منبع سالن', 'parisan-core' ),
+			'plural'   => __( 'منابع سالن', 'parisan-core' ),
+			'icon'     => 'dashicons-building',
+			'slug'     => 'salon-resources',
+		),
 		'parisan_faq' => array(
 			'singular' => __( 'پرسش متداول', 'parisan-core' ),
 			'plural'   => __( 'پرسش‌های متداول', 'parisan-core' ),
@@ -87,11 +94,11 @@ function parisan_core_register_post_types() {
 					'not_found_in_trash' => __( 'موردی در زباله‌دان نیست.', 'parisan-core' ),
 					'menu_name'          => $labels['plural'],
 				),
-				'public'             => 'parisan_faq' === $type ? false : true,
-				'publicly_queryable' => 'parisan_faq' === $type ? false : true,
-				'exclude_from_search' => 'parisan_faq' === $type,
+				'public'             => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
+				'publicly_queryable' => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
+				'exclude_from_search' => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ),
 				'show_in_rest'       => true,
-				'has_archive'        => 'parisan_faq' === $type ? false : true,
+				'has_archive'        => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
 				'rewrite'            => array( 'slug' => $labels['slug'] ),
 				'menu_icon'          => $labels['icon'],
 				'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'custom-fields' ),
