@@ -72,7 +72,7 @@ parisan_test_expect( 3 === count( $buffered ), 'reserves before/after buffers an
 parisan_test_expect( '2026-11-09 09:30' === $buffered[0]['starts_at_local'], 'buffer prevents a slot from starting at opening time' );
 $break_slots = parisan_core_calculate_available_slots( '2026-11-09', $with_break, 'Europe/Berlin', 60, 30 );
 $break_starts = array_column( $break_slots, 'starts_at_local' );
-parisan_test_expect( ! in_array( '2026-11-09 12:00', $break_starts, true ) && ! in_array( '2026-11-09 12:30', $break_starts, true ), 'excludes appointments overlapping the recurring break' );
+parisan_test_expect( in_array( '2026-11-09 12:00', $break_starts, true ) && ! in_array( '2026-11-09 12:30', $break_starts, true ) && ! in_array( '2026-11-09 13:00', $break_starts, true ) && ! in_array( '2026-11-09 13:30', $break_starts, true ), 'allows a service ending at break start and excludes every overlapping appointment' );
 parisan_test_expect( in_array( '2026-11-09 14:00', $break_starts, true ) && ! in_array( '2026-11-09 13:00', $break_starts, true ), 'resumes availability after the recurring break ends' );
 
 $closed = parisan_core_calculate_available_slots( '2026-11-08', $weekly, 'Europe/Berlin', 60, 30 );
