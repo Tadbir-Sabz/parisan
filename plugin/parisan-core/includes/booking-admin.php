@@ -605,8 +605,8 @@ function parisan_core_render_booking_admin_page() {
 				<div class="parisan-calendar-heading"><h2 id="parisan-calendar-title"><?php esc_html_e( 'تقویم عملیاتی روز', 'parisan-core' ); ?> <span><?php echo esc_html( wp_date( 'l، j F Y', $booking_date_value->getTimestamp(), wp_timezone() ) ); ?></span></h2>
 					<nav aria-label="<?php esc_attr_e( 'جابجایی روز تقویم', 'parisan-core' ); ?>"><a class="button" href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'booking_date' => $previous_day, 'staff_id' => $staff_filter, 'resource_id' => $resource_filter, 'status' => $status_filter ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'روز قبل', 'parisan-core' ); ?></a> <a class="button" href="<?php echo esc_url( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-bookings', 'booking_date' => $next_day, 'staff_id' => $staff_filter, 'resource_id' => $resource_filter, 'status' => $status_filter ), admin_url( 'edit.php' ) ) ); ?>"><?php esc_html_e( 'روز بعد', 'parisan-core' ); ?></a></nav>
 				</div>
-				<?php if ( $calendar_rows ) : ?>
-					<div class="parisan-calendar-lanes">
+				<div class="parisan-calendar-lanes">
+					<?php if ( $calendar_rows ) : ?>
 						<?php foreach ( $staff_options as $calendar_staff ) : ?>
 							<?php $staff_day_rows = array_values( array_filter( $calendar_rows, static function ( $calendar_item ) use ( $calendar_staff ) { return (int) $calendar_item['staff_id'] === (int) $calendar_staff->ID; } ) ); if ( ! $staff_day_rows ) { continue; } ?>
 							<section class="parisan-calendar-lane"><h3><?php echo esc_html( get_the_title( $calendar_staff ) ); ?><small><?php echo esc_html( sprintf( _n( '%d نوبت', '%d نوبت', count( $staff_day_rows ), 'parisan-core' ), count( $staff_day_rows ) ) ); ?></small></h3>
@@ -616,8 +616,8 @@ function parisan_core_render_booking_admin_page() {
 								<?php endforeach; ?></ol>
 							</section>
 						<?php endforeach; ?>
-					</div>
-				<?php else : ?><p><?php esc_html_e( 'برای این روز و فیلترها نوبتی ثبت نشده است.', 'parisan-core' ); ?></p><?php endif; ?>
+					<?php else : ?><p><?php esc_html_e( 'برای این روز و فیلترها نوبتی ثبت نشده است.', 'parisan-core' ); ?></p><?php endif; ?>
+				</div>
 			</section>
 		<?php endif; ?>
 
