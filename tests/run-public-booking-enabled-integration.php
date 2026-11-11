@@ -309,6 +309,8 @@ $public_request->set_param( 'service_id', (int) $service_id );
 $public_request->set_param( 'starts_at_local', $booking_date . ' 12:00' );
 $public_request->set_param( 'customer_name', 'Synthetic REST Customer' );
 $public_request->set_param( 'customer_phone', '09123456780' );
+$public_request->set_param( 'customer_email', 'synthetic-rest@example.test' );
+$public_request->set_param( 'customer_email_consent', true );
 $public_response = parisan_core_rest_public_create_booking( $public_request );
 parisan_public_enabled_assert( 201 === $public_response->get_status(), 'same-origin public booking route returns a created pending booking' );
 $public_response_data = $public_response->get_data();
