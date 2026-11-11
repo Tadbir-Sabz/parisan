@@ -51,26 +51,40 @@ function parisan_core_handle_resource_maintenance_create() {
 	global $wpdb;
 	$bookings = $wpdb->prefix . 'parisan_bookings';
 	$relations = $wpdb->prefix . 'parisan_booking_resources';
-	$conflicts = (int) $wpdb->get_var( $wpdb->prepare(
+	$table = $wpdb->prefix . 'parisan_resource_maintenance';
+	$buffer_before = min( 240, absint( get_option( 'parisan_booking_buffer_before_minutes', 0 ) ) );
+	$buffer_after = min( 240, absint( get_option( 'parisan_booking_buffer_after_minutes', 0 ) ) );
+
+	// A maintenance window must not cut into the protected booking buffer.
+	$wpdb->last_error = '';
+	$conflicts_raw = $wpdb->get_var( $wpdb->prepare(
 		"SELECT COUNT(DISTINCT b.id) FROM {$bookings} b
 		LEFT JOIN {$relations} br ON br.booking_id = b.id
 		WHERE b.status IN ('pending','confirmed')
 		AND (b.resource_id = %d OR br.resource_id = %d)
-		AND b.starts_at_utc < %s AND b.ends_at_utc > %s",
+		AND b.starts_at_utc < DATE_ADD(%s, INTERVAL %d MINUTE)
+		AND b.ends_at_utc > DATE_SUB(%s, INTERVAL %d MINUTE)",
 		$resource_id,
 		$resource_id,
 		$end->format( 'Y-m-d H:i:s' ),
-		$start->format( 'Y-m-d H:i:s' )
+		$buffer_before,
+		$start->format( 'Y-m-d H:i:s' ),
+		$buffer_after
 	) );
-	$table = $wpdb->prefix . 'parisan_resource_maintenance';
-	$overlaps = (int) $wpdb->get_var( $wpdb->prepare(
+	$conflict_query_failed = null === $conflicts_raw || '' !== $wpdb->last_error;
+	$conflicts = $conflict_query_failed ? 0 : (int) $conflicts_raw;
+
+	$wpdb->last_error = '';
+	$overlaps_raw = $wpdb->get_var( $wpdb->prepare(
 		"SELECT COUNT(*) FROM {$table} WHERE resource_id = %d AND status = 'active'
 		AND starts_at_utc < %s AND ends_at_utc > %s",
 		$resource_id,
 		$end->format( 'Y-m-d H:i:s' ),
 		$start->format( 'Y-m-d H:i:s' )
 	) );
-	$query_failed = $conflict_query_failed || '' !== $wpdb->last_error;
+	$maintenance_query_failed = null === $overlaps_raw || '' !== $wpdb->last_error;
+	$overlaps = $maintenance_query_failed ? 0 : (int) $overlaps_raw;
+	$query_failed = $conflict_query_failed || $maintenance_query_failed;
 	$inserted = false;
 	if ( ! $query_failed && ! $conflicts && ! $overlaps ) {
 		$inserted = $wpdb->insert( $table, array(
