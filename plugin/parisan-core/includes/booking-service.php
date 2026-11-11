@@ -123,7 +123,7 @@ function parisan_core_create_booking( $input ) {
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
-	foreach ( array( $bookings_table, $events_table ) as $table ) {
+	foreach ( array( $bookings_table, $events_table, $wpdb->prefix . 'parisan_booking_resources' ) as $table ) {
 		$status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $status ) || empty( $status['Engine'] ) || 'innodb' !== strtolower( $status['Engine'] ) ) {
 			return new WP_Error( 'parisan_transaction_storage_unavailable', __( 'ذخیره‌ساز تراکنشی امن برای رزرو آماده نیست.', 'parisan-core' ) );
@@ -136,6 +136,7 @@ function parisan_core_create_booking( $input ) {
 	}
 	$resource_locks = parisan_core_acquire_resource_schedule_locks( parisan_core_get_service_resource_ids( $service_id ) );
 	if ( is_wp_error( $resource_locks ) ) {
+		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_staff_schedule_lock( $lock_name );
 		return new WP_Error( 'parisan_resource_lock_unavailable', __( 'ظرفیت منابع خدمت در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
