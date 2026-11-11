@@ -588,3 +588,24 @@ function parisan_core_check_rate_limit( $scope, $limit = 5, $window = 300 ) {
 		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
 	}
 }
+
+
+function parisan_core_waitlist_privacy_eraser( $erasers ) {
+	$erasers['parisan-waitlist'] = array( 'eraser_friendly_name' => __( 'درخواست‌های فهرست انتظار پاریسان', 'parisan-core' ), 'callback' => 'parisan_core_waitlist_privacy_eraser_callback' );
+	return $erasers;
+}
+add_filter( 'wp_privacy_personal_data_erasers', 'parisan_core_waitlist_privacy_eraser' );
+
+function parisan_core_waitlist_privacy_eraser_callback( $email, $page = 1 ) {
+	global $wpdb;
+	if ( ! is_email( $email ) ) { return array( 'items_removed' => false, 'items_retained' => false, 'messages' => array(), 'done' => true ); }
+	$table = $wpdb->prefix . 'parisan_booking_waitlist';
+	$ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$table} WHERE customer_email=%s ORDER BY id ASC LIMIT 50", $email ) );
+	if ( $ids ) {
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE id IN ({$placeholders})", array_map( 'absint', $ids ) ) );
+		if ( false === $deleted ) { return array( 'items_removed' => false, 'items_retained' => true, 'messages' => array( __( 'حذف اطلاعات فهرست انتظار کامل نشد.', 'parisan-core' ) ), 'done' => false ); }
+	}
+	$remaining = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE customer_email=%s", $email ) );
+	return array( 'items_removed' => (bool) $ids, 'items_retained' => false, 'messages' => array(), 'done' => 0 === $remaining );
+}
