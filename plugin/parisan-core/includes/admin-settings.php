@@ -50,6 +50,28 @@ function parisan_core_sanitize_booking_buffer( $value ) {
 }
 
 /**
+ * Sanitize the minimum lead time before an appointment.
+ *
+ * @param mixed $value Submitted value.
+ * @return int
+ */
+function parisan_core_sanitize_booking_lead_time( $value ) {
+	$value = is_scalar( $value ) ? (int) $value : 0;
+	return min( 10080, max( 0, $value ) );
+}
+
+/**
+ * Sanitize the maximum booking horizon in days.
+ *
+ * @param mixed $value Submitted value.
+ * @return int
+ */
+function parisan_core_sanitize_booking_horizon( $value ) {
+	$value = is_scalar( $value ) ? (int) $value : 90;
+	return min( 365, max( 1, $value ) );
+}
+
+/**
  * Register settings that are already consumed by the availability engine.
  *
  * @return void
@@ -82,6 +104,24 @@ function parisan_core_register_booking_settings() {
 			'sanitize_callback' => 'parisan_core_sanitize_booking_buffer',
 		)
 	);
+	register_setting(
+		'parisan_core_booking',
+		'parisan_booking_lead_time_minutes',
+		array(
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'parisan_core_sanitize_booking_lead_time',
+		)
+	);
+	register_setting(
+		'parisan_core_booking',
+		'parisan_booking_horizon_days',
+		array(
+			'type'              => 'integer',
+			'default'           => 90,
+			'sanitize_callback' => 'parisan_core_sanitize_booking_horizon',
+		)
+	);
 
 	add_settings_section(
 		'parisan_core_booking_rules',
@@ -107,6 +147,20 @@ function parisan_core_register_booking_settings() {
 		'parisan_booking_buffer_after_minutes',
 		__( 'زمان جمع‌بندی پس از خدمت', 'parisan-core' ),
 		'parisan_core_render_booking_buffer_after_field',
+		'parisan-core-booking-settings',
+		'parisan_core_booking_rules'
+	);
+	add_settings_field(
+		'parisan_booking_lead_time_minutes',
+		__( 'حداقل فاصله تا نوبت', 'parisan-core' ),
+		'parisan_core_render_booking_lead_time_field',
+		'parisan-core-booking-settings',
+		'parisan_core_booking_rules'
+	);
+	add_settings_field(
+		'parisan_booking_horizon_days',
+		__( 'حداکثر بازه رزرو', 'parisan-core' ),
+		'parisan_core_render_booking_horizon_field',
 		'parisan-core-booking-settings',
 		'parisan_core_booking_rules'
 	);
@@ -197,9 +251,9 @@ function parisan_core_render_settings_hub() {
 		),
 		array(
 			__( 'قوانین رزرو و زمان‌بندی', 'parisan-core' ),
-			__( 'فاصله شروع نوبت‌ها و زمان آماده‌سازی پیش و پس از هر خدمت را تعیین کنید.', 'parisan-core' ),
+			__( 'فاصله شروع نوبت‌ها، زمان آماده‌سازی، حداقل فاصله تا نوبت و حداکثر بازه قابل رزرو را تعیین کنید.', 'parisan-core' ),
 			admin_url( 'edit.php?post_type=parisan_staff&page=parisan-booking-settings' ),
-			__( 'این مقادیر مستقیماً در محاسبه زمان‌های آزاد استفاده می‌شوند.', 'parisan-core' ),
+			__( 'این قواعد در نمایش زمان‌های آزاد و اعتبارسنجی نهایی ثبت و تغییر نوبت اعمال می‌شوند.', 'parisan-core' ),
 		),
 		array(
 			__( 'سئو و عملکرد', 'parisan-core' ),
@@ -239,6 +293,7 @@ function parisan_core_render_settings_hub() {
 function parisan_core_render_booking_settings_intro() {
 	echo '<p>' . esc_html__( 'این مقادیر روی محاسبه زمان‌های قابل رزرو اثر مستقیم دارند. ساعت کاری هر متخصص را جداگانه در برنامه هفتگی او تنظیم کنید.', 'parisan-core' ) . '</p>';
 	echo '<p>' . esc_html__( 'منطقه زمانی از تنظیمات عمومی وردپرس خوانده می‌شود؛ پیش از تعریف برنامه کاری، آن را بررسی کنید.', 'parisan-core' ) . '</p>';
+	echo '<p>' . esc_html__( 'قواعد حداقل فاصله و افق رزرو برای نوبت‌های سالن اعمال می‌شوند و فقط محدودیت ظاهری فرم نیستند.', 'parisan-core' ) . '</p>';
 }
 
 /** Render the slot interval selector. */
@@ -263,6 +318,20 @@ function parisan_core_render_booking_buffer_after_field() {
 	$value = parisan_core_sanitize_booking_buffer( get_option( 'parisan_booking_buffer_after_minutes', 0 ) );
 	printf( '<input type="number" min="0" max="240" step="5" class="small-text" name="parisan_booking_buffer_after_minutes" id="parisan_booking_buffer_after_minutes" value="%1$d"> <span>%2$s</span>', esc_attr( $value ), esc_html__( 'دقیقه', 'parisan-core' ) );
 	echo '<p class="description">' . esc_html__( 'برای نظافت، ضدعفونی یا جمع‌بندی پس از خدمت؛ صفر یعنی بدون فاصله اضافی.', 'parisan-core' ) . '</p>';
+}
+
+/** Render the minimum booking lead-time field. */
+function parisan_core_render_booking_lead_time_field() {
+	$value = parisan_core_sanitize_booking_lead_time( get_option( 'parisan_booking_lead_time_minutes', 0 ) );
+	printf( '<input type="number" min="0" max="10080" step="15" class="small-text" name="parisan_booking_lead_time_minutes" id="parisan_booking_lead_time_minutes" value="%1$d"> <span>%2$s</span>', esc_attr( $value ), esc_html__( 'دقیقه', 'parisan-core' ) );
+	echo '<p class="description">' . esc_html__( 'رزروهای نزدیک‌تر از این فاصله زمانی نمایش داده یا ثبت نمی‌شوند؛ صفر یعنی بدون محدودیت اضافی.', 'parisan-core' ) . '</p>';
+}
+
+/** Render the maximum booking horizon field. */
+function parisan_core_render_booking_horizon_field() {
+	$value = parisan_core_sanitize_booking_horizon( get_option( 'parisan_booking_horizon_days', 90 ) );
+	printf( '<input type="number" min="1" max="365" step="1" class="small-text" name="parisan_booking_horizon_days" id="parisan_booking_horizon_days" value="%1$d"> <span>%2$s</span>', esc_attr( $value ), esc_html__( 'روز', 'parisan-core' ) );
+	echo '<p class="description">' . esc_html__( 'مشتری فقط تا این تعداد روز آینده می‌تواند زمان آزاد ببیند، رزرو کند یا نوبت خود را جابه‌جا کند.', 'parisan-core' ) . '</p>';
 }
 
 /**
