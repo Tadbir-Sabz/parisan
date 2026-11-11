@@ -401,6 +401,9 @@ function parisan_core_request_is_private_or_booking() {
 	if ( isset( $_GET['rest_route'] ) && is_scalar( $_GET['rest_route'] ) && false !== strpos( (string) wp_unslash( $_GET['rest_route'] ), '/parisan/v1/' ) ) {
 		return true;
 	}
+	if ( function_exists( 'is_page' ) && is_page( 'contact' ) ) {
+		return true;
+	}
 	if ( function_exists( 'is_singular' ) && is_singular() ) {
 		$post = get_queried_object();
 		if ( $post instanceof WP_Post && has_shortcode( $post->post_content, 'parisan_booking' ) ) {
