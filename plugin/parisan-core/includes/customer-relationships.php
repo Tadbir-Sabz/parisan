@@ -80,7 +80,22 @@ function parisan_core_render_customer_relationship_page() {
 	$staff_ids=get_posts(array('post_type'=>'parisan_staff','post_status'=>array('publish','draft','private'),'posts_per_page'=>-1,'fields'=>'ids','no_found_rows'=>true,'perm'=>'editable'));
 	$staff_ids=array_values(array_filter(array_map('absint',$staff_ids),static function($id){return current_user_can('edit_post',$id);}));
 	$ids=$staff_ids?implode(',',array_map('absint',$staff_ids)):'0';
+
 	echo '<div class="wrap"><h1>یادداشت‌ها و پیگیری مشتریان</h1><p>دسترسی هر مشتری از روی متخصصان مرتبط و قابل ویرایش برای کاربر جاری کنترل می‌شود.</p>';
+	$leads = $wpdb->get_results("SELECT i.id,i.customer_name,i.customer_phone,i.subject_key,i.created_at_utc,l.customer_phone AS linked_phone FROM {$wpdb->prefix}parisan_contact_inquiries i LEFT JOIN {$wpdb->prefix}parisan_inquiry_customer_links l ON l.inquiry_id=i.id ORDER BY i.created_at_utc DESC LIMIT 100", ARRAY_A);
+	echo '<h2>درخواست‌های تماس</h2><table class="widefat striped"><thead><tr><th>نام</th><th>تلفن</th><th>موضوع</th><th>اتصال</th><th></th></tr></thead><tbody>';
+	foreach ((array)$leads as $lead) {
+		echo '<tr><td>'.esc_html($lead['customer_name']).'</td><td dir="ltr">'.esc_html($lead['customer_phone']).'</td><td>'.esc_html($lead['subject_key']).'</td><td>'.esc_html($lead['linked_phone']?'متصل':'متصل‌نشده').'</td><td>';
+		if (!$lead['linked_phone']) {
+			echo '<form method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="parisan_link_inquiry_customer"><input type="hidden" name="inquiry_id" value="'.esc_attr($lead['id']).'">';
+			wp_nonce_field('parisan_inquiry_customer_link','parisan_link_nonce');
+			echo '<button class="button">اتصال به پرونده مشتری</button></form>';
+		}
+		echo '</td></tr>';
+	}
+	if (!$leads) { echo '<tr><td colspan="5">درخواست تماسی وجود ندارد.</td></tr>'; }
+	echo '</tbody></table><h2>پرونده‌های مشتریان</h2>';
+
 	if($phone){
 		$booking=$wpdb->get_row($wpdb->prepare("SELECT customer_name,customer_phone FROM {$bookings} WHERE customer_phone=%s AND staff_id IN ({$ids}) ORDER BY starts_at_utc DESC LIMIT 1",$phone),ARRAY_A);
 		if(!$booking){wp_die(esc_html__('مشتری در محدوده دسترسی شما پیدا نشد.','parisan-core'),'',array('response'=>404));}
