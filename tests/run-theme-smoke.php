@@ -306,4 +306,18 @@ parisan_theme_smoke_assert( false !== strpos( $search_template, 'get_post_type_o
 parisan_theme_smoke_assert( false !== strpos( $search_template, 'the_posts_pagination' ) && false !== strpos( $archive_template, 'the_posts_pagination' ), 'search and archive results both retain pagination' );
 $theme_styles = file_get_contents( $theme_root . '/assets/css/main.css' );
 parisan_theme_smoke_assert( false !== strpos( $theme_styles, '.parisan-content-index' ) || false !== strpos( $theme_styles, '.post-grid' ), 'content fallback reuses the established editorial design system' );
+
+parisan_theme_smoke_assert( function_exists( 'parisan_core_register_finance_admin_page' ) && function_exists( 'parisan_core_render_finance_admin_page' ), 'read-only salon finance workspace is registered and renderable' );
+$finance_source = file_get_contents( dirname( __DIR__ ) . '/plugin/parisan-core/includes/finance-admin.php' );
+parisan_theme_smoke_assert( false !== strpos( $finance_source, "status='completed'" ) && false !== strpos( $finance_source, 'recognized_irr' ), 'finance revenue is derived only from completed booking snapshots' );
+parisan_theme_smoke_assert( false !== strpos( $finance_source, "current_user_can( 'edit_post', $id )" ) && false !== strpos( $finance_source, 'staff_id IN (' ), 'finance aggregate queries are constrained to editable specialist IDs' );
+parisan_theme_smoke_assert( false !== strpos( $finance_source, 'parisan_core_finance_range' ) && false !== strpos( $finance_source, 'wp_timezone()' ), 'finance report uses salon-local date boundaries converted to UTC' );
+$public_service_archive = file_get_contents( $theme_root . '/archive-parisan_service.php' );
+$public_staff_archive = file_get_contents( $theme_root . '/archive-parisan_staff.php' );
+$public_service_single = file_get_contents( $theme_root . '/single-parisan_service.php' );
+$public_staff_single = file_get_contents( $theme_root . '/single-parisan_staff.php' );
+parisan_theme_smoke_assert( false !== strpos( $public_service_archive, '/contact/' ) && false !== strpos( $public_staff_archive, '/contact/' ), 'public service and specialist archives provide contact CTAs' );
+parisan_theme_smoke_assert( false !== strpos( $public_service_single, '/contact/' ) && false !== strpos( $public_staff_single, '/contact/' ), 'public service and specialist detail pages route enquiries to salon contact, not online booking' );
+parisan_theme_smoke_assert( false !== strpos( $public_staff_single, '_parisan_staff_services' ) && false !== strpos( $public_service_single, '_parisan_price' ), 'public detail templates expose existing specialist-service and service-pricing data' );
+
 echo "PASS: Parisan theme, portfolio content, dynamic homepage, booking disabled state, SEO controls, sanitization, and private-cache guards.\\n";
