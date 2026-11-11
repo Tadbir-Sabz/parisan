@@ -92,6 +92,43 @@ $first_customer_token = $base_input['customer_access_token'];
 $first_booking = parisan_core_create_booking( $base_input );
 parisan_public_enabled_assert( ! is_wp_error( $first_booking ), 'public booking service creates a pending booking with scoped token' );
 
+$resource_one = wp_insert_post( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'post_title' => 'Synthetic Treatment Bed A' ), true );
+$resource_two = wp_insert_post( array( 'post_type' => 'parisan_resource', 'post_status' => 'publish', 'post_title' => 'Synthetic Treatment Bed B' ), true );
+parisan_public_enabled_assert( ! is_wp_error( $resource_one ) && ! is_wp_error( $resource_two ), 'synthetic shared treatment resources are created' );
+update_post_meta( $service_id, '_parisan_service_resources', array( (int) $resource_one, (int) $resource_two ) );
+parisan_public_enabled_assert( array( (int) $resource_one, (int) $resource_two ) === parisan_core_get_service_resource_ids( $service_id ), 'service resource pool resolves only published resources in stable order' );
+
+$resource_staff_ids = array();
+foreach ( array( 'B', 'C', 'D' ) as $suffix ) {
+	$resource_staff = wp_insert_post( array( 'post_type' => 'parisan_staff', 'post_status' => 'publish', 'post_title' => 'Synthetic Resource Specialist ' . $suffix ), true );
+	parisan_public_enabled_assert( ! is_wp_error( $resource_staff ), 'additional synthetic resource specialist is created' );
+	update_post_meta( $resource_staff, '_parisan_staff_services', array( (int) $service_id ) );
+	update_post_meta( $resource_staff, '_parisan_staff_weekly_schedule', array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) ) );
+	$resource_staff_ids[] = (int) $resource_staff;
+}
+$resource_booking_input = $base_input;
+$resource_booking_input['staff_id'] = $resource_staff_ids[0];
+$resource_booking_input['starts_at_local'] = $booking_date . ' 11:00';
+$resource_booking_input['idempotency_token'] = str_repeat( 'c', 64 );
+$resource_booking_input['customer_access_token'] = '';
+$resource_booking_one = parisan_core_create_booking( $resource_booking_input );
+parisan_public_enabled_assert( ! is_wp_error( $resource_booking_one ), 'first specialist reserves the first free shared resource' );
+$bookings_table = $wpdb->prefix . 'parisan_bookings';
+$assigned_one = (int) $wpdb->get_var( $wpdb->prepare( "SELECT resource_id FROM {$bookings_table} WHERE id = %d", (int) $resource_booking_one['booking_id'] ) );
+parisan_public_enabled_assert( (int) $resource_one === $assigned_one, 'booking persists the selected resource id' );
+
+$resource_booking_input['staff_id'] = $resource_staff_ids[1];
+$resource_booking_input['idempotency_token'] = str_repeat( 'd', 64 );
+$resource_booking_two = parisan_core_create_booking( $resource_booking_input );
+parisan_public_enabled_assert( ! is_wp_error( $resource_booking_two ), 'second specialist can use the second free resource at the same time' );
+$assigned_two = (int) $wpdb->get_var( $wpdb->prepare( "SELECT resource_id FROM {$bookings_table} WHERE id = %d", (int) $resource_booking_two['booking_id'] ) );
+parisan_public_enabled_assert( (int) $resource_two === $assigned_two, 'parallel service capacity assigns a distinct resource to the second specialist' );
+
+$resource_booking_input['staff_id'] = $resource_staff_ids[2];
+$resource_booking_input['idempotency_token'] = str_repeat( 'e', 64 );
+$resource_exhausted = parisan_core_create_booking( $resource_booking_input );
+parisan_public_enabled_assert( is_wp_error( $resource_exhausted ) && 'parisan_booking_slot_unavailable' === $resource_exhausted->get_error_code(), 'booking is rejected when all shared resources are occupied despite another free specialist' );
+
 $conflicting_input = $base_input;
 $conflicting_input['customer_name'] = 'Different Synthetic Customer';
 $conflicting_input['customer_access_token'] = bin2hex( random_bytes( 32 ) );
