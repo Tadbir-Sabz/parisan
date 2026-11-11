@@ -155,6 +155,7 @@ function parisan_core_handle_manual_booking_create() {
 	$name = isset( $_POST['customer_name'] ) && is_string( $_POST['customer_name'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_name'] ) ) : '';
 	$phone = isset( $_POST['customer_phone'] ) && is_string( $_POST['customer_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['customer_phone'] ) ) : '';
 	$email = isset( $_POST['customer_email'] ) && is_string( $_POST['customer_email'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['customer_email'] ) ) ) : '';
+	$email_consent = ! empty( $_POST['customer_email_consent'] );
 	$token = isset( $_POST['idempotency_token'] ) && is_string( $_POST['idempotency_token'] ) ? sanitize_text_field( wp_unslash( $_POST['idempotency_token'] ) ) : '';
 
 	if ( ! $staff_id || ! $service_id || 'parisan_staff' !== get_post_type( $staff_id ) || 'parisan_service' !== get_post_type( $service_id ) || ! current_user_can( 'edit_post', $staff_id ) || ! current_user_can( 'edit_post', $service_id ) ) {
@@ -174,6 +175,7 @@ function parisan_core_handle_manual_booking_create() {
 			'customer_name' => $name,
 			'customer_phone' => $phone,
 			'customer_email' => $email,
+			'customer_email_consent' => $email_consent,
 			'idempotency_token' => $token,
 		)
 	);
@@ -560,6 +562,7 @@ function parisan_core_render_booking_admin_page() {
 					<tr><th scope="row"><label for="parisan-manual-customer"><?php esc_html_e( 'نام مشتری', 'parisan-core' ); ?></label></th><td><input required type="text" maxlength="190" class="regular-text" id="parisan-manual-customer" name="customer_name"></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-phone"><?php esc_html_e( 'شماره تماس', 'parisan-core' ); ?></label></th><td><input required type="tel" inputmode="tel" maxlength="24" class="regular-text" id="parisan-manual-phone" name="customer_phone" dir="ltr"></td></tr>
 					<tr><th scope="row"><label for="parisan-manual-email"><?php esc_html_e( 'ایمیل (اختیاری)', 'parisan-core' ); ?></label></th><td><input type="email" maxlength="190" class="regular-text" id="parisan-manual-email" name="customer_email" dir="ltr"></td></tr>
+					<tr><th scope="row"><?php esc_html_e( 'یادآوری ایمیلی', 'parisan-core' ); ?></th><td><label><input type="checkbox" name="customer_email_consent" value="1"> <?php esc_html_e( 'مشتری صریحاً با دریافت یادآورهای نوبت از طریق ایمیل موافقت کرده است.', 'parisan-core' ); ?></label><p class="description"><?php esc_html_e( 'در صورت انتخاب، ایمیل معتبر الزامی است. بدون رضایت ثبت‌شده هیچ یادآوری‌ای ارسال نمی‌شود.', 'parisan-core' ); ?></p></td></tr>
 				</tbody></table>
 				<button type="submit" id="parisan-manual-submit" class="button button-primary" disabled><?php esc_html_e( 'ثبت نوبت در انتظار تأیید', 'parisan-core' ); ?></button>
 			</form>
