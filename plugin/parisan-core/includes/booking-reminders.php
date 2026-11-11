@@ -116,17 +116,39 @@ function parisan_core_register_reminder_admin_page() {
 }
 add_action( 'admin_menu', 'parisan_core_register_reminder_admin_page' );
 
+function parisan_core_handle_reminder_consent_revocation() {
+	if ( ! current_user_can( 'edit_others_posts' ) ) { wp_die( esc_html__( 'اجازه تغییر رضایت ایمیل را ندارید.', 'parisan-core' ), '', array( 'response' => 403 ) ); }
+	$booking_id = isset( $_POST['booking_id'] ) ? absint( $_POST['booking_id'] ) : 0;
+	check_admin_referer( 'parisan_revoke_reminder_consent_' . $booking_id );
+	global $wpdb;
+	$bookings = $wpdb->prefix . 'parisan_bookings';
+	$booking = $wpdb->get_row( $wpdb->prepare( "SELECT staff_id FROM {$bookings} WHERE id=%d", $booking_id ), ARRAY_A );
+	if ( ! is_array( $booking ) || ! current_user_can( 'edit_post', (int) $booking['staff_id'] ) ) { wp_die( esc_html__( 'اجازه تغییر این رزرو را ندارید.', 'parisan-core' ), '', array( 'response' => 403 ) ); }
+	$updated = $wpdb->update( $bookings, array( 'customer_email_consent' => 0, 'updated_at_utc' => current_time( 'mysql', true ) ), array( 'id' => $booking_id ), array( '%d','%s' ), array( '%d' ) );
+	if ( false === $updated ) { wp_die( esc_html__( 'لغو رضایت ایمیل انجام نشد.', 'parisan-core' ), '', array( 'response' => 503 ) ); }
+	parisan_core_skip_booking_reminders( $booking_id, 'email_consent_revoked' );
+	wp_safe_redirect( add_query_arg( array( 'post_type' => 'parisan_staff', 'page' => 'parisan-booking-reminders', 'consent_revoked' => 1 ), admin_url( 'edit.php' ) ) );
+	exit;
+}
+add_action( 'admin_post_parisan_revoke_reminder_consent', 'parisan_core_handle_reminder_consent_revocation' );
+
 function parisan_core_render_reminder_admin_page() {
 	if ( ! current_user_can( 'edit_others_posts' ) ) { wp_die( esc_html__( 'اجازه مشاهده وضعیت یادآورها را ندارید.', 'parisan-core' ), '', array( 'response' => 403 ) ); }
 	global $wpdb;
 	$queue = $wpdb->prefix . 'parisan_booking_reminders';
-	$rows = $wpdb->get_results( "SELECT r.*,b.customer_name,b.customer_email,b.starts_at_utc FROM {$queue} r LEFT JOIN {$wpdb->prefix}parisan_bookings b ON b.id=r.booking_id ORDER BY r.scheduled_at_utc DESC LIMIT 200", ARRAY_A );
+	$rows = $wpdb->get_results( "SELECT r.*,b.customer_name,b.customer_email,b.customer_email_consent,b.starts_at_utc FROM {$queue} r LEFT JOIN {$wpdb->prefix}parisan_bookings b ON b.id=r.booking_id ORDER BY r.scheduled_at_utc DESC LIMIT 200", ARRAY_A );
 	$labels = array( 'pending'=>'در انتظار ارسال', 'sending'=>'در حال ارسال', 'sent'=>'ارسال‌شده', 'failed'=>'ناموفق', 'skipped'=>'ردشده' );
 	echo '<div class="wrap" dir="rtl"><h1>وضعیت یادآورهای نوبت</h1><p>یادآورها فقط برای مشتریانی ساخته می‌شوند که هنگام رزرو، رضایت صریح دریافت ایمیل یادآوری را ثبت کرده باشند. ارسال به زیرساخت ایمیل WordPress (wp_mail) وابسته است؛ این بخش پیامک ارسال نمی‌کند.</p>';
-	echo '<table class="widefat striped"><thead><tr><th>مشتری</th><th>ایمیل</th><th>زمان نوبت (UTC)</th><th>نوع یادآور</th><th>زمان برنامه‌ریزی (UTC)</th><th>وضعیت</th><th>تلاش</th></tr></thead><tbody>';
+	echo '<table class="widefat striped"><thead><tr><th>مشتری</th><th>ایمیل</th><th>زمان نوبت (UTC)</th><th>نوع یادآور</th><th>زمان برنامه‌ریزی (UTC)</th><th>وضعیت</th><th>تلاش</th><th>رضایت</th></tr></thead><tbody>';
 	foreach ( (array) $rows as $row ) {
-		echo '<tr><td>' . esc_html( $row['customer_name'] ) . '</td><td dir="ltr">' . esc_html( $row['customer_email'] ) . '</td><td>' . esc_html( $row['starts_at_utc'] ) . '</td><td>' . esc_html( '24h' === $row['reminder_kind'] ? '۲۴ ساعت قبل' : '۲ ساعت قبل' ) . '</td><td>' . esc_html( $row['scheduled_at_utc'] ) . '</td><td>' . esc_html( $labels[ $row['status'] ] ?? $row['status'] ) . '</td><td>' . esc_html( (int) $row['attempts'] ) . '</td></tr>';
+		echo '<tr><td>' . esc_html( $row['customer_name'] ) . '</td><td dir="ltr">' . esc_html( $row['customer_email'] ) . '</td><td>' . esc_html( $row['starts_at_utc'] ) . '</td><td>' . esc_html( '24h' === $row['reminder_kind'] ? '۲۴ ساعت قبل' : '۲ ساعت قبل' ) . '</td><td>' . esc_html( $row['scheduled_at_utc'] ) . '</td><td>' . esc_html( $labels[ $row['status'] ] ?? $row['status'] ) . '</td><td>' . esc_html( (int) $row['attempts'] ) . '</td><td>';
+		if ( 1 === (int) $row['customer_email_consent'] ) {
+			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="parisan_revoke_reminder_consent"><input type="hidden" name="booking_id" value="' . esc_attr( $row['booking_id'] ) . '">';
+			wp_nonce_field( 'parisan_revoke_reminder_consent_' . (int) $row['booking_id'] );
+			echo '<button class="button button-small" type="submit">لغو رضایت ایمیل</button></form>';
+		}
+		echo '</td></tr>';
 	}
-	if ( ! $rows ) { echo '<tr><td colspan="7">یادآوری‌ای ثبت نشده است.</td></tr>'; }
+	if ( ! $rows ) { echo '<tr><td colspan="8">یادآوری‌ای ثبت نشده است.</td></tr>'; }
 	echo '</tbody></table></div>';
 }
