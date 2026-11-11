@@ -144,7 +144,13 @@ function parisan_core_save_service_resources( $post_id ) {
 	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_revision( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 		return;
 	}
-	$submitted = isset( $_POST['parisan_service_resources'] ) && is_array( $_POST['parisan_service_resources'] ) ? array_map( 'absint', wp_unslash( $_POST['parisan_service_resources'] ) ) : array();
+	$raw_submitted = isset( $_POST['parisan_service_resources'] ) && is_array( $_POST['parisan_service_resources'] ) ? wp_unslash( $_POST['parisan_service_resources'] ) : array();
+	$submitted = array();
+	foreach ( $raw_submitted as $raw_id ) {
+		if ( is_scalar( $raw_id ) ) {
+			$submitted[] = absint( $raw_id );
+		}
+	}
 	$valid = array();
 	foreach ( array_unique( $submitted ) as $resource_id ) {
 		if ( $resource_id && 'publish' === get_post_status( $resource_id ) && 'parisan_resource' === get_post_type( $resource_id ) ) {
@@ -164,7 +170,7 @@ add_action( 'save_post_parisan_service', 'parisan_core_save_service_resources', 
  */
 function parisan_core_get_service_resource_ids( $service_id ) {
 	$ids = get_post_meta( absint( $service_id ), '_parisan_service_resources', true );
-	$ids = is_array( $ids ) ? array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) ) : array();
+	$ids = is_array( $ids ) ? array_values( array_unique( array_filter( array_map( static function ( $id ) { return is_scalar( $id ) ? absint( $id ) : 0; }, $ids ) ) ) : array();
 	$valid = array();
 	foreach ( $ids as $id ) {
 		if ( 'publish' === get_post_status( $id ) && 'parisan_resource' === get_post_type( $id ) ) {
@@ -184,7 +190,7 @@ function parisan_core_get_service_resource_ids( $service_id ) {
  */
 function parisan_core_service_requires_resources( $service_id ) {
 	$configured = get_post_meta( absint( $service_id ), '_parisan_service_resources', true );
-	return is_array( $configured ) && ! empty( $configured );
+	return ! empty( $configured );
 }
 
 /**
