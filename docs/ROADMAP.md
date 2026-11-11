@@ -347,3 +347,21 @@ Do not infer runtime readiness from source files. Replace this section only with
 - [ ] Validate role boundaries, overdue/timezone edge cases, seeded MariaDB data, and browser RTL layout on the exact head SHA.
 
 These changes do not enable public booking, payment processing, or SMS delivery.
+
+
+## Booking operations and auditability — 2026-11-11
+
+### Task 1: Operational performance report
+- [x] Add a specialist/service/status aggregate report with salon-local inclusive date filtering.
+- [x] Scope every aggregate and specialist filter to records the current operator can edit; reject forged out-of-scope specialist IDs.
+- [x] Add UTF-8 CSV export protected by WordPress capability and nonce checks.
+- [x] Escape spreadsheet formula-leading untrusted text cells and distinguish completed-booking recorded value from cash received or profit.
+- [ ] Run PHP lint, seeded WordPress/MariaDB report tests, CSV formula-injection fixtures, and role-boundary checks on the exact head.
+
+### Task 2: Cancellation and no-show audit reasons
+- [x] Require a non-empty reason in the admin transition handler before cancellation or no-show.
+- [x] Pass the sanitized reason through the existing transactional lifecycle into the immutable booking event note.
+- [x] Expose required reason fields in both booking list actions and booking detail actions.
+- [ ] Verify the rendered forms, audit timeline, and failure/rollback behavior in a live WordPress browser session.
+
+No public booking, payment, SMS, production deployment, or PR merge is enabled by these changes.
