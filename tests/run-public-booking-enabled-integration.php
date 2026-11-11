@@ -137,6 +137,34 @@ parisan_public_enabled_assert( is_array( $inactive_resource_slots ) && empty( $i
 wp_update_post( array( 'ID' => (int) $resource_one, 'post_status' => 'publish' ) );
 wp_update_post( array( 'ID' => (int) $resource_two, 'post_status' => 'publish' ) );
 
+$shared_service_id = wp_insert_post( array( 'post_type' => 'parisan_service', 'post_status' => 'publish', 'post_title' => 'Synthetic Shared Resource Service' ), true );
+parisan_public_enabled_assert( ! is_wp_error( $shared_service_id ), 'synthetic second service is created for shared-resource legacy coverage' );
+update_post_meta( $shared_service_id, '_parisan_duration', 45 );
+update_post_meta( $shared_service_id, '_parisan_price', 120000 );
+update_post_meta( $shared_service_id, '_parisan_price_type', 'fixed' );
+$shared_staff_id = wp_insert_post( array( 'post_type' => 'parisan_staff', 'post_status' => 'publish', 'post_title' => 'Synthetic Shared Resource Specialist' ), true );
+parisan_public_enabled_assert( ! is_wp_error( $shared_staff_id ), 'synthetic specialist for the second service is created' );
+update_post_meta( $shared_staff_id, '_parisan_staff_services', array( (int) $shared_service_id ) );
+update_post_meta( $shared_staff_id, '_parisan_staff_weekly_schedule', array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) ) );
+$legacy_shared_input = $base_input;
+$legacy_shared_input['service_id'] = (int) $shared_service_id;
+$legacy_shared_input['staff_id'] = (int) $shared_staff_id;
+$legacy_shared_input['starts_at_local'] = $booking_date . ' 13:00';
+$legacy_shared_input['idempotency_token'] = str_repeat( 'f', 64 );
+$legacy_shared_input['customer_access_token'] = '';
+$legacy_shared_booking = parisan_core_create_booking( $legacy_shared_input );
+parisan_public_enabled_assert( ! is_wp_error( $legacy_shared_booking ), 'legacy booking is created before the second service is assigned a shared resource' );
+update_post_meta( $shared_service_id, '_parisan_service_resources', array( (int) $resource_one ) );
+$shared_resource_slots = parisan_core_get_available_slots( $resource_staff_ids[2], $service_id, $booking_date );
+$shared_slot = null;
+foreach ( $shared_resource_slots as $candidate_slot ) {
+	if ( $booking_date . ' 13:00' === $candidate_slot['starts_at_local'] ) {
+		$shared_slot = $candidate_slot;
+		break;
+	}
+}
+parisan_public_enabled_assert( is_array( $shared_slot ) && (int) $resource_two === (int) $shared_slot['resource_id'], 'legacy booking of another service sharing resource A leaves only resource B available' );
+
 $conflicting_input = $base_input;
 $conflicting_input['customer_name'] = 'Different Synthetic Customer';
 $conflicting_input['customer_access_token'] = bin2hex( random_bytes( 32 ) );
