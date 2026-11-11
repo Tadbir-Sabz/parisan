@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 6 );
+define( 'PARISAN_CORE_DB_VERSION', 7 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -122,6 +122,50 @@ function parisan_core_install_database() {
 	$contact_inquiries_table = $wpdb->prefix . 'parisan_contact_inquiries';
 	$contact_inquiries_sql = "CREATE TABLE {$contact_inquiries_table} (\n\t\tid bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n\t\tcustomer_name varchar(120) NOT NULL,\n\t\tcustomer_phone varchar(24) NOT NULL,\n\t\tcustomer_email varchar(190) NOT NULL DEFAULT '',\n\t\tsubject_key varchar(24) NOT NULL,\n\t\tmessage_body text NOT NULL,\n\t\tstatus varchar(20) NOT NULL DEFAULT 'new',\n\t\tcreated_at_utc datetime NOT NULL,\n\t\tupdated_at_utc datetime NULL DEFAULT NULL,\n\t\tPRIMARY KEY  (id),\n\t\tKEY status_created (status,created_at_utc),\n\t\tKEY phone_created (customer_phone,created_at_utc)\n\t) ENGINE=InnoDB {$charset_collate};";
 \tdbDelta( $contact_inquiries_sql );
+
+
+	$finance_adjustments_table = $wpdb->prefix . 'parisan_finance_adjustments';
+	$finance_adjustments_sql = "CREATE TABLE {$finance_adjustments_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		entry_id bigint(20) unsigned NOT NULL,
+		adjustment_kind varchar(12) NOT NULL,
+		amount_irr bigint(20) unsigned NOT NULL,
+		reason text NOT NULL,
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY entry_id (entry_id),
+		KEY created_at_utc (created_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $finance_adjustments_sql );
+
+	$customer_notes_table = $wpdb->prefix . 'parisan_customer_notes';
+	$customer_notes_sql = "CREATE TABLE {$customer_notes_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		customer_phone varchar(24) NOT NULL,
+		note_body text NOT NULL,
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY phone_created (customer_phone,created_at_utc),
+		KEY created_by (created_by)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $customer_notes_sql );
+
+	$customer_followups_table = $wpdb->prefix . 'parisan_customer_followups';
+	$customer_followups_sql = "CREATE TABLE {$customer_followups_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		customer_phone varchar(24) NOT NULL,
+		task text NOT NULL,
+		due_at_utc datetime NOT NULL,
+		status varchar(12) NOT NULL DEFAULT 'open',
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY phone_due (customer_phone,due_at_utc),
+		KEY status_due (status,due_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $customer_followups_sql );
 
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
 }
