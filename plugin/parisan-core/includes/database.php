@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 3 );
+define( 'PARISAN_CORE_DB_VERSION', 4 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -33,6 +33,7 @@ function parisan_core_install_database() {
 		public_id char(36) NOT NULL,
 		service_id bigint(20) unsigned NOT NULL,
 		staff_id bigint(20) unsigned NOT NULL,
+		resource_id bigint(20) unsigned NOT NULL DEFAULT 0,
 		customer_user_id bigint(20) unsigned NULL DEFAULT NULL,
 		customer_name varchar(190) NOT NULL,
 		customer_phone varchar(40) NOT NULL,
@@ -51,6 +52,7 @@ function parisan_core_install_database() {
 		UNIQUE KEY public_id (public_id),
 		UNIQUE KEY idempotency_key (idempotency_key),
 		KEY staff_starts_at (staff_id, starts_at_utc),
+		KEY resource_starts_at (resource_id, starts_at_utc),
 		KEY customer_user_id (customer_user_id),
 		KEY status_starts_at (status, starts_at_utc)
 	) ENGINE=InnoDB {$charset_collate};";
