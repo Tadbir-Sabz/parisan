@@ -12,13 +12,23 @@ const { chromium, firefox, webkit } = require('playwright');
 		const errors = [];
 		const consoleErrors = [];
 		const failedRequests = [];
+		let expectedNotFoundNavigation = false;
 		function collectBrowserDiagnostics(targetPage) {
 			targetPage.on('pageerror', error => errors.push(error.message));
 			targetPage.on('console', message => {
-				if (message.type() === 'error') consoleErrors.push(message.text() + ' @ ' + JSON.stringify(message.location()));
+				// WordPress intentionally emits a browser-level 404 console message for the
+				// dedicated missing-post navigation. Other console errors remain fatal.
+				if (message.type() === 'error' && !(expectedNotFoundNavigation && /status of 404|404 \(Not Found\)/i.test(message.text()))) {
+					consoleErrors.push(message.text() + ' @ ' + JSON.stringify(message.location()));
+				}
 			});
 			targetPage.on('requestfailed', request => failedRequests.push(request.method() + ' ' + request.url() + ': ' + (request.failure() ? request.failure().errorText : 'unknown failure')));
-			targetPage.on('response', response => { if (response.status() >= 400) failedRequests.push('HTTP ' + response.status() + ' ' + response.request().method() + ' ' + response.url()); });
+			targetPage.on('response', response => {
+				const request = response.request();
+				const url = new URL(response.url());
+				const expectedWordPress404 = expectedNotFoundNavigation && request.isNavigationRequest() && response.status() === 404 && url.searchParams.get('p') === '999999';
+				if (response.status() >= 400 && !expectedWordPress404) failedRequests.push('HTTP ' + response.status() + ' ' + request.method() + ' ' + response.url());
+			});
 		}
 		async function runAccessibilityAudit(targetPage, label) {
 			await targetPage.addScriptTag({ path: require.resolve('axe-core/axe.min.js') });
@@ -218,7 +228,10 @@ const { chromium, firefox, webkit } = require('playwright');
 		assert.equal(await page.locator('#search-results-title').count(), 1, 'search route renders its labelled result heading');
 		assert.equal(await page.locator('.search-results-count[role="status"]').count(), 1, 'search route announces the result count');
 		await runAccessibilityAudit(page, 'search-results');
-		await page.goto(new URL('/?p=999999', page.url()).toString(), { waitUntil: 'networkidle' });
+		expectedNotFoundNavigation = true;
+		const notFoundResponse = await page.goto(new URL('/?p=999999', page.url()).toString(), { waitUntil: 'networkidle' });
+		expectedNotFoundNavigation = false;
+		assert.equal(notFoundResponse.status(), 404, 'missing-post route returns the expected WordPress HTTP 404 status');
 		assert.equal(await page.locator('main.not-found-page h1').count(), 1, '404 route renders its dedicated recovery page');
 		assert.equal(await page.getByRole('link', { name: /بازگشت به صفحه اصلی/ }).count(), 1, '404 route offers a clear home recovery action');
 		await runAccessibilityAudit(page, 'not-found');
