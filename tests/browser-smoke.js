@@ -178,6 +178,7 @@ const { chromium, firefox, webkit } = require('playwright');
 		assert.equal(await menuToggle.getAttribute('aria-expanded'), 'false', 'clicking outside the header dismisses mobile navigation');
 		await menuToggle.click();
 		await page.setViewportSize({ width: 800, height: 900 });
+		await page.waitForFunction(() => document.querySelector('.parisan-mobile-menu-toggle').getAttribute('aria-expanded') === 'false', null, { timeout: 2000 });
 		assert.equal(await menuToggle.getAttribute('aria-expanded'), 'false', 'crossing into desktop viewport closes stale mobile navigation state');
 		await page.setViewportSize({ width: 390, height: 844 });
 		const mobileBooking = page.locator('.parisan-mobile-booking');
