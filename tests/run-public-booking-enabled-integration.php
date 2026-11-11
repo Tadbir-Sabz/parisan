@@ -131,7 +131,7 @@ parisan_public_enabled_assert( is_wp_error( $resource_exhausted ) && 'parisan_bo
 
 wp_update_post( array( 'ID' => (int) $resource_one, 'post_status' => 'draft' ) );
 wp_update_post( array( 'ID' => (int) $resource_two, 'post_status' => 'draft' ) );
-$future_resource_date = current_datetime()->modify( '+7 days' )->format( 'Y-m-d' );
+$future_resource_date = $booking_date;
 $inactive_resource_slots = parisan_core_get_available_slots( $resource_staff_ids[2], $service_id, $future_resource_date );
 parisan_public_enabled_assert( is_array( $inactive_resource_slots ) && empty( $inactive_resource_slots ), 'service with a configured but fully inactive resource pool fails closed' );
 wp_update_post( array( 'ID' => (int) $resource_one, 'post_status' => 'publish' ) );
