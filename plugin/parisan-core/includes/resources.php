@@ -387,6 +387,28 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 			$busy_by_resource[ $target_id ][] = array( 'start' => $busy_start, 'end' => $busy_end );
 		}
 	}
+
+	$maintenance_table = $wpdb->prefix . 'parisan_resource_maintenance';
+	$maintenance_rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT resource_id, starts_at_utc, ends_at_utc FROM {$maintenance_table}
+			WHERE status = 'active' AND resource_id IN ({$placeholders})
+			AND starts_at_utc < %s AND ends_at_utc > %s",
+			array_merge( $resource_ids, array( $query_end, $query_start ) )
+		),
+		ARRAY_A
+	);
+	foreach ( is_array( $maintenance_rows ) ? $maintenance_rows : array() as $maintenance ) {
+		$maintenance_resource_id = absint( $maintenance['resource_id'] );
+		try {
+			$maintenance_start = new DateTimeImmutable( $maintenance['starts_at_utc'], new DateTimeZone( 'UTC' ) );
+			$maintenance_end = new DateTimeImmutable( $maintenance['ends_at_utc'], new DateTimeZone( 'UTC' ) );
+			$busy_by_resource[ $maintenance_resource_id ][] = array( 'start' => $maintenance_start, 'end' => $maintenance_end );
+		} catch ( Exception $exception ) {
+			// Invalid historical maintenance rows are ignored rather than blocking all capacity.
+		}
+	}
+
 	$available = array();
 	foreach ( is_array( $slots ) ? $slots : array() as $slot ) {
 		try {
