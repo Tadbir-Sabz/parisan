@@ -38,7 +38,7 @@ function parisan_core_finance_range( $from, $to ) {
 function parisan_core_render_finance_admin_page() {
 	global $wpdb;
 	if ( ! current_user_can( 'edit_others_posts' ) ) {
-		wp_die( esc_html__( 'اجازه مشاهده گزارش مالی را ندارید.', 'parisan-core' ), 403 );
+		wp_die( esc_html__( 'اجازه مشاهده گزارش مالی را ندارید.', 'parisan-core' ), '', array( 'response' => 403 ) );
 	}
 	$table = $wpdb->prefix . 'parisan_bookings';
 	$today = current_datetime()->format( 'Y-m-d' );
