@@ -432,7 +432,7 @@ The report deliberately does not calculate utilization percentages or theoretica
 - Added a durable reminder queue with unique 24-hour and 2-hour reminder records, UTC scheduling, atomic worker claims, sent/skipped/failed states, timestamps, attempt counts, and bounded retries (maximum three attempts).
 - Uses WordPress `wp_mail`; delivery depends on the site's configured mail transport. No SMS gateway or third-party messaging integration is claimed.
 - Booking rescheduling recalculates unsent reminder times. Terminal booking transitions, customer cancellation, and privacy erasure prevent pending reminders from being sent.
-- Added a Persian admin delivery-status screen. No reminder is sent for historical bookings without recorded opt-in.
+- Added a Persian admin delivery-status screen and a staff-controlled consent-revocation action. Revoking consent clears the booking consent flag and suppresses pending reminder delivery. No reminder is sent for historical bookings without recorded opt-in.
 - Schema upgraded additively to v11; existing bookings default to no email-reminder consent.
 - Public booking remains disabled unless the existing owner-controlled feature flag is separately enabled.
 
