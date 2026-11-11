@@ -82,6 +82,28 @@ function parisan_core_render_customer_relationship_page() {
 	$ids=$staff_ids?implode(',',array_map('absint',$staff_ids)):'0';
 
 	echo '<div class="wrap"><h1>یادداشت‌ها و پیگیری مشتریان</h1><p>دسترسی هر مشتری از روی متخصصان مرتبط و قابل ویرایش برای کاربر جاری کنترل می‌شود.</p>';
+	$now_utc = current_time( 'mysql', true );
+	$open_followups = $wpdb->get_results(
+		"SELECT f.id,f.customer_phone,f.task,f.due_at_utc,
+		(SELECT b.customer_name FROM {$bookings} b WHERE b.customer_phone=f.customer_phone AND b.staff_id IN ({$ids}) ORDER BY b.starts_at_utc DESC LIMIT 1) AS customer_name
+		FROM {$wpdb->prefix}parisan_customer_followups f
+		WHERE f.status='open' AND EXISTS (SELECT 1 FROM {$bookings} b WHERE b.customer_phone=f.customer_phone AND b.staff_id IN ({$ids}))
+		ORDER BY f.due_at_utc ASC LIMIT 100",
+		ARRAY_A
+	);
+	$overdue_count = 0;
+	foreach ( (array) $open_followups as $followup_row ) {
+		if ( $followup_row['due_at_utc'] < $now_utc ) { $overdue_count++; }
+	}
+	echo '<h2>صف پیگیری باز</h2><p>پیگیری‌های سررسیدشده: <strong>' . esc_html( number_format_i18n( $overdue_count ) ) . '</strong> از ' . esc_html( number_format_i18n( count( (array) $open_followups ) ) ) . ' مورد نمایش‌داده‌شده</p><table class="widefat striped"><thead><tr><th>مشتری</th><th>تلفن</th><th>موعد سالن</th><th>اقدام</th><th>وضعیت</th><th></th></tr></thead><tbody>';
+	foreach ( (array) $open_followups as $followup_row ) {
+		$due_local = ( new DateTimeImmutable( $followup_row['due_at_utc'], new DateTimeZone( 'UTC' ) ) )->setTimezone( wp_timezone() );
+		$is_overdue = $followup_row['due_at_utc'] < $now_utc;
+		$customer_url = add_query_arg( array( 'post_type'=>'parisan_staff', 'page'=>'parisan-customer-followups', 'customer_phone'=>$followup_row['customer_phone'] ), admin_url( 'edit.php' ) );
+		echo '<tr><td>' . esc_html( $followup_row['customer_name'] ? $followup_row['customer_name'] : '—' ) . '</td><td dir="ltr">' . esc_html( $followup_row['customer_phone'] ) . '</td><td>' . esc_html( wp_date( 'Y/m/d H:i', $due_local->getTimestamp(), wp_timezone() ) ) . '</td><td>' . esc_html( $followup_row['task'] ) . '</td><td>' . esc_html( $is_overdue ? 'سررسید گذشته' : 'باز' ) . '</td><td><a class="button" href="' . esc_url( $customer_url ) . '">پرونده مشتری</a></td></tr>';
+	}
+	if ( ! $open_followups ) { echo '<tr><td colspan="6">پیگیری بازی در محدوده دسترسی شما وجود ندارد.</td></tr>'; }
+	echo '</tbody></table>';
 	$leads = $wpdb->get_results("SELECT i.id,i.customer_name,i.customer_phone,i.subject_key,i.created_at_utc,l.customer_phone AS linked_phone FROM {$wpdb->prefix}parisan_contact_inquiries i LEFT JOIN {$wpdb->prefix}parisan_inquiry_customer_links l ON l.inquiry_id=i.id WHERE i.customer_phone IN (SELECT DISTINCT customer_phone FROM {$wpdb->prefix}parisan_bookings WHERE staff_id IN ({$ids}) AND customer_phone<>'' ) ORDER BY i.created_at_utc DESC LIMIT 100", ARRAY_A);
 	echo '<h2>درخواست‌های تماس</h2><table class="widefat striped"><thead><tr><th>نام</th><th>تلفن</th><th>موضوع</th><th>اتصال</th><th></th></tr></thead><tbody>';
 	foreach ((array)$leads as $lead) {
