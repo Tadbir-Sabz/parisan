@@ -76,6 +76,20 @@ function parisan_core_render_resource_meta_box( $post ) {
 		printf( '<option value="%1$s" %2$s>%3$s</option>', esc_attr( $value ), selected( $type, $value, false ), esc_html( $label ) );
 	}
 	echo '</select><p class="description">' . esc_html__( 'برای قابل استفاده بودن در رزرو، وضعیت منبع باید «انتشار‌یافته» باشد.', 'parisan-core' ) . '</p>';
+	$schedule = get_post_meta( $post->ID, '_parisan_resource_schedule', true );
+	$schedule = is_array( $schedule ) ? $schedule : array();
+	$enabled = ! empty( $schedule['enabled'] );
+	$days = array( 0 => __( 'یکشنبه', 'parisan-core' ), 1 => __( 'دوشنبه', 'parisan-core' ), 2 => __( 'سه‌شنبه', 'parisan-core' ), 3 => __( 'چهارشنبه', 'parisan-core' ), 4 => __( 'پنجشنبه', 'parisan-core' ), 5 => __( 'جمعه', 'parisan-core' ), 6 => __( 'شنبه', 'parisan-core' ) );
+	echo '<hr><p><strong>' . esc_html__( 'ساعات کاری مستقل منبع', 'parisan-core' ) . '</strong></p>';
+	echo '<label><input type="checkbox" name="parisan_resource_schedule_enabled" value="1" ' . checked( $enabled, true, false ) . '> ' . esc_html__( 'اعمال برنامه هفتگی اختصاصی', 'parisan-core' ) . '</label>';
+	echo '<p class="description">' . esc_html__( 'اگر فعال نباشد، منبع از نظر ساعت محدودیت جداگانه‌ای ندارد و برنامه متخصص/سالن ملاک است. روزهای فعالِ بدون تیک، تعطیل محسوب می‌شوند.', 'parisan-core' ) . '</p>';
+	foreach ( $days as $day => $label ) {
+		$day_data = isset( $schedule['days'][ $day ] ) && is_array( $schedule['days'][ $day ] ) ? $schedule['days'][ $day ] : array();
+		$checked = ! empty( $day_data['enabled'] );
+		$start = isset( $day_data['start'] ) && preg_match( '/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $day_data['start'] ) ? $day_data['start'] : '09:00';
+		$end = isset( $day_data['end'] ) && preg_match( '/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $day_data['end'] ) ? $day_data['end'] : '18:00';
+		printf( '<p style="margin:8px 0"><label><input type="checkbox" name="parisan_resource_schedule_days[%1$d][enabled]" value="1" %2$s> %3$s</label><br><input type="time" name="parisan_resource_schedule_days[%1$d][start]" value="%4$s" aria-label="%3$s - %5$s"> <span aria-hidden="true">—</span> <input type="time" name="parisan_resource_schedule_days[%1$d][end]" value="%6$s" aria-label="%3$s - %7$s"></p>', (int) $day, checked( $checked, true, false ), esc_attr( $label ), esc_attr( $start ), esc_attr__( 'شروع', 'parisan-core' ), esc_attr( $end ), esc_attr__( 'پایان', 'parisan-core' ) );
+	}
 }
 
 /**
@@ -94,6 +108,26 @@ function parisan_core_save_resource_meta( $post_id ) {
 	$type = isset( $_POST['parisan_resource_type'] ) && is_string( $_POST['parisan_resource_type'] ) ? sanitize_key( wp_unslash( $_POST['parisan_resource_type'] ) ) : 'other';
 	$type = in_array( $type, array( 'room', 'bed', 'chair', 'device', 'other' ), true ) ? $type : 'other';
 	update_post_meta( $post_id, '_parisan_resource_type', $type );
+	$enabled = isset( $_POST['parisan_resource_schedule_enabled'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['parisan_resource_schedule_enabled'] ) );
+	if ( ! $enabled ) {
+		delete_post_meta( $post_id, '_parisan_resource_schedule' );
+		return;
+	}
+	$raw_days = isset( $_POST['parisan_resource_schedule_days'] ) && is_array( $_POST['parisan_resource_schedule_days'] ) ? wp_unslash( $_POST['parisan_resource_schedule_days'] ) : array();
+	$clean_days = array();
+	foreach ( range( 0, 6 ) as $day ) {
+		$raw = isset( $raw_days[ $day ] ) && is_array( $raw_days[ $day ] ) ? $raw_days[ $day ] : array();
+		if ( empty( $raw['enabled'] ) ) {
+			continue;
+		}
+		$start = isset( $raw['start'] ) && is_string( $raw['start'] ) ? sanitize_text_field( $raw['start'] ) : '';
+		$end = isset( $raw['end'] ) && is_string( $raw['end'] ) ? sanitize_text_field( $raw['end'] ) : '';
+		if ( ! preg_match( '/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $start ) || ! preg_match( '/^(?:[01]\\d|2[0-3]):[0-5]\\d$/D', $end ) || $start >= $end ) {
+			continue;
+		}
+		$clean_days[ $day ] = array( 'enabled' => true, 'start' => $start, 'end' => $end );
+	}
+	update_post_meta( $post_id, '_parisan_resource_schedule', array( 'enabled' => true, 'days' => $clean_days ) );
 }
 add_action( 'save_post_parisan_resource', 'parisan_core_save_resource_meta' );
 
@@ -232,6 +266,43 @@ function parisan_core_release_resource_schedule_locks( $lock_names ) {
 }
 
 /**
+ * Check whether a resource's optional weekly schedule contains the complete
+ * buffered booking interval. An absent/disabled schedule means unrestricted.
+ *
+ * @param int                $resource_id Resource post ID.
+ * @param DateTimeImmutable  $start_utc Buffered start in UTC.
+ * @param DateTimeImmutable  $end_utc Buffered end in UTC.
+ * @return bool
+ */
+function parisan_core_resource_schedule_allows_interval( $resource_id, $start_utc, $end_utc ) {
+	$schedule = get_post_meta( absint( $resource_id ), '_parisan_resource_schedule', true );
+	if ( ! is_array( $schedule ) || empty( $schedule['enabled'] ) ) {
+		return true;
+	}
+	if ( ! $start_utc instanceof DateTimeImmutable || ! $end_utc instanceof DateTimeImmutable || $end_utc <= $start_utc ) {
+		return false;
+	}
+	$timezone = wp_timezone();
+	$local_start = $start_utc->setTimezone( $timezone );
+	$local_end = $end_utc->setTimezone( $timezone );
+	// A resource interval must fit inside one local calendar day and one enabled window.
+	if ( $local_start->format( 'Y-m-d' ) !== $local_end->format( 'Y-m-d' ) ) {
+		return false;
+	}
+	$day = (int) $local_start->format( 'w' );
+	$window = isset( $schedule['days'][ $day ] ) && is_array( $schedule['days'][ $day ] ) ? $schedule['days'][ $day ] : array();
+	if ( empty( $window['enabled'] ) || empty( $window['start'] ) || empty( $window['end'] ) ) {
+		return false;
+	}
+	$window_start = DateTimeImmutable::createFromFormat( '!Y-m-d H:i', $local_start->format( 'Y-m-d' ) . ' ' . $window['start'], $timezone );
+	$window_end = DateTimeImmutable::createFromFormat( '!Y-m-d H:i', $local_start->format( 'Y-m-d' ) . ' ' . $window['end'], $timezone );
+	if ( false === $window_start || false === $window_end ) {
+		return false;
+	}
+	return $local_start >= $window_start && $local_end <= $window_end;
+}
+
+/**
  * Attach an available resource to each eligible slot, omitting slots where all
  * configured resources are occupied. Legacy unassigned bookings for every service sharing the pool conservatively
  * block the affected resources until they finish.
@@ -301,6 +372,9 @@ function parisan_core_assign_resources_to_slots( $slots, $service_id, $range_sta
 			continue;
 		}
 		foreach ( $resource_ids as $resource_id ) {
+			if ( ! parisan_core_resource_schedule_allows_interval( $resource_id, $start, $end ) ) {
+				continue;
+			}
 			$conflict = false;
 			foreach ( isset( $busy_by_resource[ $resource_id ] ) ? $busy_by_resource[ $resource_id ] : array() as $busy ) {
 				if ( $start < $busy['end'] && $end > $busy['start'] ) {
