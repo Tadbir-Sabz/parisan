@@ -331,7 +331,9 @@ $customer_reschedule_request->set_param( 'starts_at_local', $booking_date . ' 14
 $customer_reschedule_response = parisan_core_rest_customer_reschedule_booking( $customer_reschedule_request );
 parisan_public_enabled_assert( 200 === $customer_reschedule_response->get_status(), 'customer can reschedule a token-owned pending booking' );
 $expected_two_hour_reminder = $booking_date . ' 12:00:00';
-$actual_two_hour_reminder = $wpdb->get_var( $wpdb->prepare( "SELECT scheduled_at_utc FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d AND reminder_kind='2h'", (int) $first_booking['booking_id'] ) );
+$customer_booking = parisan_core_resolve_customer_access_token( $customer_token );
+parisan_public_enabled_assert( is_array( $customer_booking ), 'customer token resolves the exact booking used by the reschedule test' );
+$actual_two_hour_reminder = $wpdb->get_var( $wpdb->prepare( "SELECT scheduled_at_utc FROM {$wpdb->prefix}parisan_booking_reminders WHERE booking_id=%d AND reminder_kind='2h'", (int) $customer_booking['id'] ) );
 parisan_public_enabled_assert( $expected_two_hour_reminder === $actual_two_hour_reminder, 'rescheduling recalculates the pending two-hour reminder against the new appointment time' );
 
 $customer_view_request = new WP_REST_Request( 'GET', '/parisan/v1/customer-booking' );
@@ -340,7 +342,6 @@ $customer_view_response = parisan_core_rest_customer_booking( $customer_view_req
 $customer_view_data = $customer_view_response->get_data();
 parisan_public_enabled_assert( 200 === $customer_view_response->get_status() && $booking_date . ' 14:00' === $customer_view_data['starts_at_local_display'] && true === $customer_view_data['can_reschedule'], 'customer view reflects the new local appointment time and reschedule capability' );
 
-$customer_booking = parisan_core_resolve_customer_access_token( $customer_token );
 $customer_token_row = $wpdb->get_row( $wpdb->prepare( "SELECT expires_at_utc FROM {$wpdb->prefix}parisan_customer_tokens WHERE booking_id = %d AND revoked_at_utc IS NULL", (int) $customer_booking['id'] ), ARRAY_A );
 $expected_customer_expiry = ( new DateTimeImmutable( $booking_date . ' 14:45:00', new DateTimeZone( 'UTC' ) ) )->modify( '+30 days' )->format( 'Y-m-d H:i:s' );
 parisan_public_enabled_assert( is_array( $customer_token_row ) && $expected_customer_expiry === $customer_token_row['expires_at_utc'], 'customer reschedule moves token expiry to 30 days after the new appointment end' );
