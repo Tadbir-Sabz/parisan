@@ -7,8 +7,9 @@
 
 defined( 'ABSPATH' ) || exit;
 ?><!doctype html>
-<html <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?> class="no-js">
 <head>
+	<script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<?php wp_head(); ?>
@@ -17,7 +18,8 @@ defined( 'ABSPATH' ) || exit;
 <?php wp_body_open(); ?>
 <a class="skip-link" href="#main-content"><?php esc_html_e( 'رفتن به محتوای اصلی', 'parisan' ); ?></a>
 <?php $announcement = parisan_public_setting( 'parisan_announcement_text' ); ?>
-<?php if ( $announcement ) : ?><div class="parisan-announcement"><?php if ( parisan_public_setting( 'parisan_announcement_url' ) ) : ?><a href="<?php echo esc_url( parisan_public_setting( 'parisan_announcement_url' ) ); ?>"><?php echo esc_html( $announcement ); ?></a><?php else : ?><?php echo esc_html( $announcement ); ?><?php endif; ?></div><?php endif; ?>
+<?php if ( is_front_page() ) : ?><div class="parisan-front-masthead"><?php endif; ?>
+<?php if ( $announcement ) : ?><aside class="parisan-announcement" aria-label="<?php esc_attr_e( 'اعلان سالن', 'parisan' ); ?>"><?php if ( parisan_public_setting( 'parisan_announcement_url' ) ) : ?><a href="<?php echo esc_url( parisan_public_setting( 'parisan_announcement_url' ) ); ?>"><?php echo esc_html( $announcement ); ?></a><?php else : ?><?php echo esc_html( $announcement ); ?><?php endif; ?></aside><?php endif; ?>
 <header class="site-header">
 	<div class="container header-inner">
 		<div class="site-branding">
@@ -46,10 +48,11 @@ defined( 'ABSPATH' ) || exit;
 			);
 			?>
 		</nav>
-		<a class="button button-small header-booking" href="<?php echo esc_url( home_url( '/#booking' ) ); ?>"><?php echo esc_html( function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled() ? 'دریافت نوبت' : 'هماهنگی نوبت' ); ?></a>
+		<a class="button button-small header-booking" href="<?php echo esc_url( parisan_booking_cta_url() ); ?>"><?php echo esc_html( parisan_booking_cta_label() ); ?></a>
 		<button class="parisan-theme-toggle" type="button" aria-label="<?php esc_attr_e( 'فعال‌سازی حالت تیره', 'parisan' ); ?>" aria-pressed="false" hidden><?php esc_html_e( 'حالت تیره', 'parisan' ); ?></button>
 	</div>
 </header>
+<?php if ( is_front_page() ) : ?></div><?php endif; ?>
 <?php if ( function_exists( 'parisan_core_render_breadcrumbs' ) ) : ?>
 	<?php parisan_core_render_breadcrumbs(); ?>
 <?php endif; ?>

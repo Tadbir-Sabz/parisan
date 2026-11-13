@@ -1,0 +1,7 @@
+{
+  "errors": [],
+  "consoleErrors": [
+    "desktop: Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "mobile: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

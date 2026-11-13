@@ -1,8 +1,8 @@
 # Parisan Delivery Roadmap
 
 **Canonical branch:** main  
-**Active implementation branch:** `feat/parisan-product-completion`  
-**Roadmap status:** The theme/catalogue and booking foundation are merged into main. Product-completion work is in progress on feat/parisan-product-completion: mobile navigation, editable homepage messaging, reliable blog routing, and owner-facing booking readiness guidance. Public booking remains disabled by default; browser/accessibility and deployment-specific security validation remain incomplete.  
+**Active implementation branch:** `feat/parisan-final-completion`  
+**Roadmap status:** The theme, catalogue, booking foundation, and administrative tooling are merged into main. A final public-experience and admin QA pass is implemented on `feat/parisan-final-completion`: all public templates, Persian RTL layouts, day/night themes, contact/search/404 pages, owner-editable homepage content, and responsive behavior are browser-verified in Chromium at 360–1920 px. Public booking remains disabled by default. Firefox/WebKit CI, exact PHP 8.1/8.2/8.3 evidence, real screen-reader acceptance, and production deployment remain UNVERIFIED.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -30,7 +30,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [~] Add architecture decision records for theme/core separation, booking data model, timezone/calendar, transactional booking creation, and integration strategy; ADR-0001 through ADR-0005 are present on the implementation branch.
 - [ ] Define supported WordPress/PHP matrix based on current stable releases and available test environments.
 - [~] Establish CI and focused automated validation; PHP lint and standalone weekly schedule tests PASS on PHP 8.1, 8.2, and 8.3. Disposable WordPress/MariaDB activation, plugin/theme activation, post type/taxonomy registration, and template asset smoke test PASS. Broader static analysis and end-to-end tests remain pending.
-- [ ] Define local development environment and synthetic seed data.
+- [x] Define local development environment and synthetic seed data. Disposable WordPress 7.1.4 + MariaDB 11.4.8 with a repeatable Persian demo-content seeder and self-cleaning test fixtures is documented on the final QA branch.
 - [x] Define the first booking PII lifecycle, active-record retention boundary, opt-in anonymization, and future public-route abuse-control requirements in ADR-0011; broader product threat modeling remains pending.
 
 **Gate P0:** clean reproducible setup, CI baseline, approved architecture, no production credentials/data.
@@ -44,10 +44,10 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [~] Define complete RTL/LTR interaction rules and dark/light tokens; accessible light/dark preference control, front-end Persian `dir="rtl"` direction fallback, SVG toggle icon, and WCAG-oriented Day/Night card contrast adjustments are implemented and checked in Chromium, while full-screen-reader/multi-browser WCAG 2.2 AA review remains UNVERIFIED.
 - [x] Add initial theme scaffold, semantic header/footer, navigation, dedicated front page, standard page/post, archive, search, and 404 templates, and responsive RTL-aware base styles.
 - [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
-- [~] Build public templates: dynamic editorial homepage and service/staff catalogue archive/detail foundations are implemented; gallery, blog, contact, FAQ, policies, and remaining content templates are pending. Browser rendering and responsive visual review remain UNVERIFIED.
-- [~] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action; the mobile booking shortcut is implemented and hides while the booking section is visible, while gallery/testimonial components and browser/device validation remain pending.
-- [~] Validate content editing and Elementor coexistence/fallback; homepage brand messaging and CTA settings are now owner-editable through the Customizer, with browser validation pending.
-- [ ] Create visual regression baselines for key viewports.
+- [x] Build public templates: dynamic editorial homepage, service/staff/portfolio archives and detail pages, journal/archive/single, about, contact, FAQ, privacy, terms, search, and 404 are implemented and browser-verified in Chromium at desktop and mobile day/night. Firefox/WebKit visual review remains UNVERIFIED.
+- [x] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action; the homepage portfolio grid, owner-editable testimonials, contextual contact CTAs, and mobile booking shortcut are implemented. Chromium desktop/mobile checks PASS; real-device and screen-reader review remain UNVERIFIED.
+- [~] Validate content editing and Elementor coexistence/fallback; homepage brand messaging, benefits, testimonials, hero images, and contact details are owner-editable through the Customizer consolidating real settings. Customizer rendering is browser-checked; the full edit/publish workflow and Elementor coexistence remain UNVERIFIED.
+- [~] Create visual regression baselines for key viewports. A manually inspected screenshot baseline set exists for 1440/390 px day/night plus admin; automated pixel-diff regression is not implemented.
 
 **Gate P1:** polished responsive public-site shell; RTL/LTR and dark/light reviewed; no console errors; accessibility baseline.
 
@@ -106,7 +106,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 **Status:** [~] IN PROGRESS — initial metadata, structured-data, and privacy-aware cache boundaries implemented; sitemap extensions, crawler controls, vendor cache adapters, and performance diagnostics pending
 
-- [~] Implement SEO metadata templates, canonical, Open Graph, Service JSON-LD, and context-aware breadcrumbs with BreadcrumbList schema. Per-content title/description/noindex, site defaults, BreadcrumbList, and WordPress core sitemap exclusion for noindex content are implemented with smoke coverage; custom sitemap providers/extensions, redirect management, and real search-engine validation remain pending.
+- [~] Implement SEO metadata templates, canonical, Open Graph, Service JSON-LD, and context-aware breadcrumbs with BreadcrumbList schema. Per-content title/description/noindex, site defaults, BreadcrumbList, BeautySalon/Person/Article/Service schema, OG/Twitter tags, archive canonical/pagination, search/404 exclusions, and WordPress core sitemap exclusion for noindex content are implemented with smoke coverage; custom sitemap providers/extensions, redirect management, and real search-engine validation remain pending.
 - [x] Implement duplicate-output detection and coexistence controls for Yoast SEO, Rank Math, SEOPress, All in One SEO, and The SEO Framework using explicit ownership detection; full version/plugin-matrix compatibility remains UNVERIFIED.
 - [ ] Add redirect management and privacy-safe 404 diagnostics if justified.
 - [ ] Implement page-specific asset loading, image optimization, font strategy, and Core Web Vitals instrumentation guidance.
@@ -134,27 +134,27 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 ## Phase 7 — Admin polish, reports, hardening, and localization
 
-**Status:** [ ] NOT STARTED
+**Status:** [~] IN PROGRESS — Persian admin workspace, operations screens, SEO diagnostics, Persian manuals, and Chromium visual/axe review implemented; formal WCAG acceptance, cross-browser, and security sign-off remain pending
 
 - [ ] Complete unified Parisan dashboard, filters, bulk operations, exports, diagnostics, and role-specific views.
 - [ ] Add operational reports: bookings, cancellations, no-shows, revenue (where payment data exists), utilization, and service performance.
-- [ ] Complete accessibility review against WCAG 2.2 AA target.
-- [ ] Complete Persian localization, RTL visual review, English/LTR review, and Persian user/admin manuals.
+- [~] Complete accessibility review against WCAG 2.2 AA target. Chromium axe-core runs report zero violations across homepage, catalogue/detail, article, search, and 404 at desktop/mobile; manual gradient/image contrast, focus-order review with assistive technology, and real screen-reader acceptance remain UNVERIFIED.
+- [~] Complete Persian localization, RTL visual review, English/LTR review, and Persian user/admin manuals. Persian RTL desktop/mobile day/night and admin screens are screenshot-verified; Persian install/admin/QA and privacy guides exist. English/LTR functional layout is implemented but not formally reviewed by a native reviewer.
 - [ ] Perform security review, dependency audit, privacy/retention review, and upgrade/uninstall tests.
-- [ ] Perform cross-browser/device and supported WordPress/PHP compatibility testing.
+- [~] Perform cross-browser/device and supported WordPress/PHP compatibility testing. Chromium 360–1920 px is verified; Firefox/WebKit CI and the PHP 8.1/8.2/8.3 matrix are configured but exact-HEAD completion is pending. No real-device matrix has been run.
 - [ ] Complete performance and load tests for realistic booking volumes.
 
 **Gate P7:** release candidate passes security, accessibility, localization, compatibility, upgrade, and performance gates.
 
 ## Phase 8 — Packaging, release, and maintenance
 
-**Status:** [ ] NOT STARTED
+**Status:** [~] IN PROGRESS — theme/Core ZIPs, Persian installation/admin/privacy/SEO guides, and disposable clean-install evidence exist; release tagging, upgrade/rollback rehearsal, SBOM, and support policy remain pending
 
-- [ ] Build distributable theme and Parisan Core packages from the same tagged release.
+- [x] Build distributable theme and Parisan Core packages from the same delivery revision. Theme `0.7.1` and Core `0.32.0` ZIPs are produced from verified `main`; checksums are recorded in the final report.
 - [ ] Include setup wizard, dependency/compatibility checks, demo content importer with safe rollback, and uninstall/data-retention choices.
-- [ ] Produce Persian installation, configuration, booking operations, SMS, SEO, troubleshooting, and update guides.
+- [~] Produce Persian installation, configuration, booking operations, SMS, SEO, troubleshooting, and update guides. Installation/admin QA, privacy/retention, SEO/performance, and setup guides exist; SMS/troubleshooting/update guides are not written because those features are not implemented.
 - [ ] Produce release notes, changelog, licensing notices, SBOM/dependency inventory, and support policy.
-- [ ] Validate clean install, upgrade from previous supported release, rollback plan, and theme-switch persistence.
+- [~] Validate clean install, upgrade from previous supported release, rollback plan, and theme-switch persistence. Clean activation, schema creation, seeded availability, booking, privacy, and theme-switch data persistence are covered by disposable WordPress/MariaDB tests; a real previous-release upgrade and rollback rehearsal are not.
 - [ ] Tag release only after all gates have evidence and no unresolved release-blocking findings.
 
 **Gate P8:** reproducible release artifacts and documented support/upgrade process.
@@ -440,3 +440,50 @@ The report deliberately does not calculate utilization percentages or theoretica
 - Added smoke and WordPress/MariaDB integration assertions for schema v11, waitlist controls, explicit consent, and reminder queue creation.
 - Calendar markup now retains its lane container on empty days. Resource allocation now resolves legacy serialized service-resource assignments by decoding actual metadata and fails closed on booking-query errors.
 - Exact-final-SHA CI is pending. Real outbound email delivery, SMTP configuration, and end-to-end browser validation remain unverified until the new run completes.
+
+
+## Final public-experience and admin QA — 2026-11-13
+
+**Branch:** `feat/parisan-final-completion`, based on verified `main` at `74ad70c5c6ef2d3e602f76735ef2415afa148712`.  
+**Environment:** disposable WordPress 7.1.4 + MariaDB 11.4.8, PHP 8.4.26, local URL `http://127.0.0.1:8081`, synthetic demo content only. No production site, customer database, live SMS, or payment provider was accessed.
+
+### Delivered in this slice
+
+- Public template completion and browser-verified layouts for home, services, service detail, specialists, specialist detail, portfolio archive/detail, journal archive/single, about, contact, FAQ, privacy, terms, search, and 404 in Persian RTL.
+- Independent day/night hero images with focal points, dark-theme token corrections, and readable breadcrumbs in both themes.
+- Homepage components driven by real site data: published services/specialists/portfolio, owner-provided testimonials that hide when empty, and contact details from brand settings.
+- Booking-disabled behavior: the online form is not rendered; the section explains that online booking is inactive and links to the salon phone number or contact page.
+- Mobile navigation usable with keyboard, Escape, outside click, and without JavaScript; sticky mobile booking shortcut hides while the booking section is visible.
+- Owner-editable announcements, benefits, hero focal points, testimonials, contact details, and homepage section copy through the Customizer; duplicate or dead controls removed.
+- SEO metadata, canonical URLs, archive descriptions, OG/Twitter tags, and JSON-LD for BeautySalon, Service, Article, Person, and BreadcrumbList with escaped JSON output and SEO-plugin ownership detection.
+- Contact form honeypot no longer creates massive RTL overflow; service and specialist detail layouts are two-column on desktop and single-column on mobile.
+- Repeatable synthetic demo seed (`tests/seed-demo-content.php`) and self-cleaning integration fixtures.
+
+### Automated evidence
+
+- `php tests/run-schedule-tests.php` — 31 passed, 0 failed.
+- `php tests/run-cache-adapter-tests.php` — PASS (provider detection, targeted purge, invalid-ID guard).
+- `php tests/run-privacy-tests.php` — 26 assertions PASS.
+- `node tests/run-theme-js-tests.js` — PASS (theme preference, persistence, toggle state, mobile booking visibility).
+- `wp eval-file tests/run-theme-smoke.php` — PASS (theme, content, booking-disabled state, SEO controls, sanitization, private-cache guards).
+- `wp eval-file tests/run-breadcrumb-tests.php` — PASS (breadcrumbs, sitemap noindex, JSON-LD).
+- `wp eval-file tests/run-public-booking-integration.php` — PASS (gate, token hashing/rotation/expiry, scoped resolution, cancellation).
+- `wp eval-file tests/run-public-booking-enabled-integration.php` with explicit constant — PASS (routes, assets, shortcode).
+- `wp eval-file tests/run-wordpress-privacy-integration.php` — PASS (export, erasure, intentional transaction rollback, retention, rate limit).
+- `node tests/browser-smoke.js` — PASS for seeded content, desktop/mobile layout, day/night theme persistence, booking shortcut, navigation, and diagnostics; axe-core reports zero violations. Remaining `incomplete` contrast nodes are gradient/image backgrounds or decorative `aria-hidden` arrows and require manual review.
+- Responsive measurements: 72 route/viewport combinations across 1920, 1440, 1280, 1024, 768, 430, 390, 375, and 360 px; every page has `scrollWidth === innerWidth` and breadcrumb top below header bottom.
+- Visual evidence: 50 screenshots covering public desktop/mobile day/night and admin screens.
+
+### Status boundaries
+
+- **PASS (scope: Chromium, disposable WordPress/MariaDB, synthetic data):** public templates, RTL responsiveness, day/night themes, booking-disabled messaging, owner-editable content, SEO output, admin screens, PHP/JS/integration suites listed above.
+- **UNVERIFIED:** real screen-reader acceptance; Firefox/WebKit visual review; exact PHP 8.1/8.2/8.3 runtime evidence until exact-HEAD CI completes; reverse-proxy rate limiting; multi-connection stress; real-device testing; production HTTPS/DNS/backup.
+- **NOT IMPLEMENTED:** Jalali calendar UI, live SMS, online payment, gateway refunds, WooCommerce/Elementor adapters, setup wizard, tagged production release.
+- Public booking remains disabled by default. No production deployment or merge approval is implied by this QA pass.
+
+### Evidence and reproduction
+
+- Curated screenshots and diagnostics: `docs/evidence/final-2026-11-13/`.
+- Full local screenshot set (not committed due to size): `artifacts/final/`.
+- Exact commands, artifacts, ZIP checksums, and remaining gaps: `docs/FINAL-REPORT.md`.
+- Persian installation/admin/QA guide: `docs/FINAL-ADMIN-QA.fa.md`.

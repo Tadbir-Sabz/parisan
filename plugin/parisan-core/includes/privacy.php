@@ -185,7 +185,7 @@ function parisan_core_export_booking_personal_data( $email_address, $user_id, $p
 			array( 'name' => __( 'نام مشتری', 'parisan-core' ), 'value' => $row['customer_name'] ),
 			array( 'name' => __( 'شماره تماس', 'parisan-core' ), 'value' => $row['customer_phone'] ),
 			array( 'name' => __( 'ایمیل', 'parisan-core' ), 'value' => $row['customer_email'] ),
-			array( 'name' => __( 'رضایت ایمیل یادآوری', 'parisan-core' ), 'value' => (int) $row['customer_email_consent'] ? 'yes' : 'no' ),
+			array( 'name' => __( 'رضایت ایمیل یادآوری', 'parisan-core' ), 'value' => ! empty( $row['customer_email_consent'] ) ? 'yes' : 'no' ),
 			array( 'name' => __( 'خدمت', 'parisan-core' ), 'value' => $service ? $service : (string) $row['service_id'] ),
 			array( 'name' => __( 'متخصص', 'parisan-core' ), 'value' => $staff ? $staff : (string) $row['staff_id'] ),
 			array( 'name' => __( 'شروع رزرو (UTC)', 'parisan-core' ), 'value' => $row['starts_at_utc'] ),

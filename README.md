@@ -2,9 +2,9 @@
 
 > Product vision, architecture, delivery roadmap, and mandatory contributor instructions.
 
-**Project status:** Parisan's theme and core booking foundation are merged into main. Product-completion work is in progress on feat/parisan-product-completion; booking remains disabled by default and production readiness remains UNVERIFIED pending browser/accessibility and infrastructure validation.  
+**Project status:** Parisan's theme and core booking foundation are merged into main. A final public-experience, admin, SEO, RTL, dark-mode, and responsive QA pass is implemented on `feat/parisan-final-completion`; public booking remains disabled by default and production readiness remains UNVERIFIED pending cross-browser, assistive-technology, PHP 8.1/8.2/8.3, and infrastructure validation.  
 **Canonical branch:** main  
-**Active implementation branch:** `feat/parisan-product-completion`
+**Active implementation branch:** `feat/parisan-final-completion`
 
 ## Mandatory reading for every agent
 
@@ -83,13 +83,13 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 - [~] Targeted public-cache purge adapters for LiteSpeed Cache, WP Rocket, and W3 Total Cache are implemented on the active branch; the PHP matrix runs isolated provider-detection and post-scoped purge tests. The Persian admin diagnostics page reports safe runtime cache signals; provider-installed runtime behavior, backend health, CDN/Reverse Proxy purge, and completion verification remain UNVERIFIED.
 - [~] Accessible context-aware breadcrumbs, BreadcrumbList JSON-LD, and exclusion of noindex content from the WordPress core sitemap are implemented; WordPress integration smoke covers service detail markup, schema validity, canonical item URL, and SEO-plugin ownership. Search-engine validation and browser visual review remain UNVERIFIED.
 - [x] Initial SEO and privacy-aware cache foundation on runtime/test commit `c01e55e` — [PHP 8.1/8.2/8.3 + WordPress SEO/cache smoke run 42452870953](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870953), [WordPress/MariaDB integration run 42452870912](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870912), and [PHP 8.1/8.2/8.3 privacy/abuse matrix run 42452870925](https://github.com/Tadbir-Sabz/parisan/actions/runs/42452870925) PASS. WordPress smoke covers SEO metadata, Service JSON-LD, per-page noindex, settings sanitization, and private-cache guards. Later runtime additions for targeted cache adapters, breadcrumbs, and sitemap noindex filtering have separate evidence in runs 42454956220 and 42455205772; the newest admin cache-diagnostics UI/test is tracked separately in the active CI run.
-- [ ] Browser/device visual QA, keyboard/screen-reader review, real reverse-proxy and multi-node behavior remain UNVERIFIED.
+- [~] Browser/device visual QA, keyboard/screen-reader review, real reverse-proxy and multi-node behavior. Chromium public/admin desktop/mobile day/night QA, responsive RTL, keyboard navigation, and axe-core now PASS; Firefox/WebKit, real screen-reader, real-device, reverse-proxy, and multi-node behavior remain UNVERIFIED.
 
 - [x] Disposable WordPress + MariaDB integration verified privacy export, terminal-only erasure, active-booking retention, event-note cleanup, forced rollback on audit-note failure, opt-in retention cleanup, and request throttling — [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
 - [x] Rescheduling CI run 42377819791 passed all 4 jobs; schema v2 persists the original duration, rescheduling preserves duration/price, rejects exception conflicts and terminal bookings, records a reschedule audit event, and proves a forced audit failure rolls the time change back.
 - [x] CI validation of the availability engine: 22 schedule/availability assertions passed on PHP 8.1, 8.2, and 8.3; disposable WordPress/MariaDB smoke test passed (run 42373364749).
 - [x] CI validation of calendar exception loading and seeded database-backed availability integration; 26 pure assertions pass on PHP 8.1/8.2/8.3 and the WordPress/MariaDB smoke test confirms booking + exception rows remove conflicting slots (run 42374197402).
-- [ ] Browser rendering, responsive/RTL visual review, accessibility checks.
+- [x] Chromium browser rendering, responsive RTL review (360–1920 px), day/night themes, admin screens, and axe-core checks PASS; Firefox/WebKit and real screen-reader acceptance remain UNVERIFIED.
 - [~] Availability, date-exception administration, internal booking creation, controlled status lifecycle, and concurrency-safe rescheduling implemented and CI-verified. Booking accepts only fixed service prices; booking and calendar exception writes share the staff lock. Multi-connection concurrency stress, lock-timeout behavior, confirmation-conflict branch, lifecycle audit-failure rollback, browser privacy/admin visual and accessibility review, break management, and resource schedules remain pending.
 - [~] Initial SEO metadata and cache-safety boundaries; advanced SEO, sitemap, cache adapters/diagnostics, customer portal, SMS, forms, and integrations remain in the roadmap.
 - [x] See [ADR-0005](docs/decisions/ADR-0005-transactional-booking-creation.md), [ADR-0006](docs/decisions/ADR-0006-controlled-booking-lifecycle.md), [ADR-0007](docs/decisions/ADR-0007-staff-booking-operations-screen.md), [ADR-0008](docs/decisions/ADR-0008-staff-created-manual-bookings.md), [ADR-0009](docs/decisions/ADR-0009-booking-detail-and-audit-timeline.md), [ADR-0010](docs/decisions/ADR-0010-concurrency-safe-rescheduling.md), [ADR-0011](docs/decisions/ADR-0011-booking-personal-data-lifecycle.md), and [ADR-0012](docs/decisions/ADR-0012-public-booking-api-and-customer-tokens.md) for booking, privacy, and public API boundaries.
@@ -98,3 +98,17 @@ The product ships as a coordinated **theme + first-party companion plugin**:
 
 
 - [راهنمای سئو و عملکرد پاریسان](docs/SEO-PERFORMANCE.fa.md)
+- [راهنمای نهایی نصب، مدیریت و کنترل کیفیت](docs/FINAL-ADMIN-QA.fa.md)
+- [گزارش نهایی پیاده‌سازی](docs/FINAL-REPORT.md)
+
+## Final public and admin QA — 2026-11-13
+
+Verified on a disposable WordPress 7.1.4 + MariaDB 11.4.8 installation with synthetic demo content only:
+
+- Persian RTL public pages render at 1920, 1440, 1280, 1024, 768, 430, 390, 375, and 360 px without horizontal overflow or header/breadcrumb collision.
+- Desktop and mobile day/night screenshots cover home, services, service detail, specialists, specialist detail, portfolio, portfolio detail, journal, article, about, contact, FAQ, terms, privacy, search, and 404.
+- Admin screenshots cover the Persian settings hub, bookings, customers, finance, SEO diagnostics, specialist list, Customizer, and the mobile settings view.
+- Chromium smoke, navigation, theme persistence, image loading, booking-shortcut behavior, and accessibility checks PASS. axe-core reports no violations; gradient/image contrast checks remain manual.
+- Public booking is still disabled by default. The home and header appointment actions route to the salon phone number or contact page.
+
+Known gaps remain explicit: no Jalali calendar UI, no exact PHP 8.1/8.2/8.3 local runtime matrix, no Firefox/WebKit or screen-reader acceptance, no live SMS/payment integration, and no production deployment approval.

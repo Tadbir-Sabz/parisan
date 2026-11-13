@@ -261,31 +261,30 @@ function parisan_customize_homepage_content_register( $wp_customize ) {
 	);
 
 	$fields = array(
-		'hero_eyebrow' => array(  'استودیوی زیبایی پاریسان' , 'text', 'متن کوچک بالای عنوان اصلی' ),
-		'hero_title' => array( 'زیباییِ شما، با امضای ظرافت', 'text', 'عنوان اصلی صفحه نخست' ),
-		'hero_description' => array( 'از لحظه‌ای که وارد می‌شوید تا آخرین جزئیات خدمات، همه‌چیز برای یک تجربه دلنشین، دقیق و شایسته شما طراحی شده است.', 'textarea', 'توضیح بخش اصلی' ),
-		'hero_primary_label' => array( 'انتخاب زمان و رزرو', 'text', 'عنوان دکمه اصلی' ),
+		'hero_title' => array( 'زیبایی، با امضای ظرافت', 'text', 'عنوان اصلی صفحه نخست' ),
+		'hero_description' => array( 'تجربه‌ای متفاوت از زیبایی و آرامش در سالن زیبایی پاریسان؛ با بهترین خدمات و حرفه‌ای‌ترین تیم متخصص.', 'textarea', 'توضیح بخش اصلی' ),
+		'hero_primary_label' => array( 'مشاهده خدمات', 'text', 'عنوان دکمه اصلی' ),
 		'hero_primary_url' => array( '#booking', 'url', 'پیوند دکمه اصلی' ),
-		'hero_secondary_label' => array( 'آشنایی با خدمات', 'text', 'عنوان پیوند دوم' ),
-		'hero_secondary_url' => array( '#services', 'url', 'پیوند دوم' ),
+		'hero_secondary_label' => array( 'درباره ما', 'text', 'عنوان پیوند دوم' ),
+		'hero_secondary_url' => array( home_url( '/about/' ), 'url', 'پیوند دوم' ),
 
-		'benefit_1_title' => array( 'محیط امن و بهداشتی', 'text', 'عنوان مزیت اول — سمت راست' ),
+		'benefit_1_title' => array( 'محیط امن و بهداشتی', 'text', 'عنوان مزیت اول — سمت چپ' ),
 		'benefit_1_description' => array( 'با رعایت کامل استانداردها', 'text', 'توضیح مزیت اول' ),
 		'benefit_2_title' => array( 'پشتیبانی حرفه‌ای', 'text', 'عنوان مزیت دوم' ),
 		'benefit_2_description' => array( 'همیشه در کنار شما', 'text', 'توضیح مزیت دوم' ),
 		'benefit_3_title' => array( 'وقت‌دهی آسان', 'text', 'عنوان مزیت سوم' ),
 		'benefit_3_description' => array( 'آنلاین و سریع', 'text', 'توضیح مزیت سوم' ),
-		'benefit_4_title' => array( 'خدمات لوکس', 'text', 'عنوان مزیت چهارم — سمت چپ' ),
+		'benefit_4_title' => array( 'خدمات لوکس', 'text', 'عنوان مزیت چهارم — سمت راست' ),
 		'benefit_4_description' => array( 'با بالاترین کیفیت', 'text', 'توضیح مزیت چهارم' ),
 
 		'intro_eyebrow' => array( 'تجربه‌ای متناسب با شما', 'text', 'متن کوچک معرفی سالن' ),
 		'intro_title' => array( 'زیبایی، وقتی دلنشین‌تر است که برای شما معنا داشته باشد.', 'text', 'عنوان معرفی سالن' ),
 		'intro_description' => array( 'پاریسان فضایی برای انتخاب آگاهانه و مراقبت حرفه‌ای است؛ جایی که می‌توانید خدمات را با جزئیات ببینید، متخصص مناسب را بشناسید و با خیال آسوده برای زمان دلخواهتان برنامه‌ریزی کنید.', 'textarea', 'توضیح معرفی سالن' ),
-		'services_eyebrow' => array( 'خدمات تخصصی', 'text', 'متن کوچک بخش خدمات' ),
+		'services_eyebrow' => array( 'خدمات منتخب', 'text', 'متن کوچک بخش خدمات' ),
 		'services_title' => array( 'خدماتی برای حالِ بهتر شما', 'text', 'عنوان بخش خدمات' ),
 		'portfolio_eyebrow' => array( 'نمونه‌کارهای پاریسان', 'text', 'متن کوچک نمونه‌کارها' ),
 		'portfolio_title' => array( 'ظرافت را در جزئیات ببینید', 'text', 'عنوان نمونه‌کارها' ),
-		'journal_eyebrow' => array( 'مجلهٔ زیبایی', 'text', 'متن کوچک مجله' ),
+		'journal_eyebrow' => array( 'مجلهٔ پاریسان', 'text', 'متن کوچک مجله' ),
 		'journal_title' => array( 'تازه‌هایی برای زیبایی و آرامش', 'text', 'عنوان مجله' ),
 		'editorial_eyebrow' => array( 'زمانی برای خودتان', 'text', 'متن کوچک نوار تبلیغاتی' ),
 		'editorial_title' => array( 'قرار نیست فقط زیباتر شوید؛ قرار است از این لحظه لذت ببرید.', 'textarea', 'متن نوار تبلیغاتی' ),
@@ -296,6 +295,18 @@ function parisan_customize_homepage_content_register( $wp_customize ) {
 		'booking_eyebrow' => array( 'رزرو و هماهنگی نوبت', 'text', 'متن کوچک بخش رزرو' ),
 		'booking_title' => array( 'زمانی برای خودتان کنار بگذارید.', 'text', 'عنوان بخش رزرو' ),
 		'booking_description' => array( 'خدمت و متخصص دلخواهتان را انتخاب کنید و زمان‌های در دسترس را ببینید.', 'textarea', 'توضیح بخش رزرو' ),
+		'contact_eyebrow' => array( 'ارتباط با پاریسان', 'text', 'متن کوچک بخش تماس' ),
+		'contact_title' => array( 'برای هماهنگی و راهنمایی در کنار شما هستیم.', 'text', 'عنوان بخش تماس' ),
+		'contact_description' => array( 'برای انتخاب خدمت، مشاوره یا هماهنگی زمان مراجعه، با سالن در تماس باشید. اگر رزرو آنلاین فعال باشد، می‌توانید زمان دلخواهتان را مستقیم انتخاب کنید.', 'textarea', 'توضیح بخش تماس' ),
+		'testimonial_1_quote' => array( '', 'textarea', 'نظر مشتری ۱ — متن' ),
+		'testimonial_1_name' => array( '', 'text', 'نظر مشتری ۱ — نام' ),
+		'testimonial_1_role' => array( '', 'text', 'نظر مشتری ۱ — خدمت یا توضیح کوتاه' ),
+		'testimonial_2_quote' => array( '', 'textarea', 'نظر مشتری ۲ — متن' ),
+		'testimonial_2_name' => array( '', 'text', 'نظر مشتری ۲ — نام' ),
+		'testimonial_2_role' => array( '', 'text', 'نظر مشتری ۲ — خدمت یا توضیح کوتاه' ),
+		'testimonial_3_quote' => array( '', 'textarea', 'نظر مشتری ۳ — متن' ),
+		'testimonial_3_name' => array( '', 'text', 'نظر مشتری ۳ — نام' ),
+		'testimonial_3_role' => array( '', 'text', 'نظر مشتری ۳ — خدمت یا توضیح کوتاه' ),
 	);
 
 	foreach ( $fields as $key => $definition ) {
@@ -390,6 +401,95 @@ function parisan_public_setting( $key ) {
 }
 
 /**
+ * Build a safe telephone link from owner-entered, possibly Persian-digit numbers.
+ *
+ * @param string $phone Display phone number.
+ * @return string Empty string when no usable digits exist.
+ */
+function parisan_phone_href( $phone ) {
+	$phone = trim( (string) $phone );
+	if ( '' === $phone ) {
+		return '';
+	}
+	$latin = strtr(
+		$phone,
+		array(
+			'۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+			'۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+			'٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+			'٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+		)
+	);
+	$digits = preg_replace( '/\D+/', '', $latin );
+	if ( '' === $digits ) {
+		return '';
+	}
+	return 'tel:' . ( 0 === strpos( $latin, '+' ) ? '+' : '' ) . $digits;
+}
+
+/**
+ * Resolve the most useful public appointment action for the current site state.
+ *
+ * @return string
+ */
+function parisan_booking_cta_url() {
+	if ( function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled() ) {
+		return home_url( '/#booking' );
+	}
+	return home_url( '/contact/' );
+}
+
+/**
+ * Resolve the matching appointment action label.
+ *
+ * @return string
+ */
+function parisan_booking_cta_label() {
+	return function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled()
+		? __( 'دریافت نوبت', 'parisan' )
+		: __( 'هماهنگی نوبت', 'parisan' );
+}
+
+/**
+ * Return a specialist's configured weekly hours as localized display rows.
+ *
+ * @param int $staff_id Staff post ID.
+ * @return array<string,string> Day label => hours or off state.
+ */
+function parisan_staff_schedule_rows( $staff_id ) {
+	$schedule = get_post_meta( absint( $staff_id ), '_parisan_staff_weekly_schedule', true );
+	if ( ! is_array( $schedule ) || ! $schedule ) {
+		return array();
+	}
+	$days = array(
+		6 => __( 'شنبه', 'parisan' ),
+		0 => __( 'یکشنبه', 'parisan' ),
+		1 => __( 'دوشنبه', 'parisan' ),
+		2 => __( 'سه‌شنبه', 'parisan' ),
+		3 => __( 'چهارشنبه', 'parisan' ),
+		4 => __( 'پنجشنبه', 'parisan' ),
+		5 => __( 'جمعه', 'parisan' ),
+	);
+	$rows = array();
+	foreach ( $days as $day => $label ) {
+		$row = isset( $schedule[ $day ] ) && is_array( $schedule[ $day ] ) ? $schedule[ $day ] : null;
+		if ( null === $row ) {
+			continue;
+		}
+		if ( ! empty( $row['off'] ) ) {
+			$rows[ $label ] = __( 'تعطیل', 'parisan' );
+			continue;
+		}
+		$start = isset( $row['start'] ) ? sanitize_text_field( (string) $row['start'] ) : '';
+		$end   = isset( $row['end'] ) ? sanitize_text_field( (string) $row['end'] ) : '';
+		if ( '' !== $start && '' !== $end ) {
+			$rows[ $label ] = sprintf( '%1$s تا %2$s', $start, $end );
+		}
+	}
+	return $rows;
+}
+
+/**
  * Read an editable homepage content setting with a safe default.
  *
  * @param string $key Homepage content key.
@@ -479,6 +579,12 @@ function parisan_enqueue_assets() {
 		'parisan-main',
 		PARISAN_THEME_URI . '/assets/css/main.css',
 		array(),
+		PARISAN_THEME_VERSION
+	);
+	wp_enqueue_style(
+		'parisan-final-qa',
+		PARISAN_THEME_URI . '/assets/css/final-qa.css',
+		array( 'parisan-main' ),
 		PARISAN_THEME_VERSION
 	);
 	wp_enqueue_script(
@@ -662,6 +768,9 @@ function parisan_card_image_html( $post, $group, $index = 0, $size = 'large', $a
 function parisan_body_classes( $classes ) {
 	$rtl       = parisan_is_rtl();
 	$classes[] = $rtl ? 'parisan-is-rtl' : 'parisan-is-ltr';
+	if ( is_front_page() ) {
+		$classes[] = 'parisan-front-page';
+	}
 	if ( $rtl && ! in_array( 'rtl', $classes, true ) ) {
 		$classes[] = 'rtl';
 	}

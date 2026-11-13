@@ -27,7 +27,7 @@ $parisan_staff = post_type_exists( 'parisan_staff' ) ? get_posts(
 	)
 ) : array();
 
-$parisan_portfolio = post_type_exists( 'parisan_portfolio' ) ? get_posts( array( 'post_type' => 'parisan_portfolio', 'post_status' => 'publish', 'posts_per_page' => 6, 'orderby' => 'date', 'order' => 'DESC' ) ) : array();
+$parisan_portfolio = post_type_exists( 'parisan_portfolio' ) ? get_posts( array( 'post_type' => 'parisan_portfolio', 'post_status' => 'publish', 'posts_per_page' => 3, 'orderby' => 'date', 'order' => 'DESC' ) ) : array();
 $parisan_articles = get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 3, 'orderby' => 'date', 'order' => 'DESC' ) );
 
 $parisan_hero_image_id = absint( get_theme_mod( 'parisan_hero_image_id', 0 ) );
@@ -53,17 +53,29 @@ if ( '' === $parisan_hero_image_night_alt && $parisan_hero_image_night_id && wp_
 
 $parisan_booking_enabled = function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled();
 
+$parisan_testimonials = array();
+for ( $parisan_testimonial_index = 1; $parisan_testimonial_index <= 3; $parisan_testimonial_index++ ) {
+	$parisan_quote = parisan_home_content( 'testimonial_' . $parisan_testimonial_index . '_quote', '' );
+	if ( '' === $parisan_quote ) {
+		continue;
+	}
+	$parisan_testimonials[] = array(
+		'quote' => $parisan_quote,
+		'name'  => parisan_home_content( 'testimonial_' . $parisan_testimonial_index . '_name', '' ),
+		'role'  => parisan_home_content( 'testimonial_' . $parisan_testimonial_index . '_role', '' ),
+	);
+}
+
 get_header();
 ?>
 <main id="main-content" class="parisan-home">
 	<section class="hero-section">
 		<div class="container hero-grid">
 			<div class="hero-copy">
-				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'hero_eyebrow', 'استودیوی زیبایی پاریسان · زیبایی با آرامش' ) ); ?></p>
 				<h1><?php echo esc_html( parisan_home_content( 'hero_title', 'زیبایی، با امضای ظرافت' ) ); ?></h1>
 				<p class="hero-description"><?php echo esc_html( parisan_home_content( 'hero_description', 'تجربه‌ای متفاوت از زیبایی و آرامش در سالن زیبایی پاریسان؛ با بهترین خدمات و حرفه‌ای‌ترین تیم متخصص.' ) ); ?></p>
 				<div class="hero-actions">
-					<a class="button" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_label', 'مشاهده خدمات' ) : 'هماهنگی نوبت' ); ?></a>
+					<a class="button" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_url', '#booking' ) : parisan_booking_cta_url() ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_label', 'مشاهده خدمات' ) : 'هماهنگی نوبت' ); ?></a>
 					<a class="text-link" href="<?php echo esc_url( parisan_home_content( 'hero_secondary_url', home_url( '/about/' ) ) ); ?>"><?php echo esc_html( parisan_home_content( 'hero_secondary_label', 'درباره ما' ) ); ?></a>
 				</div>
 			</div>
@@ -207,7 +219,7 @@ get_header();
 		<div class="container editorial-band-inner">
 			<div class="editorial-mark" aria-hidden="true">P.</div>
 			<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'editorial_eyebrow', 'زمانی برای خودتان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'editorial_title', 'قرار نیست فقط زیباتر شوید؛ قرار است از این لحظه لذت ببرید.' ) ); ?></h2></div>
-			<a class="button button-light" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_label', 'شروع تجربه من' ) : 'تماس با سالن' ); ?></a>
+			<a class="button button-light" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_url', '#booking' ) : parisan_booking_cta_url() ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_label', 'شروع تجربه من' ) : 'تماس با سالن' ); ?></a>
 		</div>
 	</section>
 
@@ -239,6 +251,29 @@ get_header();
 		</div>
 	</section>
 
+	<?php if ( $parisan_testimonials ) : ?>
+		<section class="parisan-testimonials-section" aria-labelledby="parisan-testimonials-title">
+			<div class="container">
+				<div class="section-heading">
+					<div><p class="eyebrow"><?php esc_html_e( 'تجربهٔ مهمانان', 'parisan' ); ?></p><h2 id="parisan-testimonials-title"><?php esc_html_e( 'روایت‌هایی از لحظه‌های پاریسان', 'parisan' ); ?></h2></div>
+				</div>
+				<div class="parisan-testimonial-grid">
+					<?php foreach ( $parisan_testimonials as $parisan_testimonial ) : ?>
+						<figure class="parisan-testimonial">
+							<blockquote><p><?php echo esc_html( $parisan_testimonial['quote'] ); ?></p></blockquote>
+							<?php if ( '' !== $parisan_testimonial['name'] || '' !== $parisan_testimonial['role'] ) : ?>
+								<figcaption>
+									<?php if ( '' !== $parisan_testimonial['name'] ) : ?><strong><?php echo esc_html( $parisan_testimonial['name'] ); ?></strong><?php endif; ?>
+									<?php if ( '' !== $parisan_testimonial['role'] ) : ?><span><?php echo esc_html( $parisan_testimonial['role'] ); ?></span><?php endif; ?>
+								</figcaption>
+							<?php endif; ?>
+						</figure>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</section>
+	<?php endif; ?>
+
 	<section class="parisan-booking-section" id="booking">
 		<div class="container booking-section-heading">
 			<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'booking_eyebrow', 'زمانی برای خودتان' ) ); ?></p>
@@ -247,14 +282,42 @@ get_header();
 		</div>
 		<?php if ( ! $parisan_booking_enabled ) : ?>
 			<?php $parisan_contact_phone = parisan_public_setting( 'parisan_contact_phone' ); ?>
-			<a class="button" href="<?php echo esc_url( $parisan_contact_phone ? 'tel:' . preg_replace( '/[^0-9+]/', '', $parisan_contact_phone ) : home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'هماهنگی با سالن', 'parisan' ); ?></a>
+			<a class="button" href="<?php echo esc_url( $parisan_contact_phone ? parisan_phone_href( $parisan_contact_phone ) : home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'هماهنگی با سالن', 'parisan' ); ?></a>
 		<?php endif; ?>
-		<div class="container parisan-booking-embed">
-			<?php if ( shortcode_exists( 'parisan_booking' ) ) : ?>
-				<?php echo do_shortcode( '[parisan_booking]' ); ?>
-			<?php else : ?>
-				<div class="parisan-booking-unavailable"><p><?php esc_html_e( 'برای نمایش نوبت‌دهی آنلاین، افزونه Parisan Core را نصب و فعال کنید.', 'parisan' ); ?></p></div>
-			<?php endif; ?>
+		<?php if ( $parisan_booking_enabled ) : ?>
+			<div class="container parisan-booking-embed">
+				<?php if ( shortcode_exists( 'parisan_booking' ) ) : ?>
+					<?php echo do_shortcode( '[parisan_booking]' ); ?>
+				<?php else : ?>
+					<div class="parisan-booking-unavailable"><p><?php esc_html_e( 'برای نمایش نوبت‌دهی آنلاین، افزونه Parisan Core را نصب و فعال کنید.', 'parisan' ); ?></p></div>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
+	</section>
+
+	<?php
+	$parisan_contact_phone   = parisan_public_setting( 'parisan_contact_phone' );
+	$parisan_contact_address = parisan_public_setting( 'parisan_contact_address' );
+	$parisan_contact_hours   = parisan_public_setting( 'parisan_contact_hours' );
+	$parisan_contact_email   = parisan_public_setting( 'parisan_contact_email' );
+	?>
+	<section class="parisan-contact-section" id="contact" aria-labelledby="parisan-contact-title">
+		<div class="container parisan-contact-panel">
+			<div class="parisan-contact-panel-copy">
+				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'contact_eyebrow', 'ارتباط با پاریسان' ) ); ?></p>
+				<h2 id="parisan-contact-title"><?php echo esc_html( parisan_home_content( 'contact_title', 'برای هماهنگی و راهنمایی در کنار شما هستیم.' ) ); ?></h2>
+				<p><?php echo esc_html( parisan_home_content( 'contact_description', 'برای انتخاب خدمت، مشاوره یا هماهنگی زمان مراجعه، با سالن در تماس باشید. اگر رزرو آنلاین فعال باشد، می‌توانید زمان دلخواهتان را مستقیم انتخاب کنید.' ) ); ?></p>
+				<div class="parisan-contact-panel-actions">
+					<a class="button" href="<?php echo esc_url( $parisan_contact_phone ? parisan_phone_href( $parisan_contact_phone ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_contact_phone ? 'تماس با سالن' : 'ارسال پیام' ); ?></a>
+					<a class="text-link" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_booking_cta_url() : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? 'رزرو آنلاین' : 'فرم تماس و راهنمایی' ); ?> <span aria-hidden="true">←</span></a>
+				</div>
+			</div>
+			<div class="parisan-contact-panel-details">
+				<?php if ( $parisan_contact_phone ) : ?><p><span><?php esc_html_e( 'تلفن', 'parisan' ); ?></span><a href="<?php echo esc_url( parisan_phone_href( $parisan_contact_phone ) ); ?>"><?php echo esc_html( $parisan_contact_phone ); ?></a></p><?php endif; ?>
+				<?php if ( $parisan_contact_email ) : ?><p><span><?php esc_html_e( 'ایمیل', 'parisan' ); ?></span><a href="<?php echo esc_url( 'mailto:' . sanitize_email( $parisan_contact_email ) ); ?>"><?php echo esc_html( $parisan_contact_email ); ?></a></p><?php endif; ?>
+				<?php if ( $parisan_contact_address ) : ?><p><span><?php esc_html_e( 'نشانی', 'parisan' ); ?></span><?php echo nl2br( esc_html( $parisan_contact_address ) ); ?></p><?php endif; ?>
+				<?php if ( $parisan_contact_hours ) : ?><p><span><?php esc_html_e( 'ساعات پاسخ‌گویی', 'parisan' ); ?></span><?php echo nl2br( esc_html( $parisan_contact_hours ) ); ?></p><?php endif; ?>
+			</div>
 		</div>
 	</section>
 

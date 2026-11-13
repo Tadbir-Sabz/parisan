@@ -28,7 +28,7 @@ get_header();
 					<?php endif; ?>
 				</div>
 				<div class="entry-content"><?php the_content(); ?></div>
-				<a class="button" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'تماس و دریافت راهنمایی برای این خدمت', 'parisan' ); ?></a>
+				<a class="button" href="<?php echo esc_url( parisan_booking_cta_url() ); ?>"><?php echo esc_html( parisan_booking_cta_label() ); ?></a>
 			</div>
 			<?php if ( has_post_thumbnail() ) : ?>
 				<div class="service-detail-image"><?php the_post_thumbnail( 'large' ); ?></div>
