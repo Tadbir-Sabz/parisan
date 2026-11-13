@@ -36,7 +36,7 @@ parisan_public_enabled_assert( false !== strpos( $booking_head_html, 'public-boo
 
 do_action( 'rest_api_init', rest_get_server() );
 $routes = rest_get_server()->get_routes();
-foreach ( array( '/parisan/v1/availability', '/parisan/v1/bookings', '/parisan/v1/customer-booking', '/parisan/v1/customer-booking/cancel', '/parisan/v1/customer-booking/availability', '/parisan/v1/customer-booking/reschedule' ) as $route ) {
+foreach ( array( '/parisan/v1/availability', '/parisan/v1/availability-days', '/parisan/v1/bookings', '/parisan/v1/customer-booking', '/parisan/v1/customer-booking/cancel', '/parisan/v1/customer-booking/availability', '/parisan/v1/customer-booking/reschedule' ) as $route ) {
 	parisan_public_enabled_assert( isset( $routes[ $route ] ), 'expected gated route is registered: ' . $route );
 }
 
@@ -246,6 +246,23 @@ $availability_response = parisan_core_rest_public_availability( $availability_re
 parisan_public_enabled_assert( 200 === $availability_response->get_status(), 'public availability route returns candidate slots for a valid date' );
 $available_times = wp_list_pluck( $availability_response->get_data()['slots'], 'starts_at_local' );
 parisan_public_enabled_assert( ! in_array( $booking_date . ' 10:00', $available_times, true ) && ! in_array( $booking_date . ' 11:00', $available_times, true ) && in_array( $booking_date . ' 12:00', $available_times, true ), 'public availability omits staff-occupied and resource-exhausted slots while retaining a free slot' );
+$availability_data = $availability_response->get_data();
+parisan_public_enabled_assert( isset( $availability_data['date_label'] ) && parisan_core_public_booking_date_label( $booking_date ) === $availability_data['date_label'], 'public availability includes the site-timezone Jalali date label' );
+parisan_public_enabled_assert( isset( $availability_data['slots'][0]['time_label'] ) && false !== strpos( $availability_data['slots'][0]['time_label'], ':' ) && preg_match( '/[۰-۹]/u', $availability_data['slots'][0]['time_label'] ), 'public availability includes Persian-digit clock labels for slots' );
+
+$availability_days_request = new WP_REST_Request( 'GET', '/parisan/v1/availability-days' );
+$availability_days_request->set_param( 'staff_id', (int) $staff_id );
+$availability_days_request->set_param( 'service_id', (int) $service_id );
+$availability_days_response = parisan_core_rest_public_availability_days( $availability_days_request );
+parisan_public_enabled_assert( 200 === $availability_days_response->get_status(), 'public availability-days route returns a 14-day Jalali window' );
+$availability_days_data = $availability_days_response->get_data();
+parisan_public_enabled_assert( isset( $availability_days_data['timezone'] ) && ! empty( $availability_days_data['days'] ), 'availability-days response includes the site timezone and day rows' );
+$days_by_date = array();
+foreach ( $availability_days_data['days'] as $availability_day ) {
+	$days_by_date[ $availability_day['date'] ] = $availability_day;
+}
+parisan_public_enabled_assert( isset( $days_by_date[ $booking_date ] ) && true === $days_by_date[ $booking_date ]['available'] && parisan_core_public_booking_date_label( $booking_date ) === $days_by_date[ $booking_date ]['date_label'], 'availability-day chips mark the known bookable date with its Jalali label' );
+parisan_public_enabled_assert( ! isset( $days_by_date[ $booking_date ]['customer_name'] ) && ! isset( $days_by_date[ $booking_date ]['customer_phone'] ) && ! isset( $days_by_date[ $booking_date ]['booking_id'] ), 'availability-day chips expose no customer or booking identifiers' );
 
 update_option( 'parisan_booking_lead_time_minutes', 60 );
 update_option( 'parisan_booking_horizon_days', 3 );
@@ -382,5 +399,42 @@ $cross_origin_reschedule->set_param( 'starts_at_local', $booking_date . ' 13:00'
 $cross_origin_response = parisan_core_rest_customer_reschedule_booking( $cross_origin_reschedule );
 parisan_public_enabled_assert( 403 === $cross_origin_response->get_status(), 'customer rescheduling rejects cross-origin mutations' );
 
+$holiday_override = parisan_core_save_date_override(
+	array(
+		'staff_id'      => 0,
+		'override_date' => $booking_date,
+		'override_type' => 'holiday',
+		'is_closed'     => true,
+		'note'          => 'Synthetic integration holiday',
+	)
+);
+parisan_public_enabled_assert( is_array( $holiday_override ) && ! empty( $holiday_override['id'] ), 'salon holiday override is persisted for a local date' );
+$holiday_slots = parisan_core_get_available_slots( (int) $staff_id, (int) $service_id, $booking_date );
+parisan_public_enabled_assert( is_array( $holiday_slots ) && empty( $holiday_slots ), 'salon holiday removes every otherwise free slot' );
+$holiday_booking_input = $base_input;
+$holiday_booking_input['starts_at_local'] = $booking_date . ' 09:00';
+$holiday_booking_input['idempotency_token'] = str_repeat( '7', 64 );
+$holiday_booking_input['customer_access_token'] = bin2hex( random_bytes( 32 ) );
+$holiday_booking_result = parisan_core_create_booking( $holiday_booking_input );
+parisan_public_enabled_assert( is_wp_error( $holiday_booking_result ) && 'parisan_booking_slot_unavailable' === $holiday_booking_result->get_error_code(), 'transactional booking creation rejects a slot closed by a salon holiday override' );
+parisan_public_enabled_assert( true === parisan_core_delete_date_override( (int) $holiday_override['id'] ), 'salon holiday override can be removed safely' );
+$restored_slots = parisan_core_get_available_slots( (int) $staff_id, (int) $service_id, $booking_date );
+parisan_public_enabled_assert( is_array( $restored_slots ) && ! empty( $restored_slots ), 'deleting the holiday restores weekly availability without changing existing bookings' );
+
+$staff_leave_override = parisan_core_save_date_override(
+	array(
+		'staff_id'      => (int) $staff_id,
+		'override_date' => $booking_date,
+		'override_type' => 'closure',
+		'is_closed'     => true,
+		'note'          => 'Synthetic integration specialist leave',
+	)
+);
+parisan_public_enabled_assert( is_array( $staff_leave_override ) && ! empty( $staff_leave_override['id'] ), 'specialist closure override is persisted for one date' );
+$staff_leave_slots = parisan_core_get_available_slots( (int) $staff_id, (int) $service_id, $booking_date );
+parisan_public_enabled_assert( is_array( $staff_leave_slots ) && empty( $staff_leave_slots ), 'specialist closure removes only that specialist availability for the date' );
+$other_staff_slots = parisan_core_get_available_slots( (int) $resource_staff_ids[2], (int) $service_id, $booking_date );
+parisan_public_enabled_assert( is_array( $other_staff_slots ) && ! empty( $other_staff_slots ), 'specialist closure does not close other specialists on the same date' );
+parisan_public_enabled_assert( true === parisan_core_delete_date_override( (int) $staff_leave_override['id'] ), 'specialist closure can be removed safely' );
 
 echo "PASS: explicit public API enablement, route registration, and Persian booking shortcode rendering.\n";

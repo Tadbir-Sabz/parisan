@@ -43,9 +43,13 @@ jobs:
       - name: Check booking and public customer JavaScript syntax
         run: |
           node --check plugin/parisan-core/assets/js/booking-admin.js
+          node --check plugin/parisan-core/assets/js/calendar-admin.js
           node --check plugin/parisan-core/assets/js/public-booking.js
           node --check theme/parisan/assets/js/theme.js
           node tests/run-theme-js-tests.js
+
+      - name: Run Jalali date and formatting tests
+        run: php tests/run-jalali-tests.php
 
       - name: Run schedule and availability tests
         run: php tests/run-schedule-tests.php
@@ -128,7 +132,7 @@ jobs:
               exit( 1 );
             }
             global $wpdb;
-            foreach ( array( "parisan_bookings", "parisan_booking_events", "parisan_schedule_exceptions", "parisan_customer_tokens" ) as $suffix ) {
+            foreach ( array( "parisan_bookings", "parisan_booking_events", "parisan_schedule_exceptions", "parisan_schedule_date_overrides", "parisan_customer_tokens" ) as $suffix ) {
               $table = $wpdb->prefix . $suffix;
               $found = $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table ) );
               if ( $table !== $found ) {
@@ -141,7 +145,7 @@ jobs:
                 exit( 1 );
               }
             }
-            if ( 11 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
+            if ( 12 !== (int) get_option( "parisan_core_db_version", 0 ) ) {
               fwrite( STDERR, "Parisan schema version was not recorded.\\n" );
               exit( 1 );
             }
@@ -150,7 +154,7 @@ jobs:
               fwrite( STDERR, "Booking duration snapshot column was not installed.\\n" );
               exit( 1 );
             }
-            if ( ! function_exists( "parisan_core_normalize_weekly_schedule" ) || ! function_exists( "parisan_core_local_interval_to_utc" ) || ! function_exists( "parisan_core_handle_schedule_exception_create" ) ) {
+            if ( ! function_exists( "parisan_core_normalize_weekly_schedule" ) || ! function_exists( "parisan_core_local_interval_to_utc" ) || ! function_exists( "parisan_core_handle_schedule_exception_create" ) || ! function_exists( "parisan_core_save_date_override" ) ) {
               fwrite( STDERR, "Schedule/exception components were not loaded.\\n" );
               exit( 1 );
             }
