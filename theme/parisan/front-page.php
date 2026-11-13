@@ -30,7 +30,28 @@ $parisan_staff = post_type_exists( 'parisan_staff' ) ? get_posts(
 $parisan_portfolio = post_type_exists( 'parisan_portfolio' ) ? get_posts( array( 'post_type' => 'parisan_portfolio', 'post_status' => 'publish', 'posts_per_page' => 6, 'orderby' => 'date', 'order' => 'DESC' ) ) : array();
 $parisan_articles = get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 3, 'orderby' => 'date', 'order' => 'DESC' ) );
 
+$parisan_hero_image_id = absint( get_theme_mod( 'parisan_hero_image_id', 0 ) );
 $parisan_hero_image = get_theme_mod( 'parisan_hero_image', '' );
+$parisan_hero_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_x', 50 ) );
+$parisan_hero_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_position_y', 28 ) );
+$parisan_hero_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_position_x, $parisan_hero_position_y );
+$parisan_has_hero_attachment = $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id );
+$parisan_has_hero_image = $parisan_has_hero_attachment || ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image );
+$parisan_hero_image_alt = sanitize_text_field( get_theme_mod( 'parisan_hero_image_alt', '' ) );
+if ( '' === $parisan_hero_image_alt && $parisan_has_hero_attachment ) {
+	$parisan_hero_image_alt = sanitize_text_field( get_post_meta( $parisan_hero_image_id, '_wp_attachment_image_alt', true ) );
+}
+
+$parisan_hero_image_night_id = absint( get_theme_mod( 'parisan_hero_image_night_id', 0 ) );
+$parisan_hero_night_position_x = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_x', 50 ) );
+$parisan_hero_night_position_y = parisan_sanitize_hero_position( get_theme_mod( 'parisan_hero_night_position_y', 28 ) );
+$parisan_hero_night_image_style = sprintf( 'object-position:%1$d%% %2$d%%;', $parisan_hero_night_position_x, $parisan_hero_night_position_y );
+$parisan_hero_image_night_alt = sanitize_text_field( get_theme_mod( 'parisan_hero_image_night_alt', '' ) );
+if ( '' === $parisan_hero_image_night_alt && $parisan_hero_image_night_id && wp_attachment_is_image( $parisan_hero_image_night_id ) ) {
+	$parisan_hero_image_night_alt = sanitize_text_field( get_post_meta( $parisan_hero_image_night_id, '_wp_attachment_image_alt', true ) );
+}
+
+$parisan_booking_enabled = function_exists( 'parisan_core_public_booking_enabled' ) && parisan_core_public_booking_enabled();
 
 get_header();
 ?>
@@ -38,43 +59,57 @@ get_header();
 	<section class="hero-section">
 		<div class="container hero-grid">
 			<div class="hero-copy">
-				<p class="eyebrow"><?php esc_html_e( 'PARISAN BEAUTY STUDIO · زیبایی با آرامش', 'parisan' ); ?></p>
-				<h1><?php esc_html_e( 'زیباییِ شما، با امضای ظرافت', 'parisan' ); ?></h1>
-				<p class="hero-description"><?php esc_html_e( 'از لحظه‌ای که وارد می‌شوید تا آخرین جزئیات خدمات، همه‌چیز برای یک تجربه دلنشین، دقیق و شایسته شما طراحی شده است.', 'parisan' ); ?></p>
+				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'hero_eyebrow', 'استودیوی زیبایی پاریسان · زیبایی با آرامش' ) ); ?></p>
+				<h1><?php echo esc_html( parisan_home_content( 'hero_title', 'زیبایی، با امضای ظرافت' ) ); ?></h1>
+				<p class="hero-description"><?php echo esc_html( parisan_home_content( 'hero_description', 'تجربه‌ای متفاوت از زیبایی و آرامش در سالن زیبایی پاریسان؛ با بهترین خدمات و حرفه‌ای‌ترین تیم متخصص.' ) ); ?></p>
 				<div class="hero-actions">
-					<a class="button" href="#booking"><?php esc_html_e( 'انتخاب زمان و رزرو', 'parisan' ); ?></a>
-					<a class="text-link" href="#services"><?php esc_html_e( 'آشنایی با خدمات', 'parisan' ); ?></a>
+					<a class="button" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'hero_primary_label', 'مشاهده خدمات' ) : 'هماهنگی نوبت' ); ?></a>
+					<a class="text-link" href="<?php echo esc_url( parisan_home_content( 'hero_secondary_url', home_url( '/about/' ) ) ); ?>"><?php echo esc_html( parisan_home_content( 'hero_secondary_label', 'درباره ما' ) ); ?></a>
 				</div>
-				<div class="hero-note"><span class="hero-note-mark" aria-hidden="true">✳</span><span><?php esc_html_e( 'لحظه‌ای برای خودتان؛ تجربه‌ای با توجه به جزئیات', 'parisan' ); ?></span></div>
 			</div>
-			<div class="hero-art" role="img" aria-label="<?php echo esc_attr( $parisan_hero_image ? __( 'تصویر منتخب سالن زیبایی', 'parisan' ) : __( 'ترکیب هنری انتزاعی با الهام از زیبایی و ظرافت', 'parisan' ) ); ?>">
-				<?php if ( $parisan_hero_image ) : ?>
-					<img class="hero-art-photo" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="" loading="eager" decoding="async">
+			<div class="hero-art">
+				<?php if ( $parisan_hero_image_id && wp_attachment_is_image( $parisan_hero_image_id ) ) : ?>
+					<?php echo wp_get_attachment_image( $parisan_hero_image_id, 'full', false, array( 'class' => 'hero-art-photo hero-art-photo-day', 'alt' => $parisan_hero_image_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_image_style ) ); ?>
+				<?php elseif ( is_string( $parisan_hero_image ) && '' !== $parisan_hero_image ) : ?>
+					<img class="hero-art-photo hero-art-photo-day" src="<?php echo esc_url( $parisan_hero_image ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
+				<?php else : ?>
+					<img class="hero-art-photo hero-art-photo-day" src="<?php echo esc_url( parisan_hero_fallback_image_url( 'day' ) ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_alt ? $parisan_hero_image_alt : __( 'پرتره زیبایی با آرایش ظریف و گل‌های صورتی', 'parisan' ) ); ?>" loading="eager" decoding="async" fetchpriority="high" style="<?php echo esc_attr( $parisan_hero_image_style ); ?>">
 				<?php endif; ?>
-				<div class="hero-art-orbit hero-art-orbit-one"></div>
-				<div class="hero-art-orbit hero-art-orbit-two"></div>
-				<div class="hero-art-petal hero-art-petal-one"></div>
-				<div class="hero-art-petal hero-art-petal-two"></div>
-				<div class="hero-art-label"><span><?php esc_html_e( 'THE ART OF', 'parisan' ); ?></span><strong><?php esc_html_e( 'BEING YOU', 'parisan' ); ?></strong></div>
-				<div class="hero-art-index">P / 01</div>
-				<div class="hero-art-seal" aria-hidden="true">P</div>
+				<?php if ( $parisan_hero_image_night_id && wp_attachment_is_image( $parisan_hero_image_night_id ) ) : ?>
+					<?php echo wp_get_attachment_image( $parisan_hero_image_night_id, 'full', false, array( 'class' => 'hero-art-photo hero-art-photo-night', 'alt' => $parisan_hero_image_night_alt, 'loading' => 'eager', 'decoding' => 'async', 'style' => $parisan_hero_night_image_style ) ); ?>
+				<?php else : ?>
+					<img class="hero-art-photo hero-art-photo-night" src="<?php echo esc_url( parisan_hero_fallback_image_url( 'night' ) ); ?>" alt="<?php echo esc_attr( $parisan_hero_image_night_alt ? $parisan_hero_image_night_alt : __( 'پرتره هنری با آرایش صورتی و بنفش در نورپردازی شب', 'parisan' ) ); ?>" loading="eager" decoding="async" style="<?php echo esc_attr( $parisan_hero_night_image_style ); ?>">
+				<?php endif; ?>
 			</div>
 		</div>
-		<div class="container hero-bottomline" aria-label="<?php esc_attr_e( 'ویژگی‌های تجربه پاریسان', 'parisan' ); ?>">
-			<span><?php esc_html_e( 'توجه به جزئیات', 'parisan' ); ?></span>
-			<span><?php esc_html_e( 'انتخاب آگاهانه خدمات', 'parisan' ); ?></span>
-			<span><?php esc_html_e( 'آرامش در تمام مراحل', 'parisan' ); ?></span>
+		<div class="container hero-bottomline" role="group" aria-label="<?php esc_attr_e( 'مزیت‌های سالن پاریسان', 'parisan' ); ?>">
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 5 43 17 24 43 5 17 24 5Z M5 17h38 M17 17l7 26 7-26 M17 17l7-12 7 12"/></svg></span>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_4_title', 'خدمات لوکس' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_4_description', 'با بالاترین کیفیت' ) ); ?></small>
+			</div>
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/><path d="M24 13v12l9 6"/></svg></span>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_2_title', 'پشتیبانی حرفه‌ای' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_2_description', 'همیشه در کنار شما' ) ); ?></small>
+			</div>
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7 26v-5a17 17 0 0 1 34 0v5 M7 25h7v13H9a2 2 0 0 1-2-2V25Z M41 25h-7v13h5a2 2 0 0 0 2-2V25Z M34 38c-2 4-6 5-11 5"/></svg></span>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_3_title', 'وقت‌دهی آسان' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_3_description', 'آنلاین و سریع' ) ); ?></small>
+			</div>
+			<div class="hero-benefit">
+				<span class="hero-benefit-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 4 41 11v12c0 11-7 17-17 21C14 40 7 34 7 23V11L24 4Z M16 24l6 6 11-13"/></svg></span>
+				<strong><?php echo esc_html( parisan_home_content( 'benefit_1_title', 'محیط امن و بهداشتی' ) ); ?></strong><small><?php echo esc_html( parisan_home_content( 'benefit_1_description', 'با رعایت کامل استانداردها' ) ); ?></small>
+			</div>
 		</div>
 	</section>
 
 	<section class="intro-section parisan-home-intro">
 		<div class="container intro-grid">
 			<div>
-				<p class="eyebrow"><?php esc_html_e( 'A MORE PERSONAL EXPERIENCE', 'parisan' ); ?></p>
-				<h2><?php esc_html_e( 'زیبایی، وقتی دلنشین‌تر است که برای شما معنا داشته باشد.', 'parisan' ); ?></h2>
+				<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'intro_eyebrow', 'تجربه‌ای متناسب با شما' ) ); ?></p>
+				<h2><?php echo esc_html( parisan_home_content( 'intro_title', 'زیبایی، وقتی دلنشین‌تر است که برای شما معنا داشته باشد.' ) ); ?></h2>
 			</div>
 			<div class="intro-copy">
-				<p><?php esc_html_e( 'پاریسان فضایی برای انتخاب آگاهانه و مراقبت حرفه‌ای است؛ جایی که می‌توانید خدمات را با جزئیات ببینید، متخصص مناسب را بشناسید و با خیال آسوده برای زمان دلخواهتان برنامه‌ریزی کنید.', 'parisan' ); ?></p>
+				<p><?php echo esc_html( parisan_home_content( 'intro_description', 'پاریسان فضایی برای انتخاب آگاهانه و مراقبت حرفه‌ای است؛ جایی که می‌توانید خدمات را با جزئیات ببینید، متخصص مناسب را بشناسید و با خیال آسوده برای زمان دلخواهتان برنامه‌ریزی کنید.' ) ); ?></p>
 				<a class="text-link" href="#team"><?php esc_html_e( 'با متخصصان ما آشنا شوید', 'parisan' ); ?></a>
 			</div>
 		</div>
@@ -83,12 +118,12 @@ get_header();
 	<section class="parisan-services-section" id="services">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php esc_html_e( 'THE SERVICE EDIT', 'parisan' ); ?></p><h2><?php esc_html_e( 'خدماتی برای حالِ بهتر شما', 'parisan' ); ?></h2></div>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'services_eyebrow', 'خدمات منتخب' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'services_title', 'خدماتی برای حالِ بهتر شما' ) ); ?></h2></div>
 				<a class="text-link" href="<?php echo esc_url( post_type_exists( 'parisan_service' ) ? get_post_type_archive_link( 'parisan_service' ) : home_url( '/#booking' ) ); ?>"><?php esc_html_e( 'مشاهده همه خدمات', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
 			</div>
 			<?php if ( $parisan_services ) : ?>
 				<div class="service-grid parisan-home-service-grid">
-					<?php foreach ( $parisan_services as $parisan_service ) : ?>
+					<?php foreach ( $parisan_services as $parisan_service_index => $parisan_service ) : ?>
 						<?php
 						$parisan_duration = absint( get_post_meta( $parisan_service->ID, '_parisan_duration', true ) );
 						$parisan_price = absint( get_post_meta( $parisan_service->ID, '_parisan_price', true ) );
@@ -96,11 +131,7 @@ get_header();
 						?>
 						<article class="service-card">
 							<a class="service-card-media" href="<?php echo esc_url( get_permalink( $parisan_service ) ); ?>" tabindex="-1" aria-hidden="true">
-								<?php if ( has_post_thumbnail( $parisan_service ) ) : ?>
-									<?php echo get_the_post_thumbnail( $parisan_service, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?>
-									<span class="service-card-placeholder" aria-hidden="true">✳</span>
-								<?php endif; ?>
+								<?php echo parisan_card_image_html( $parisan_service, 'services', $parisan_service_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</a>
 							<div class="service-card-content">
 								<div class="service-card-meta">
@@ -123,19 +154,18 @@ get_header();
 	<section class="parisan-portfolio-section" id="portfolio">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php esc_html_e( 'THE PARISAN PORTFOLIO', 'parisan' ); ?></p><h2><?php esc_html_e( 'ظرافت را در جزئیات ببینید', 'parisan' ); ?></h2></div>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'portfolio_eyebrow', 'نمونه‌کارهای پاریسان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'portfolio_title', 'ظرافت را در جزئیات ببینید' ) ); ?></h2></div>
 				<?php if ( post_type_exists( 'parisan_portfolio' ) ) : ?><a class="text-link" href="<?php echo esc_url( get_post_type_archive_link( 'parisan_portfolio' ) ); ?>"><?php esc_html_e( 'مشاهده همه نمونه‌کارها', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
 			<?php if ( $parisan_portfolio ) : ?>
 				<div class="parisan-portfolio-grid">
-					<?php foreach ( $parisan_portfolio as $parisan_work ) : ?>
+					<?php foreach ( $parisan_portfolio as $parisan_portfolio_index => $parisan_work ) : ?>
 						<article class="portfolio-card">
-							<a class="portfolio-card-media" href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>" aria-label="<?php echo esc_attr( sprintf( __( 'مشاهده نمونه‌کار %s', 'parisan' ), get_the_title( $parisan_work ) ) ); ?>">
-								<?php if ( has_post_thumbnail( $parisan_work ) ) : ?>
-									<?php echo get_the_post_thumbnail( $parisan_work, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?><span aria-hidden="true">✳</span><?php endif; ?>
+							<a class="portfolio-card-media" href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>" tabindex="-1" aria-hidden="true">
+								<?php echo parisan_card_image_html( $parisan_work, 'portfolio', $parisan_portfolio_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</a>
 							<div class="portfolio-card-content">
+								<?php the_terms( $parisan_work->ID, 'parisan_portfolio_category', '<p class="portfolio-card-category">', '، ', '</p>' ); ?>
 								<h3><a href="<?php echo esc_url( get_permalink( $parisan_work ) ); ?>"><?php echo esc_html( get_the_title( $parisan_work ) ); ?></a></h3>
 								<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_work ), 16 ) ); ?></p>
 							</div>
@@ -151,43 +181,48 @@ get_header();
 	<section class="parisan-journal-section">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php esc_html_e( 'THE PARISAN JOURNAL', 'parisan' ); ?></p><h2><?php esc_html_e( 'تازه‌هایی برای زیبایی و آرامش', 'parisan' ); ?></h2></div>
-				<?php $posts_page = absint( get_option( 'page_for_posts' ) ); ?>
-				<a class="text-link" href="<?php echo esc_url( $posts_page ? get_permalink( $posts_page ) : home_url( '/blog/' ) ); ?>"><?php esc_html_e( 'همه مطالب مجله', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'journal_eyebrow', 'مجلهٔ پاریسان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'journal_title', 'تازه‌هایی برای زیبایی و آرامش' ) ); ?></h2></div>
+				<?php $parisan_blog_url = parisan_blog_index_url(); ?>
+				<?php if ( $parisan_blog_url ) : ?><a class="text-link" href="<?php echo esc_url( $parisan_blog_url ); ?>"><?php esc_html_e( 'همه مطالب مجله', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
 			<?php if ( $parisan_articles ) : ?><div class="post-grid">
-				<?php foreach ( $parisan_articles as $parisan_article ) : ?>
+				<?php foreach ( $parisan_articles as $parisan_article_index => $parisan_article ) : ?>
 					<article class="post-card">
-						<?php if ( has_post_thumbnail( $parisan_article ) ) : ?><a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo get_the_post_thumbnail( $parisan_article, 'large', array( 'loading' => 'lazy' ) ); ?></a><?php endif; ?>
-						<div class="post-card-content"><p class="post-meta"><?php echo esc_html( get_the_date( '', $parisan_article ) ); ?></p><h3><a href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo esc_html( get_the_title( $parisan_article ) ); ?></a></h3><p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_article ), 18 ) ); ?></p></div>
+						<a class="post-card-image" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>" tabindex="-1" aria-hidden="true">
+							<?php echo parisan_card_image_html( $parisan_article, 'journal', $parisan_article_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						</a>
+						<div class="post-card-content">
+							<p class="post-meta"><?php echo esc_html( get_the_date( '', $parisan_article ) ); ?></p>
+							<h3><a href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php echo esc_html( get_the_title( $parisan_article ) ); ?></a></h3>
+							<p><?php echo esc_html( wp_trim_words( get_the_excerpt( $parisan_article ), 18 ) ); ?></p>
+							<a class="service-card-link" href="<?php echo esc_url( get_permalink( $parisan_article ) ); ?>"><?php esc_html_e( 'ادامه مطلب', 'parisan' ); ?> <span aria-hidden="true">←</span></a>
+						</div>
 					</article>
 				<?php endforeach; ?>
-			</div><?php else : ?><p class="catalog-empty"><?php esc_html_e( 'مطالب مجله به‌زودی منتشر می‌شوند.', 'parisan' ); ?></p><?php endif; ?>
+			</div><?php else : ?><div class="catalog-empty parisan-empty-state"><span aria-hidden="true">✳</span><p><?php esc_html_e( 'مطالب مجله به‌زودی منتشر می‌شوند.', 'parisan' ); ?></p></div><?php endif; ?>
 		</div>
 	</section>
 
 	<section class="parisan-editorial-band">
 		<div class="container editorial-band-inner">
 			<div class="editorial-mark" aria-hidden="true">P.</div>
-			<div><p class="eyebrow"><?php esc_html_e( 'YOUR TIME, YOUR STYLE', 'parisan' ); ?></p><h2><?php esc_html_e( 'قرار نیست فقط زیباتر شوید؛ قرار است از این لحظه لذت ببرید.', 'parisan' ); ?></h2></div>
-			<a class="button button-light" href="#booking"><?php esc_html_e( 'شروع تجربه من', 'parisan' ); ?></a>
+			<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'editorial_eyebrow', 'زمانی برای خودتان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'editorial_title', 'قرار نیست فقط زیباتر شوید؛ قرار است از این لحظه لذت ببرید.' ) ); ?></h2></div>
+			<a class="button button-light" href="<?php echo esc_url( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_url', '#booking' ) : home_url( '/contact/' ) ); ?>"><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'editorial_button_label', 'شروع تجربه من' ) : 'تماس با سالن' ); ?></a>
 		</div>
 	</section>
 
 	<section class="parisan-team-section" id="team">
 		<div class="container">
 			<div class="section-heading">
-				<div><p class="eyebrow"><?php esc_html_e( 'THE PEOPLE BEHIND THE CARE', 'parisan' ); ?></p><h2><?php esc_html_e( 'هنر، در دستان متخصصان ما', 'parisan' ); ?></h2></div>
+				<div><p class="eyebrow"><?php echo esc_html( parisan_home_content( 'team_eyebrow', 'تیم متخصص پاریسان' ) ); ?></p><h2><?php echo esc_html( parisan_home_content( 'team_title', 'هنر، در دستان متخصصان ما' ) ); ?></h2></div>
 				<?php if ( post_type_exists( 'parisan_staff' ) ) : ?><a class="text-link" href="<?php echo esc_url( get_post_type_archive_link( 'parisan_staff' ) ); ?>"><?php esc_html_e( 'آشنایی با تیم', 'parisan' ); ?> <span aria-hidden="true">←</span></a><?php endif; ?>
 			</div>
 			<?php if ( $parisan_staff ) : ?>
 				<div class="specialist-grid parisan-home-team-grid">
-					<?php foreach ( $parisan_staff as $parisan_member ) : ?>
+					<?php foreach ( $parisan_staff as $parisan_staff_index => $parisan_member ) : ?>
 						<article class="specialist-card">
 							<a class="specialist-card-image" href="<?php echo esc_url( get_permalink( $parisan_member ) ); ?>" tabindex="-1" aria-hidden="true">
-								<?php if ( has_post_thumbnail( $parisan_member ) ) : ?>
-									<?php echo get_the_post_thumbnail( $parisan_member, 'large', array( 'loading' => 'lazy' ) ); ?>
-								<?php else : ?><span aria-hidden="true">✳</span><?php endif; ?>
+								<?php echo parisan_card_image_html( $parisan_member, 'staff', $parisan_staff_index ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 							</a>
 							<div class="specialist-card-content">
 								<?php $parisan_role = get_post_meta( $parisan_member->ID, '_parisan_staff_role', true ); ?>
@@ -206,10 +241,14 @@ get_header();
 
 	<section class="parisan-booking-section" id="booking">
 		<div class="container booking-section-heading">
-			<p class="eyebrow"><?php esc_html_e( 'MAKE TIME FOR YOURSELF', 'parisan' ); ?></p>
-			<h2><?php esc_html_e( 'زمانی برای خودتان کنار بگذارید.', 'parisan' ); ?></h2>
-			<p><?php esc_html_e( 'خدمت و متخصص دلخواهتان را انتخاب کنید و زمان‌های در دسترس را ببینید.', 'parisan' ); ?></p>
+			<p class="eyebrow"><?php echo esc_html( parisan_home_content( 'booking_eyebrow', 'زمانی برای خودتان' ) ); ?></p>
+			<h2><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'booking_title', 'زمانی برای خودتان کنار بگذارید.' ) : 'برای هماهنگی نوبت با سالن در ارتباط باشید.' ); ?></h2>
+			<p><?php echo esc_html( $parisan_booking_enabled ? parisan_home_content( 'booking_description', 'خدمت و متخصص دلخواهتان را انتخاب کنید و زمان‌های در دسترس را ببینید.' ) : 'رزرو آنلاین در حال حاضر فعال نیست. برای دریافت راهنمایی با سالن تماس بگیرید.' ); ?></p>
 		</div>
+		<?php if ( ! $parisan_booking_enabled ) : ?>
+			<?php $parisan_contact_phone = parisan_public_setting( 'parisan_contact_phone' ); ?>
+			<a class="button" href="<?php echo esc_url( $parisan_contact_phone ? 'tel:' . preg_replace( '/[^0-9+]/', '', $parisan_contact_phone ) : home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'هماهنگی با سالن', 'parisan' ); ?></a>
+		<?php endif; ?>
 		<div class="container parisan-booking-embed">
 			<?php if ( shortcode_exists( 'parisan_booking' ) ) : ?>
 				<?php echo do_shortcode( '[parisan_booking]' ); ?>
@@ -219,15 +258,19 @@ get_header();
 		</div>
 	</section>
 
-	<?php if ( have_posts() ) : ?>
-		<section class="container content-loop parisan-home-content">
-			<?php while ( have_posts() ) : the_post(); ?>
-				<article <?php post_class( 'content-card' ); ?>>
-					<h2><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
-					<?php the_excerpt(); ?>
-				</article>
-			<?php endwhile; ?>
-		</section>
+	<?php if ( is_page() && have_posts() ) : ?>
+		<?php
+		$parisan_static_content = trim( wp_strip_all_tags( get_post_field( 'post_content', get_queried_object_id() ) ) );
+		?>
+		<?php if ( '' !== $parisan_static_content ) : ?>
+			<section class="container content-loop parisan-home-content">
+				<?php while ( have_posts() ) : the_post(); ?>
+					<article <?php post_class( 'content-card' ); ?>>
+						<div class="entry-content"><?php the_content(); ?></div>
+					</article>
+				<?php endwhile; ?>
+			</section>
+		<?php endif; ?>
 	<?php endif; ?>
 </main>
 <?php get_footer(); ?>

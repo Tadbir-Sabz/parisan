@@ -1,0 +1,159 @@
+name: Parisan browser smoke
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    name: WordPress desktop/mobile (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_DATABASE: wordpress
+          MARIADB_USER: wordpress
+          MARIADB_PASSWORD: wordpress
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mysqli, curl, mbstring, zip, gd
+          coverage: none
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run theme JavaScript unit tests
+        run: node tests/run-theme-js-tests.js
+
+      - name: Install WP-CLI
+        run: |
+          curl -fsSLo wp-cli.phar https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+          php wp-cli.phar --info
+          chmod +x wp-cli.phar
+          sudo mv wp-cli.phar /usr/local/bin/wp
+
+      - name: Install disposable WordPress
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-browser-wordpress
+        run: |
+          set -euo pipefail
+          wp core download --path="$WP_PATH" --quiet
+          wp config create --path="$WP_PATH" --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=127.0.0.1 --skip-check
+          wp core install --path="$WP_PATH" --url=http://127.0.0.1:8080 --title="استودیو زیبایی پاریسان" --admin_user=parisan-ci --admin_password="ci-only-password" --admin_email=ci@example.test --skip-email
+          wp option update WPLANG fa_IR --path="$WP_PATH"
+          mkdir -p "$WP_PATH/wp-content/themes" "$WP_PATH/wp-content/plugins"
+          cp -R theme/parisan "$WP_PATH/wp-content/themes/parisan"
+          cp -R plugin/parisan-core "$WP_PATH/wp-content/plugins/parisan-core"
+          wp plugin activate parisan-core --path="$WP_PATH"
+          wp theme activate parisan --path="$WP_PATH"
+          # Replace WordPress's generic starter content with balanced 3-column Persian salon fixtures using bundled local imagery.
+          wp post delete 1 --force --path="$WP_PATH"
+          POST_1=$(wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="راهنمای انتخاب خدمات مراقبت پوست" --post_excerpt="چطور خدمات متناسب با نیاز پوست خود را آگاهانه انتخاب کنیم؟" --post_content="در این راهنما با چند نکته کاربردی برای انتخاب خدمات مراقبت پوست آشنا می‌شوید." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/journal-skincare.jpg" --post_id="$POST_1" --featured_image --path="$WP_PATH" --quiet
+          POST_2=$(wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="روتین آرامش‌بخش مراقبت شبانه" --post_excerpt="سه گام ساده برای حفظ رطوبت و لطافت پوست پیش از خواب." --post_content="مراقبت شبانه به پوست فرصت بازسازی می‌دهد و شادابی روز بعد را تقویت می‌کند." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/journal-ritual.jpg" --post_id="$POST_2" --featured_image --path="$WP_PATH" --quiet
+          POST_3=$(wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="انتخاب رنگ‌های هماهنگ با تناژ پوست" --post_excerpt="چطور تناژ آرایش و رنگ مو را متناسب با گرمی و سردی پوست برگزینیم؟" --post_content="هماهنگی طیف رنگ‌ها باعث جلوه طبیعی‌تر و ظریف‌تر چهره در نور روز و شب می‌شود." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/journal-color.jpg" --post_id="$POST_3" --featured_image --path="$WP_PATH" --quiet
+
+          SERVICE_1=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="پاکسازی و آبرسانی پوست" --post_excerpt="مراقبت تخصصی برای طراوت، پاکسازی عمقی و شادابی پوست." --post_content="یک تجربه مراقبتی آرام با توجه به نوع پوست و نیازهای شما." --porcelain)
+          wp post meta update "$SERVICE_1" _parisan_duration 60 --path="$WP_PATH"
+          wp post meta update "$SERVICE_1" _parisan_price 850000 --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/service-skincare.jpg" --post_id="$SERVICE_1" --featured_image --path="$WP_PATH" --quiet
+
+          SERVICE_2=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="طراحی و فرم‌دهی ابرو" --post_excerpt="فرم‌دهی متناسب با چهره با دقت، تقارن و ظرافت." --post_content="مشاوره و اجرای فرم دلخواه با توجه به تناسب چهره." --porcelain)
+          wp post meta update "$SERVICE_2" _parisan_duration 45 --path="$WP_PATH"
+          wp post meta update "$SERVICE_2" _parisan_price 480000 --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/service-brows.jpg" --post_id="$SERVICE_2" --featured_image --path="$WP_PATH" --quiet
+
+          SERVICE_3=$(wp post create --path="$WP_PATH" --post_type=parisan_service --post_status=publish --post_title="احیا و مراقبت ابریشمی مو" --post_excerpt="آبرسانی عمیق ساقه مو با سرم‌های گیاهی و براشینگ نرم." --post_content="درمان تغذیه‌کننده برای نرمی، درخشش و سلامت تارهای مو." --porcelain)
+          wp post meta update "$SERVICE_3" _parisan_duration 75 --path="$WP_PATH"
+          wp post meta update "$SERVICE_3" _parisan_price 1250000 --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/service-hair.jpg" --post_id="$SERVICE_3" --featured_image --path="$WP_PATH" --quiet
+
+          STAFF_1=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="نگار احمدی" --post_excerpt="متخصص مراقبت و فیشال پوست با رویکرد علمی و آرامش‌بخش." --post_content="با تمرکز بر تجربه‌ای آرام و انتخاب آگاهانه خدمات." --porcelain)
+          wp post meta update "$STAFF_1" _parisan_staff_role "متخصص مراقبت پوست" --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/specialist-1.jpg" --post_id="$STAFF_1" --featured_image --path="$WP_PATH" --quiet
+
+          STAFF_2=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="سارا محمدی" --post_excerpt="متخصص طراحی ابرو و میکاپ ظریف متناسب با چهره." --post_content="توجه به جزئیات و تناسب طبیعی، بخشی از رویکرد کاری اوست." --porcelain)
+          wp post meta update "$STAFF_2" _parisan_staff_role "متخصص زیبایی و ابرو" --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/specialist-2.jpg" --post_id="$STAFF_2" --featured_image --path="$WP_PATH" --quiet
+
+          STAFF_3=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="مهسا کریمی" --post_excerpt="متخصص احیا، رنگ و استایلینگ حرفه‌ای مو در استودیو." --post_content="ترکیب تکنیک روز و سلامت مو برای نتیجه‌ای ماندگار و لطیف." --porcelain)
+          wp post meta update "$STAFF_3" _parisan_staff_role "متخصص زیبایی مو" --path="$WP_PATH"
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/specialist-3.jpg" --post_id="$STAFF_3" --featured_image --path="$WP_PATH" --quiet
+
+          PORTFOLIO_1=$(wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="درخشش طبیعی" --post_excerpt="میکاپ سبک و شفاف با جلوه‌ای طبیعی و درخشان." --post_content="نمونه‌کار نمایشی برای آزمون چیدمان گالری." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/portfolio-glow.jpg" --post_id="$PORTFOLIO_1" --featured_image --path="$WP_PATH" --quiet
+
+          PORTFOLIO_2=$(wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="جزئیات ظریف ناخن" --post_excerpt="مانیکور صدفی و لطیف با پرداخت دقیق و تمیز." --post_content="نمونه‌کار نمایشی دوم برای آزمون گالری." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/portfolio-nails.jpg" --post_id="$PORTFOLIO_2" --featured_image --path="$WP_PATH" --quiet
+
+          PORTFOLIO_3=$(wp post create --path="$WP_PATH" --post_type=parisan_portfolio --post_status=publish --post_title="شینیون کلاسیک مرواریدی" --post_excerpt="بافت و جمع‌کردن کلاسیک مو همراه با اکسسوری مرواریدی ظریف." --post_content="نمونه‌کار نمایشی سوم برای آزمون گالری." --porcelain)
+          wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/portfolio-updo.jpg" --post_id="$PORTFOLIO_3" --featured_image --path="$WP_PATH" --quiet
+          cat > "$WP_PATH/router.php" <<'PHP'
+          <?php
+          $path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+          if ( is_string( $path ) && is_file( __DIR__ . $path ) ) {
+              return false;
+          }
+          require __DIR__ . '/index.php';
+          PHP
+
+      - name: Start disposable WordPress HTTP server
+        env:
+          WP_PATH: ${{ runner.temp }}/parisan-browser-wordpress
+        run: |
+          php -S 127.0.0.1:8080 -t "$WP_PATH" "$WP_PATH/router.php" > "$RUNNER_TEMP/parisan-php-server.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/parisan-php-server.pid"
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/parisan-php-server.log"
+          exit 1
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright axe-core
+          npx playwright install --with-deps chromium firefox webkit
+
+      - name: Verify desktop and mobile experience
+        env:
+          PARISAN_BROWSER: ${{ matrix.browser }}
+        run: |
+          mkdir -p artifacts
+          node tests/browser-smoke.js
+
+      - name: Upload browser screenshots and server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parisian-browser-evidence-${{ matrix.browser }}
+          path: |
+            artifacts/
+            ${{ runner.temp }}/parisan-php-server.log
+          if-no-files-found: warn

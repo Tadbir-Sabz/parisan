@@ -76,7 +76,7 @@ function parisan_core_render_staff_meta_box( $post ) {
 	<hr>
 	<p><strong><?php esc_html_e( 'ساعات کاری هفتگی (بر اساس ساعت محلی سالن)', 'parisan-core' ); ?></strong></p>
 	<table class="widefat striped">
-		<thead><tr><th><?php esc_html_e( 'روز', 'parisan-core' ); ?></th><th><?php esc_html_e( 'شروع', 'parisan-core' ); ?></th><th><?php esc_html_e( 'پایان', 'parisan-core' ); ?></th><th><?php esc_html_e( 'تعطیل', 'parisan-core' ); ?></th></tr></thead>
+		<thead><tr><th><?php esc_html_e( 'روز', 'parisan-core' ); ?></th><th><?php esc_html_e( 'شروع کار', 'parisan-core' ); ?></th><th><?php esc_html_e( 'پایان کار', 'parisan-core' ); ?></th><th><?php esc_html_e( 'شروع استراحت', 'parisan-core' ); ?></th><th><?php esc_html_e( 'پایان استراحت', 'parisan-core' ); ?></th><th><?php esc_html_e( 'تعطیل', 'parisan-core' ); ?></th></tr></thead>
 		<tbody>
 		<?php foreach ( $days as $day => $label ) : ?>
 			<?php
@@ -84,17 +84,21 @@ function parisan_core_render_staff_meta_box( $post ) {
 			$off   = ! empty( $row['off'] );
 			$start = isset( $row['start'] ) ? $row['start'] : '09:00';
 			$end   = isset( $row['end'] ) ? $row['end'] : '18:00';
+			$break_start = isset( $row['break_start'] ) ? $row['break_start'] : '';
+			$break_end = isset( $row['break_end'] ) ? $row['break_end'] : '';
 			?>
 			<tr>
 				<td><?php echo esc_html( $label ); ?></td>
 				<td><input type="time" name="parisan_staff_schedule[<?php echo esc_attr( $day ); ?>][start]" value="<?php echo esc_attr( $start ); ?>"></td>
 				<td><input type="time" name="parisan_staff_schedule[<?php echo esc_attr( $day ); ?>][end]" value="<?php echo esc_attr( $end ); ?>"></td>
+				<td><input type="time" aria-label="<?php echo esc_attr( sprintf( __( 'شروع استراحت %s', 'parisan-core' ), $label ) ); ?>" name="parisan_staff_schedule[<?php echo esc_attr( $day ); ?>][break_start]" value="<?php echo esc_attr( $break_start ); ?>"></td>
+				<td><input type="time" aria-label="<?php echo esc_attr( sprintf( __( 'پایان استراحت %s', 'parisan-core' ), $label ) ); ?>" name="parisan_staff_schedule[<?php echo esc_attr( $day ); ?>][break_end]" value="<?php echo esc_attr( $break_end ); ?>"></td>
 				<td><label><input type="checkbox" name="parisan_staff_schedule[<?php echo esc_attr( $day ); ?>][off]" value="1" <?php checked( $off ); ?>> <?php esc_html_e( 'تعطیل', 'parisan-core' ); ?></label></td>
 			</tr>
 		<?php endforeach; ?>
 		</tbody>
 	</table>
-	<p class="description"><?php esc_html_e( 'این برنامه، الگوی هفتگی است. مرخصی، تعطیلات خاص و استثناهای تاریخ‌دار در مرحله بعدی به مدل زمان‌بندی اضافه می‌شوند.', 'parisan-core' ); ?></p>
+	<p class="description"><?php esc_html_e( 'برای هر روز می‌توانید یک بازه استراحت ثابت تعریف کنید؛ زمان استراحت از پیشنهاد نوبت‌ها حذف می‌شود. هر دو ساعت استراحت باید داخل ساعات کاری باشند. مرخصی و تعطیلی‌های تاریخ‌دار از بخش برنامه استثناها مدیریت می‌شوند.', 'parisan-core' ); ?></p>
 	<?php
 }
 

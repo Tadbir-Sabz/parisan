@@ -73,12 +73,13 @@ function parisan_core_create_booking( $input ) {
 	$phone      = isset( $input['customer_phone'] ) && is_string( $input['customer_phone'] ) ? trim( $input['customer_phone'] ) : '';
 	$phone      = strtr( $phone, array( '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9', '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9' ) );
 	$raw_email  = isset( $input['customer_email'] ) && is_string( $input['customer_email'] ) ? trim( $input['customer_email'] ) : '';
+	$email_consent = ! empty( $input['customer_email_consent'] ) && in_array( $input['customer_email_consent'], array( true, 1, '1' ), true );
 	$email      = '' !== $raw_email ? sanitize_email( $raw_email ) : '';
 	$token      = isset( $input['idempotency_token'] ) && is_string( $input['idempotency_token'] ) ? trim( $input['idempotency_token'] ) : '';
 	$customer_access_token = isset( $input['customer_access_token'] ) && is_string( $input['customer_access_token'] ) ? trim( $input['customer_access_token'] ) : '';
 	$actor_id   = get_current_user_id();
 
-	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $customer_access_token && ! preg_match( '/^[a-f0-9]{64}$/D', $customer_access_token ) ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) ) {
+	if ( ! $staff_id || ! $service_id || ! preg_match( '/^\d{4}-\d{2}-\d{2} (?:[01]\d|2[0-3]):[0-5]\d$/D', $local_start ) || '' === $name || strlen( $name ) > 190 || ! preg_match( '/^\+?[0-9 ()-]{7,24}$/D', $phone ) || ! preg_match( '/^[A-Za-z0-9._~-]{16,128}$/D', $token ) || ( '' !== $customer_access_token && ! preg_match( '/^[a-f0-9]{64}$/D', $customer_access_token ) ) || ( '' !== $raw_email && ( '' === $email || ! is_email( $email ) ) ) || ( $email_consent && ( '' === $email || ! is_email( $email ) ) ) ) {
 		return new WP_Error( 'parisan_invalid_booking_input', __( 'اطلاعات مشتری یا زمان رزرو معتبر نیست.', 'parisan-core' ) );
 	}
 	$phone = preg_replace( '/[^+0-9]/', '', $phone );
@@ -123,7 +124,7 @@ function parisan_core_create_booking( $input ) {
 
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
-	foreach ( array( $bookings_table, $events_table ) as $table ) {
+	foreach ( array( $bookings_table, $events_table, $wpdb->prefix . 'parisan_booking_resources' ) as $table ) {
 		$status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $status ) || empty( $status['Engine'] ) || 'innodb' !== strtolower( $status['Engine'] ) ) {
 			return new WP_Error( 'parisan_transaction_storage_unavailable', __( 'ذخیره‌ساز تراکنشی امن برای رزرو آماده نیست.', 'parisan-core' ) );
@@ -133,6 +134,12 @@ function parisan_core_create_booking( $input ) {
 	$lock_name = parisan_core_acquire_staff_schedule_lock( $staff_id );
 	if ( is_wp_error( $lock_name ) ) {
 		return new WP_Error( 'parisan_booking_lock_unavailable', __( 'سامانه در حال پردازش رزرو دیگری است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
+	}
+	$resource_locks = parisan_core_acquire_resource_schedule_locks( parisan_core_get_service_resource_ids( $service_id ) );
+	if ( is_wp_error( $resource_locks ) ) {
+		parisan_core_release_resource_schedule_locks( $resource_locks );
+		parisan_core_release_staff_schedule_lock( $lock_name );
+		return new WP_Error( 'parisan_resource_lock_unavailable', __( 'ظرفیت منابع خدمت در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
 
 	$transaction_started = false;
@@ -145,7 +152,7 @@ function parisan_core_create_booking( $input ) {
 		}
 
 		$existing = $wpdb->get_row(
-			$wpdb->prepare( "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email, starts_at_utc, ends_at_utc FROM {$bookings_table} WHERE idempotency_key = %s LIMIT 1", $idempotency_key ),
+			$wpdb->prepare( "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email, customer_email_consent, starts_at_utc, ends_at_utc FROM {$bookings_table} WHERE idempotency_key = %s LIMIT 1", $idempotency_key ),
 			ARRAY_A
 		);
 		if ( is_array( $existing ) ) {
@@ -154,6 +161,7 @@ function parisan_core_create_booking( $input ) {
 				&& hash_equals( (string) $existing['customer_name'], $name )
 				&& hash_equals( (string) $existing['customer_phone'], $phone )
 				&& hash_equals( (string) $existing['customer_email'], $email )
+				&& (int) $existing['customer_email_consent'] === ( $email_consent ? 1 : 0 )
 				&& hash_equals( (string) $existing['starts_at_utc'], $starts_sql )
 				&& hash_equals( (string) $existing['ends_at_utc'], $ends_sql );
 			if ( ! $same_payload ) {
@@ -182,9 +190,13 @@ function parisan_core_create_booking( $input ) {
 			return new WP_Error( 'parisan_booking_availability_failed', __( 'امکان بررسی ظرفیت رزرو وجود ندارد.', 'parisan-core' ) );
 		}
 		$slot_available = false;
+		$selected_resource_id = 0;
+		$selected_resource_ids = array();
 		foreach ( $slots as $slot ) {
 			if ( isset( $slot['starts_at_local'] ) && hash_equals( $slot['starts_at_local'], $local_start ) ) {
 				$slot_available = true;
+				$selected_resource_id = isset( $slot['resource_id'] ) ? absint( $slot['resource_id'] ) : 0;
+				$selected_resource_ids = isset( $slot['resource_ids'] ) && is_array( $slot['resource_ids'] ) ? array_values( array_unique( array_map( 'absint', $slot['resource_ids'] ) ) ) : ( $selected_resource_id ? array( $selected_resource_id ) : array() );
 				break;
 			}
 		}
@@ -202,9 +214,11 @@ function parisan_core_create_booking( $input ) {
 				'public_id' => $public_id,
 				'service_id' => $service_id,
 				'staff_id' => $staff_id,
+				'resource_id' => $selected_resource_id,
 				'customer_name' => $name,
 				'customer_phone' => $phone,
 				'customer_email' => $email,
+				'customer_email_consent' => $email_consent ? 1 : 0,
 				'starts_at_utc' => $starts_sql,
 				'ends_at_utc' => $ends_sql,
 				'duration_minutes' => $duration,
@@ -216,14 +230,14 @@ function parisan_core_create_booking( $input ) {
 				'created_at_utc' => $now,
 				'updated_at_utc' => $now,
 			),
-			array( '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
+			array( '%s', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
 		);
 		if ( false === $inserted ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
 			$duplicate = $wpdb->get_row( $wpdb->prepare( "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email, starts_at_utc, ends_at_utc FROM {$bookings_table} WHERE idempotency_key = %s LIMIT 1", $idempotency_key ), ARRAY_A );
 			if ( is_array( $duplicate ) ) {
-				$same = (int) $duplicate['service_id'] === $service_id && (int) $duplicate['staff_id'] === $staff_id && hash_equals( (string) $duplicate['customer_name'], $name ) && hash_equals( (string) $duplicate['customer_phone'], $phone ) && hash_equals( (string) $duplicate['customer_email'], $email ) && hash_equals( (string) $duplicate['starts_at_utc'], $starts_sql ) && hash_equals( (string) $duplicate['ends_at_utc'], $ends_sql );
+				$same = (int) $duplicate['service_id'] === $service_id && (int) $duplicate['staff_id'] === $staff_id && hash_equals( (string) $duplicate['customer_name'], $name ) && hash_equals( (string) $duplicate['customer_phone'], $phone ) && hash_equals( (string) $duplicate['customer_email'], $email ) && (int) $duplicate['customer_email_consent'] === ( $email_consent ? 1 : 0 ) && hash_equals( (string) $duplicate['starts_at_utc'], $starts_sql ) && hash_equals( (string) $duplicate['ends_at_utc'], $ends_sql );
 				if ( ! $same ) {
 					return new WP_Error( 'parisan_idempotency_conflict', __( 'کلید ثبت تکراری قبلاً برای اطلاعات دیگری استفاده شده است.', 'parisan-core' ) );
 				}
@@ -239,6 +253,11 @@ function parisan_core_create_booking( $input ) {
 		}
 
 		$booking_id = (int) $wpdb->insert_id;
+		if ( ! parisan_core_store_booking_resources( $booking_id, $selected_resource_ids ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			$transaction_started = false;
+			return new WP_Error( 'parisan_booking_resources_store_failed', __( 'ثبت منابع موردنیاز نوبت انجام نشد؛ رزرو ذخیره نشد.', 'parisan-core' ) );
+		}
 		if ( '' !== $customer_access_token && ! parisan_core_store_customer_access_token( $booking_id, $customer_access_token ) ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
@@ -249,7 +268,7 @@ function parisan_core_create_booking( $input ) {
 			'event_type' => 'created',
 			'from_status' => '',
 			'to_status' => 'pending',
-			'event_note' => null,
+			'event_note' => $selected_resource_ids ? 'منابع اختصاص‌یافته: #' . implode( ', #', $selected_resource_ids ) : null,
 			'created_at_utc' => $now,
 		);
 		if ( $actor_id ) {
@@ -268,11 +287,15 @@ function parisan_core_create_booking( $input ) {
 			return new WP_Error( 'parisan_booking_commit_failed', __( 'تأیید نهایی رزرو انجام نشد.', 'parisan-core' ) );
 		}
 		$transaction_started = false;
+		if ( $email_consent && function_exists( 'parisan_core_sync_booking_reminders' ) ) {
+			parisan_core_sync_booking_reminders( $booking_id );
+		}
 		return array( 'booking_id' => $booking_id, 'public_id' => $public_id, 'reused' => false );
 	} finally {
 		if ( $transaction_started ) {
 			$wpdb->query( 'ROLLBACK' );
 		}
+		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_staff_schedule_lock( $lock_name );
 	}
 }

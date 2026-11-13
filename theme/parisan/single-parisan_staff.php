@@ -36,7 +36,7 @@ get_header();
 						</ul>
 					</section>
 				<?php endif; ?>
-				<a class="button" href="<?php echo esc_url( apply_filters( 'parisan_staff_booking_url', home_url( '/#booking' ), get_the_ID() ) ); ?>"><?php esc_html_e( 'درخواست نوبت با این متخصص', 'parisan' ); ?></a>
+				<a class="button" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'تماس با سالن برای هماهنگی', 'parisan' ); ?></a>
 			</div>
 		</article>
 	<?php endwhile; ?>

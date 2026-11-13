@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 3 );
+define( 'PARISAN_CORE_DB_VERSION', 11 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -33,10 +33,12 @@ function parisan_core_install_database() {
 		public_id char(36) NOT NULL,
 		service_id bigint(20) unsigned NOT NULL,
 		staff_id bigint(20) unsigned NOT NULL,
+		resource_id bigint(20) unsigned NOT NULL DEFAULT 0,
 		customer_user_id bigint(20) unsigned NULL DEFAULT NULL,
 		customer_name varchar(190) NOT NULL,
 		customer_phone varchar(40) NOT NULL,
 		customer_email varchar(190) NOT NULL DEFAULT '',
+		customer_email_consent tinyint(1) NOT NULL DEFAULT 0,
 		starts_at_utc datetime NOT NULL,
 		ends_at_utc datetime NOT NULL,
 		duration_minutes smallint(5) unsigned NOT NULL DEFAULT 0,
@@ -51,6 +53,7 @@ function parisan_core_install_database() {
 		UNIQUE KEY public_id (public_id),
 		UNIQUE KEY idempotency_key (idempotency_key),
 		KEY staff_starts_at (staff_id, starts_at_utc),
+		KEY resource_starts_at (resource_id, starts_at_utc),
 		KEY customer_user_id (customer_user_id),
 		KEY status_starts_at (status, starts_at_utc)
 	) ENGINE=InnoDB {$charset_collate};";
@@ -103,7 +106,162 @@ function parisan_core_install_database() {
 	) ENGINE=InnoDB {$charset_collate};";
 	dbDelta( $customer_tokens_sql );
 
+
+	$booking_resources_table = $wpdb->prefix . 'parisan_booking_resources';
+	$booking_resources_sql = "CREATE TABLE {$booking_resources_table} (
+		booking_id bigint(20) unsigned NOT NULL,
+		resource_id bigint(20) unsigned NOT NULL,
+		PRIMARY KEY  (booking_id,resource_id),
+		KEY resource_booking (resource_id,booking_id)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $booking_resources_sql );
+
+	$finance_entries_table = $wpdb->prefix . 'parisan_finance_entries';
+	$finance_entries_sql = "CREATE TABLE {$finance_entries_table} (\n\t\tid bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n\t\tentry_type varchar(12) NOT NULL,\n\t\tcategory varchar(100) NOT NULL,\n\t\tdescription text NOT NULL,\n\t\tamount_irr bigint(20) unsigned NOT NULL,\n\t\tstaff_id bigint(20) unsigned NOT NULL DEFAULT 0,\n\t\toccurred_at_utc datetime NOT NULL,\n\t\tcreated_by bigint(20) unsigned NOT NULL,\n\t\tcreated_at_utc datetime NOT NULL,\n\t\tPRIMARY KEY  (id),\n\t\tKEY type_occurred (entry_type,occurred_at_utc),\n\t\tKEY staff_occurred (staff_id,occurred_at_utc),\n\t\tKEY created_by (created_by)\n\t) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $finance_entries_sql );
+
+	$contact_inquiries_table = $wpdb->prefix . 'parisan_contact_inquiries';
+	$contact_inquiries_sql = "CREATE TABLE {$contact_inquiries_table} (\n\t\tid bigint(20) unsigned NOT NULL AUTO_INCREMENT,\n\t\tcustomer_name varchar(120) NOT NULL,\n\t\tcustomer_phone varchar(24) NOT NULL,\n\t\tcustomer_email varchar(190) NOT NULL DEFAULT '',\n\t\tsubject_key varchar(24) NOT NULL,\n\t\tmessage_body text NOT NULL,\n\t\tstatus varchar(20) NOT NULL DEFAULT 'new',\n\t\tcreated_at_utc datetime NOT NULL,\n\t\tupdated_at_utc datetime NULL DEFAULT NULL,\n\t\tPRIMARY KEY  (id),\n\t\tKEY status_created (status,created_at_utc),\n\t\tKEY phone_created (customer_phone,created_at_utc)\n\t) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $contact_inquiries_sql );
+
+
+	$finance_adjustments_table = $wpdb->prefix . 'parisan_finance_adjustments';
+	$finance_adjustments_sql = "CREATE TABLE {$finance_adjustments_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		entry_id bigint(20) unsigned NOT NULL,
+		adjustment_kind varchar(12) NOT NULL,
+		amount_irr bigint(20) unsigned NOT NULL,
+		reason text NOT NULL,
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY entry_id (entry_id),
+		KEY created_at_utc (created_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $finance_adjustments_sql );
+
+	$customer_notes_table = $wpdb->prefix . 'parisan_customer_notes';
+	$customer_notes_sql = "CREATE TABLE {$customer_notes_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		customer_phone varchar(24) NOT NULL,
+		note_body text NOT NULL,
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY phone_created (customer_phone,created_at_utc),
+		KEY created_by (created_by)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $customer_notes_sql );
+
+	$customer_followups_table = $wpdb->prefix . 'parisan_customer_followups';
+	$customer_followups_sql = "CREATE TABLE {$customer_followups_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		customer_phone varchar(24) NOT NULL,
+		task text NOT NULL,
+		due_at_utc datetime NOT NULL,
+		status varchar(12) NOT NULL DEFAULT 'open',
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY phone_due (customer_phone,due_at_utc),
+		KEY status_due (status,due_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $customer_followups_sql );
+
+
+	$inquiry_links_table = $wpdb->prefix . 'parisan_inquiry_customer_links';
+	$inquiry_links_sql = "CREATE TABLE {$inquiry_links_table} (
+		inquiry_id bigint(20) unsigned NOT NULL,
+		customer_phone varchar(24) NOT NULL,
+		linked_by bigint(20) unsigned NOT NULL,
+		linked_at_utc datetime NOT NULL,
+		PRIMARY KEY  (inquiry_id),
+		KEY customer_phone (customer_phone)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $inquiry_links_sql );
+
+
+	$booking_finance_events_table = $wpdb->prefix . 'parisan_booking_finance_events';
+	$booking_finance_events_sql = "CREATE TABLE {$booking_finance_events_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		booking_id bigint(20) unsigned NOT NULL,
+		event_kind varchar(16) NOT NULL,
+		amount_irr bigint(20) unsigned NOT NULL,
+		note text NOT NULL,
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY booking_id (booking_id),
+		KEY event_kind (event_kind),
+		KEY created_at_utc (created_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $booking_finance_events_sql );
+
+
+	$resource_maintenance_table = $wpdb->prefix . 'parisan_resource_maintenance';
+	$resource_maintenance_sql = "CREATE TABLE {$resource_maintenance_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		resource_id bigint(20) unsigned NOT NULL,
+		starts_at_utc datetime NOT NULL,
+		ends_at_utc datetime NOT NULL,
+		reason varchar(500) NOT NULL,
+		status varchar(16) NOT NULL DEFAULT 'active',
+		created_by bigint(20) unsigned NOT NULL,
+		created_at_utc datetime NOT NULL,
+		cancelled_by bigint(20) unsigned NOT NULL DEFAULT 0,
+		cancelled_at_utc datetime NULL DEFAULT NULL,
+		PRIMARY KEY  (id),
+		KEY resource_window (resource_id,starts_at_utc,ends_at_utc),
+		KEY status_window (status,starts_at_utc,ends_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $resource_maintenance_sql );
+
+	$waitlist_table = $wpdb->prefix . 'parisan_booking_waitlist';
+	$waitlist_sql = "CREATE TABLE {$waitlist_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		service_id bigint(20) unsigned NOT NULL,
+		preferred_staff_id bigint(20) unsigned NOT NULL DEFAULT 0,
+		preferred_date date NOT NULL,
+		preferred_period varchar(16) NOT NULL DEFAULT 'any',
+		customer_name varchar(190) NOT NULL,
+		customer_phone varchar(24) NOT NULL,
+		customer_email varchar(190) NOT NULL DEFAULT '',
+		contact_consent_at_utc datetime NOT NULL,
+		status varchar(16) NOT NULL DEFAULT 'waiting',
+		handled_by bigint(20) unsigned NOT NULL DEFAULT 0,
+		handled_at_utc datetime NULL DEFAULT NULL,
+		created_at_utc datetime NOT NULL,
+		updated_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		KEY status_date (status,preferred_date),
+		KEY phone_created (customer_phone,created_at_utc),
+		KEY email_created (customer_email,created_at_utc)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $waitlist_sql );
+
+	$reminders_table = $wpdb->prefix . 'parisan_booking_reminders';
+	$reminders_sql = "CREATE TABLE {$reminders_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		booking_id bigint(20) unsigned NOT NULL,
+		reminder_kind varchar(12) NOT NULL,
+		status varchar(16) NOT NULL DEFAULT 'pending',
+		scheduled_at_utc datetime NOT NULL,
+		sent_at_utc datetime NULL DEFAULT NULL,
+		attempts tinyint(3) unsigned NOT NULL DEFAULT 0,
+		last_error varchar(255) NOT NULL DEFAULT '',
+		created_at_utc datetime NOT NULL,
+		updated_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		UNIQUE KEY booking_kind (booking_id,reminder_kind),
+		KEY status_due (status,scheduled_at_utc),
+		KEY booking_id (booking_id)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $reminders_sql );
+
 	update_option( 'parisan_core_db_version', PARISAN_CORE_DB_VERSION, false );
+	if ( function_exists( 'wp_schedule_event' ) && ! wp_next_scheduled( 'parisan_core_process_booking_reminders' ) ) {
+		wp_schedule_event( time() + 300, 'parisan_fifteen_minutes', 'parisan_core_process_booking_reminders' );
+	}
 }
 
 /**

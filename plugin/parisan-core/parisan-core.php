@@ -3,7 +3,7 @@
  * Plugin Name: Parisan Core
  * Plugin URI: https://github.com/Tadbir-Sabz/parisan
  * Description: First-party salon operations foundation for the Parisan Beauty theme.
- * Version: 0.22.0
+ * Version: 0.32.0
  * Author: Tadbir-Sabz
  * License: GPL-2.0-or-later
  * Text Domain: parisan-core
@@ -13,24 +13,41 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_VERSION', '0.22.0' );
+define( 'PARISAN_CORE_VERSION', '0.32.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PARISAN_CORE_URL', plugin_dir_url( __FILE__ ) );
 
 require_once PARISAN_CORE_DIR . 'includes/database.php';
+require_once PARISAN_CORE_DIR . 'includes/resources.php';
+require_once PARISAN_CORE_DIR . 'includes/resource-maintenance-admin.php';
+require_once PARISAN_CORE_DIR . 'includes/resource-operations-report.php';
+require_once PARISAN_CORE_DIR . 'includes/booking-waitlist.php';
+require_once PARISAN_CORE_DIR . 'includes/booking-reminders.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule.php';
 require_once PARISAN_CORE_DIR . 'includes/availability.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-service.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-lifecycle.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-reschedule.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-admin.php';
+require_once PARISAN_CORE_DIR . 'includes/booking-operations-report.php';
+require_once PARISAN_CORE_DIR . 'includes/customers-admin.php';
 require_once PARISAN_CORE_DIR . 'includes/privacy.php';
 require_once PARISAN_CORE_DIR . 'includes/public-booking.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule-exceptions-admin.php';
 require_once PARISAN_CORE_DIR . 'includes/staff.php';
 require_once PARISAN_CORE_DIR . 'includes/service-taxonomy.php';
+require_once PARISAN_CORE_DIR . 'includes/service-catalog-admin.php';
+require_once PARISAN_CORE_DIR . 'includes/finance-admin.php';
+require_once PARISAN_CORE_DIR . 'includes/finance-ledger.php';
+require_once PARISAN_CORE_DIR . 'includes/finance-operations.php';
+require_once PARISAN_CORE_DIR . 'includes/booking-finance.php';
+require_once PARISAN_CORE_DIR . 'includes/customer-loyalty.php';
+require_once PARISAN_CORE_DIR . 'includes/customer-relationships.php';
+require_once PARISAN_CORE_DIR . 'includes/contact-inquiries.php';
 require_once PARISAN_CORE_DIR . 'includes/seo-performance.php';
+require_once PARISAN_CORE_DIR . 'includes/admin-settings.php';
+require_once PARISAN_CORE_DIR . 'includes/setup-readiness.php';
 require_once PARISAN_CORE_DIR . 'includes/cache-integration.php';
 require_once PARISAN_CORE_DIR . 'includes/breadcrumbs.php';
 
@@ -85,11 +102,11 @@ function parisan_core_register_post_types() {
 					'not_found_in_trash' => __( 'موردی در زباله‌دان نیست.', 'parisan-core' ),
 					'menu_name'          => $labels['plural'],
 				),
-				'public'             => 'parisan_faq' === $type ? false : true,
-				'publicly_queryable' => 'parisan_faq' === $type ? false : true,
-				'exclude_from_search' => 'parisan_faq' === $type,
+				'public'             => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
+				'publicly_queryable' => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
+				'exclude_from_search' => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ),
 				'show_in_rest'       => true,
-				'has_archive'        => 'parisan_faq' === $type ? false : true,
+				'has_archive'        => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
 				'rewrite'            => array( 'slug' => $labels['slug'] ),
 				'menu_icon'          => $labels['icon'],
 				'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'custom-fields' ),

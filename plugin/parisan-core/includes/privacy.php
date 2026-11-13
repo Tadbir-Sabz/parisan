@@ -72,7 +72,9 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table   = $wpdb->prefix . 'parisan_booking_events';
 	$tokens_table   = $wpdb->prefix . 'parisan_customer_tokens';
-	foreach ( array( $bookings_table, $events_table, $tokens_table ) as $table ) {
+	$finance_events_table = $wpdb->prefix . 'parisan_booking_finance_events';
+	$reminders_table = $wpdb->prefix . 'parisan_booking_reminders';
+	foreach ( array( $bookings_table, $events_table, $tokens_table, $finance_events_table, $reminders_table ) as $table ) {
 		$status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $status ) || empty( $status['Engine'] ) || 'innodb' !== strtolower( $status['Engine'] ) ) {
 			return new WP_Error( 'parisan_privacy_storage_unavailable', __( 'ذخیره‌ساز امن برای اجرای درخواست حریم خصوصی آماده نیست.', 'parisan-core' ) );
@@ -86,7 +88,7 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	$updated = $wpdb->query(
 		$wpdb->prepare(
 			"UPDATE {$bookings_table}
-			SET customer_name = %s, customer_phone = %s, customer_email = %s, customer_user_id = NULL
+			SET customer_name = %s, customer_phone = %s, customer_email = %s, customer_email_consent = 0, customer_user_id = NULL
 			WHERE id IN ({$placeholders})",
 			array_merge( array( __( 'اطلاعات حذف‌شده', 'parisan-core' ), '', '' ), $booking_ids )
 		)
@@ -107,6 +109,14 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 		return new WP_Error( 'parisan_privacy_token_revoke_failed', __( 'لغو دسترسی مشتری به رزرو انجام نشد.', 'parisan-core' ) );
 	}
 
+	$reminders_updated = $wpdb->query(
+		$wpdb->prepare( "UPDATE {$reminders_table} SET status = 'skipped', last_error = %s, updated_at_utc = %s WHERE booking_id IN ({$placeholders}) AND status IN ('pending','failed')", array_merge( array( 'privacy_erasure', current_time( 'mysql', true ) ), $booking_ids ) )
+	);
+	if ( false === $reminders_updated ) {
+		$wpdb->query( 'ROLLBACK' );
+		return new WP_Error( 'parisan_privacy_reminder_update_failed', __( 'غیرفعال‌سازی یادآورهای رزرو انجام نشد.', 'parisan-core' ) );
+	}
+
 	$events_updated = $wpdb->query(
 		$wpdb->prepare(
 			"UPDATE {$events_table} SET event_note = NULL WHERE booking_id IN ({$placeholders})",
@@ -116,6 +126,18 @@ function parisan_core_anonymize_booking_ids( $booking_ids ) {
 	if ( false === $events_updated ) {
 		$wpdb->query( 'ROLLBACK' );
 		return new WP_Error( 'parisan_privacy_event_update_failed', __( 'پاک‌سازی توضیحات سوابق رزرو انجام نشد.', 'parisan-core' ) );
+	}
+
+
+	$finance_notes_updated = $wpdb->query(
+		$wpdb->prepare(
+			"UPDATE {$finance_events_table} SET note = %s WHERE booking_id IN ({$placeholders})",
+			array_merge( array( __( 'توضیحات حذف‌شده طبق درخواست حریم خصوصی', 'parisan-core' ) ), $booking_ids )
+		)
+	);
+	if ( false === $finance_notes_updated ) {
+		$wpdb->query( 'ROLLBACK' );
+		return new WP_Error( 'parisan_privacy_finance_event_update_failed', __( 'پاک‌سازی توضیحات رویدادهای مالی رزرو انجام نشد.', 'parisan-core' ) );
 	}
 
 	if ( false === $wpdb->query( 'COMMIT' ) ) {
@@ -147,7 +169,7 @@ function parisan_core_export_booking_personal_data( $email_address, $user_id, $p
 	$offset = ( max( 1, absint( $page ) ) - 1 ) * $limit;
 	$sql = "SELECT id, public_id, service_id, staff_id, customer_name, customer_phone, customer_email,
 		starts_at_utc, ends_at_utc, duration_minutes, salon_timezone, status, price_amount,
-		currency_code, created_at_utc, updated_at_utc
+		currency_code, customer_email_consent, created_at_utc, updated_at_utc
 		FROM {$table} WHERE {$identity['sql']} ORDER BY id ASC LIMIT %d OFFSET %d";
 	$args = array_merge( $identity['args'], array( $limit, $offset ) );
 	$rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A );
@@ -163,6 +185,7 @@ function parisan_core_export_booking_personal_data( $email_address, $user_id, $p
 			array( 'name' => __( 'نام مشتری', 'parisan-core' ), 'value' => $row['customer_name'] ),
 			array( 'name' => __( 'شماره تماس', 'parisan-core' ), 'value' => $row['customer_phone'] ),
 			array( 'name' => __( 'ایمیل', 'parisan-core' ), 'value' => $row['customer_email'] ),
+			array( 'name' => __( 'رضایت ایمیل یادآوری', 'parisan-core' ), 'value' => (int) $row['customer_email_consent'] ? 'yes' : 'no' ),
 			array( 'name' => __( 'خدمت', 'parisan-core' ), 'value' => $service ? $service : (string) $row['service_id'] ),
 			array( 'name' => __( 'متخصص', 'parisan-core' ), 'value' => $staff ? $staff : (string) $row['staff_id'] ),
 			array( 'name' => __( 'شروع رزرو (UTC)', 'parisan-core' ), 'value' => $row['starts_at_utc'] ),
@@ -204,6 +227,19 @@ function parisan_core_export_booking_personal_data( $email_address, $user_id, $p
 				'value' => $event_value,
 			);
 		}
+
+		$finance_events_table = $wpdb->prefix . 'parisan_booking_finance_events';
+		$finance_events = $wpdb->get_results(
+			$wpdb->prepare( "SELECT event_kind, amount_irr, note, created_at_utc FROM {$finance_events_table} WHERE booking_id = %d ORDER BY id ASC", $booking_id ),
+			ARRAY_A
+		);
+		foreach ( (array) $finance_events as $index => $finance_event ) {
+			$data[] = array(
+				'name' => sprintf( __( 'رویداد مالی %d', 'parisan-core' ), $index + 1 ),
+				'value' => implode( ' | ', array( $finance_event['event_kind'], (string) $finance_event['amount_irr'], $finance_event['created_at_utc'], $finance_event['note'] ) ),
+			);
+		}
+
 		$export[] = array(
 			'group_id'    => 'parisan-bookings',
 			'group_label' => __( 'رزروهای سالن', 'parisan-core' ),
@@ -229,6 +265,27 @@ function parisan_core_register_privacy_exporter( $exporters ) {
 	return $exporters;
 }
 add_filter( 'wp_privacy_personal_data_exporters', 'parisan_core_register_privacy_exporter' );
+
+function parisan_core_register_contact_inquiry_exporter( $exporters ) {
+	$exporters['parisan-contact-inquiries'] = array( 'exporter_friendly_name' => __( 'پیام‌های تماس پاریسان', 'parisan-core' ), 'callback' => 'parisan_core_contact_inquiry_exporter_callback' );
+	return $exporters;
+}
+add_filter( 'wp_privacy_personal_data_exporters', 'parisan_core_register_contact_inquiry_exporter' );
+
+function parisan_core_contact_inquiry_exporter_callback( $email_address, $page = 1 ) {
+	global $wpdb;
+	$items = array();
+	if ( is_email( $email_address ) ) {
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT id,customer_name,customer_phone,customer_email,subject_key,message_body,created_at_utc,status FROM {$wpdb->prefix}parisan_contact_inquiries WHERE customer_email=%s ORDER BY id ASC LIMIT 50 OFFSET %d", $email_address, max( 0, ( absint( $page ) - 1 ) * 50 ) ), ARRAY_A );
+		foreach ( (array) $rows as $row ) {
+			$data = array();
+			foreach ( $row as $key => $value ) { $data[] = array( 'name' => sanitize_text_field( $key ), 'value' => (string) $value ); }
+			$items[] = array( 'group_id' => 'parisan-contact-inquiries', 'group_label' => __( 'پیام‌های تماس پاریسان', 'parisan-core' ), 'item_id' => 'contact-inquiry-' . (int) $row['id'], 'data' => $data );
+		}
+	}
+	return array( 'data' => $items, 'done' => count( $items ) < 50 );
+}
+
 
 /**
  * WordPress privacy exporter callback.
@@ -260,6 +317,27 @@ function parisan_core_register_privacy_eraser( $erasers ) {
 	return $erasers;
 }
 add_filter( 'wp_privacy_personal_data_erasers', 'parisan_core_register_privacy_eraser' );
+
+function parisan_core_register_contact_inquiry_eraser( $erasers ) {
+	$erasers['parisan-contact-inquiries'] = array( 'eraser_friendly_name' => __( 'پیام‌های تماس پاریسان', 'parisan-core' ), 'callback' => 'parisan_core_contact_inquiry_eraser_callback' );
+	return $erasers;
+}
+add_filter( 'wp_privacy_personal_data_erasers', 'parisan_core_register_contact_inquiry_eraser' );
+
+function parisan_core_contact_inquiry_eraser_callback( $email_address, $page = 1 ) {
+	global $wpdb;
+	if ( ! is_email( $email_address ) ) { return array( 'items_removed' => false, 'items_retained' => false, 'messages' => array(), 'done' => true ); }
+	$table = $wpdb->prefix . 'parisan_contact_inquiries';
+	$ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$table} WHERE customer_email=%s ORDER BY id ASC LIMIT 50", $email_address ) );
+	if ( $ids ) {
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE id IN ({$placeholders})", array_map( 'absint', $ids ) ) );
+		if ( false === $deleted ) { return array( 'items_removed' => false, 'items_retained' => true, 'messages' => array( __( 'حذف پیام‌های تماس کامل نشد.', 'parisan-core' ) ), 'done' => false ); }
+	}
+	$remaining = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE customer_email=%s", $email_address ) );
+	return array( 'items_removed' => (bool) $ids, 'items_retained' => false, 'messages' => array(), 'done' => 0 === $remaining );
+}
+
 
 /**
  * Anonymize terminal booking records; retain active appointments for fulfilment.
@@ -468,6 +546,7 @@ function parisan_core_add_privacy_policy_content() {
 	}
 	$content = '<p>' . esc_html__( 'Parisan Core stores appointment details including customer name, phone, optional email, appointment time, selected service/specialist, price snapshot, and operational event history. This data is used to manage requested salon services and is visible only to authorized staff.', 'parisan-core' ) . '</p>';
 	$content .= '<p>' . esc_html__( 'WordPress personal-data export and erasure tools include Parisan booking records. Active appointments may be retained while needed to provide or administer the requested service. After a booking becomes terminal, its contact fields and free-form event notes can be anonymized. Automatic anonymization is disabled unless an administrator explicitly selects a retention period.', 'parisan-core' ) . '</p>';
+	$content .= '<p>' . esc_html__( 'Parisan contact inquiries store the sender name, phone, optional email, subject, message, and timestamps in a restricted administrator inbox. The site owner must define and apply an appropriate inquiry retention/deletion policy. Manual financial ledger records contain amounts, categories, descriptions, optional specialist association, and the creating administrator; retain them according to applicable accounting obligations.', 'parisan-core' ) . '</p>';
 	$content .= '<p>' . esc_html__( 'The site owner must set a retention period appropriate to applicable legal, accounting, and business obligations, and must separately document any processors, backups, or external services. Parisan Core does not send SMS or process payments in this release.', 'parisan-core' ) . '</p>';
 	wp_add_privacy_policy_content( __( 'Parisan Core', 'parisan-core' ), wp_kses_post( $content ) );
 }
@@ -518,4 +597,25 @@ function parisan_core_check_rate_limit( $scope, $limit = 5, $window = 300 ) {
 	} finally {
 		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) );
 	}
+}
+
+
+function parisan_core_waitlist_privacy_eraser( $erasers ) {
+	$erasers['parisan-waitlist'] = array( 'eraser_friendly_name' => __( 'درخواست‌های فهرست انتظار پاریسان', 'parisan-core' ), 'callback' => 'parisan_core_waitlist_privacy_eraser_callback' );
+	return $erasers;
+}
+add_filter( 'wp_privacy_personal_data_erasers', 'parisan_core_waitlist_privacy_eraser' );
+
+function parisan_core_waitlist_privacy_eraser_callback( $email, $page = 1 ) {
+	global $wpdb;
+	if ( ! is_email( $email ) ) { return array( 'items_removed' => false, 'items_retained' => false, 'messages' => array(), 'done' => true ); }
+	$table = $wpdb->prefix . 'parisan_booking_waitlist';
+	$ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$table} WHERE customer_email=%s ORDER BY id ASC LIMIT 50", $email ) );
+	if ( $ids ) {
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE id IN ({$placeholders})", array_map( 'absint', $ids ) ) );
+		if ( false === $deleted ) { return array( 'items_removed' => false, 'items_retained' => true, 'messages' => array( __( 'حذف اطلاعات فهرست انتظار کامل نشد.', 'parisan-core' ) ), 'done' => false ); }
+	}
+	$remaining = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE customer_email=%s", $email ) );
+	return array( 'items_removed' => (bool) $ids, 'items_retained' => false, 'messages' => array(), 'done' => 0 === $remaining );
 }

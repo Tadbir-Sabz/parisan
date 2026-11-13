@@ -1,8 +1,8 @@
 # Parisan Delivery Roadmap
 
 **Canonical branch:** main  
-**Active implementation branch:** `feature/service-catalog-foundation`  
-**Roadmap status:** Theme/catalogue, availability, internal booking lifecycle, staff operations, concurrency-safe rescheduling, booking privacy export/erasure, opt-in terminal-record retention, reusable request throttling, and a gated public booking/customer-token API, and token-scoped customer rescheduling are implemented on the feature branch. Public activation remains disabled by default; end-to-end customer UX and deployment-specific security validation remain incomplete.  
+**Active implementation branch:** `feat/parisan-product-completion`  
+**Roadmap status:** The theme/catalogue and booking foundation are merged into main. Product-completion work is in progress on feat/parisan-product-completion: mobile navigation, editable homepage messaging, reliable blog routing, and owner-facing booking readiness guidance. Public booking remains disabled by default; browser/accessibility and deployment-specific security validation remain incomplete.  
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -41,12 +41,12 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 - [ ] Define brand concept, naming/wordmark direction, color tokens, Persian/Latin type system, iconography, spacing, motion, and responsive breakpoints.
 - [ ] Produce desktop/tablet/mobile design references and high-fidelity homepage/service/booking/account/admin prototypes.
-- [~] Define complete RTL/LTR interaction rules and dark/light tokens; initial accessible light/dark preference control is implemented, while full-page contrast, RTL/LTR and keyboard/screen-reader review remain UNVERIFIED.
+- [~] Define complete RTL/LTR interaction rules and dark/light tokens; accessible light/dark preference control, front-end Persian `dir="rtl"` direction fallback, SVG toggle icon, and WCAG-oriented Day/Night card contrast adjustments are implemented and checked in Chromium, while full-screen-reader/multi-browser WCAG 2.2 AA review remains UNVERIFIED.
 - [x] Add initial theme scaffold, semantic header/footer, navigation, dedicated front page, standard page/post, archive, search, and 404 templates, and responsive RTL-aware base styles.
 - [x] Add service catalogue archive and detail templates; runtime rendering remains UNVERIFIED.
 - [~] Build public templates: dynamic editorial homepage and service/staff catalogue archive/detail foundations are implemented; gallery, blog, contact, FAQ, policies, and remaining content templates are pending. Browser rendering and responsive visual review remain UNVERIFIED.
 - [~] Add accessible responsive gallery, testimonial, CTA, and sticky mobile booking action; the mobile booking shortcut is implemented and hides while the booking section is visible, while gallery/testimonial components and browser/device validation remain pending.
-- [ ] Validate content editing and Elementor coexistence/fallback.
+- [~] Validate content editing and Elementor coexistence/fallback; homepage brand messaging and CTA settings are now owner-editable through the Customizer, with browser validation pending.
 - [ ] Create visual regression baselines for key viewports.
 
 **Gate P1:** polished responsive public-site shell; RTL/LTR and dark/light reviewed; no console errors; accessibility baseline.
@@ -55,12 +55,12 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 **Status:** [ ] NOT STARTED
 
-- [ ] Implement plugin bootstrap, namespacing/autoloading, module boundaries, capability map, settings, logging, and diagnostics.
+- [~] Add the first Persian-first admin settings workspace, booking-rule controls, and scoped admin styling; a complete setup wizard, full capability map, logging, and diagnostics remain pending.
 - [ ] Add versioned database migrations and upgrade safety.
 - [~] Add service content type and editable duration/price/price-display metadata with server-side nonce/capability/sanitization checks. Categories, add-ons, packages, booking rules, and runtime validation remain pending.
-- [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor, and date-specific full-day/partial-day unavailability administration. Breaks, resource schedules, and expanded calendar UX remain pending.
-- [ ] Implement branches/resources data model with single-salon-first UX.
-- [ ] Build admin navigation and setup wizard.
+- [~] Implement specialist profiles, service eligibility, weekly recurring schedule editor with validated recurring break windows (breaks are excluded from availability), and date-specific full-day/partial-day unavailability administration. Resource schedules and expanded calendar UX remain pending.
+- [~] Implement single-salon shared resource inventory and service resource pools; multi-branch/tenant ownership and branch-specific resource policies remain pending.
+- [~] Add a unified settings entry point linking brand, homepage copy and four benefit cards, separate day/night hero images, booking rules, SEO/performance, WordPress timezone/language, and menus; a guided first-run setup wizard and role-specific dashboard remain pending.
 - [ ] Add seed/demo data that is clearly non-production.
 - [ ] Test deactivation/theme-switch data persistence.
 - [x] Add pure weekly schedule normalization tests to the PHP CI matrix; previous run PASS on PHP 8.1/8.2/8.3; 22 assertions.
@@ -74,7 +74,8 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Define and add versioned booking, booking-event, and schedule-exception tables with additive activation/upgrade migration; disposable WordPress/MariaDB smoke test confirms all three tables and schema version.
 - [x] Implement timezone-aware availability calculation using staff weekly hours, service duration, configurable slot interval, before/after buffers, existing pending/confirmed bookings, and stored unavailable intervals. Pure tests and a seeded WordPress database integration test are required for this milestone.
 - [x] Add Persian admin management for date-specific full-day leave/closures and partial-day unavailability; all submitted local intervals are validated and stored in UTC.
-- [ ] Add break management, resource schedules, capacity, lead time, and booking horizon.
+- [~] Add owner-configurable minimum booking lead time and maximum booking horizon with bounded settings, Persian admin controls, date-picker alignment, shared slot filtering, and server-side booking/reschedule enforcement. Focused integration coverage includes exact boundaries, non-default horizon values, and transactional rejection inside the lead time; latest CI validation is pending.
+- [~] Recurring weekly specialist breaks are implemented in the schedule editor and availability engine. Configurable minimum lead time (0–10,080 minutes) and booking horizon (1–365 days, default 90) are implemented in the booking-rules admin screen and enforced by shared availability filtering, transactional booking rechecks, public booking creation, and customer rescheduling. Shared resource inventory, service-to-resource pools, resource-aware availability, transactional resource locks, and booking resource snapshots are implemented. Per-resource weekly working hours are now implemented in the resource editor and enforced against the complete buffered interval during shared availability calculation; exact-SHA automated validation is pending. Multi-resource bundles are implemented by resource type: a service selecting room and device types must receive one free resource from each type, while multiple resources of one type form an alternative pool. Booking assignments are persisted in the new booking_resources relation table and legacy resource_id remains as the primary/backward-compatible reference. Exact-SHA integration validation and concurrent multi-connection stress remain pending.
 - [x] Implement and CI-verify internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, and atomic pending booking + audit event transaction (run 42376217290). Multi-connection stress and lock-timeout behavior remain UNVERIFIED. The public route wrapper is separately feature-gated and reuses this service.
 - [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
 - [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
@@ -203,7 +204,239 @@ As of the active implementation branch:
 - Duration snapshots and concurrency-safe rescheduling passed [CI run 42377819791](https://github.com/Tadbir-Sabz/parisan/actions/runs/42377819791).
 - Privacy exporter/eraser, terminal-only anonymization, active-booking retention, rollback safety, opt-in retention, and request throttling passed the PHP matrix [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545) and disposable WordPress/MariaDB integration [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
 - Latest PHP syntax, schedule/availability, booking integration, and WordPress activation smoke tests passed [run 42398990464](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990464).
-- Public booking/customer portal, secure customer access tokens, break/resource scheduling, browser visual/accessibility review, multi-connection stress, proxy/multi-node rate-limit verification, SMS, forms, SEO, caching, WooCommerce/Elementor adapters, packaging, and production deployment remain NOT STARTED or UNVERIFIED as marked above.
+- Public booking/customer portal, secure customer access tokens, resource-specific schedules and multi-resource bundles, browser visual/accessibility review, multi-connection stress, proxy/multi-node rate-limit verification, SMS, forms, SEO, caching, WooCommerce/Elementor adapters, packaging, and production deployment remain NOT STARTED or UNVERIFIED as marked above.
 - No production site, customer database, live SMS, or payment system has been accessed.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
+
+
+## Product completion follow-up — 2026-11-09
+
+- [~] Resolve review findings H1/M1/M2/M3: safe booking remains off by default with a Persian admin readiness checklist; homepage CTAs reflect disabled booking; blog links use the configured posts page or a non-404 home fallback; mobile navigation has a keyboard-operable toggle with Escape handling and a no-JavaScript fallback; key homepage copy and CTA URLs are owner-editable.
+- [ ] Add and execute browser-based visual/accessibility checks at desktop/tablet/mobile viewports.
+- [ ] Verify contrast with default and owner-selected palettes; no custom palette is claimed WCAG-compliant without measurement.
+- [ ] Run exact-SHA CI and independent review on the implementation branch before merge.
+
+
+- [~] Hero photography now has separate day/night images, independent focal points and alternative text, plus responsive media-library output; four trust-benefit cards are owner-editable; 17 self-contained local AI-generated demo visuals (`theme/parisan/assets/images/*.jpg`) eliminate broken/duplicated Unsplash URLs across homepage and archives; duplicate front-page bottom loop and theme-toggle overlap are resolved with fresh Chromium desktop/mobile day/night verification on the session branch. Existing saved day-image URLs remain supported. Real salon photography, multi-browser/screen-reader audits, and production deployment remain pending.
+
+
+## Product completion follow-up — 2026-11-10
+
+- [x] Add a Persian-first, read-only first-run readiness center under «متخصصان ← راهنمای شروع», linked from the unified settings workspace. It reports live checks for theme activation, front-page configuration, timezone, bookable service data, specialist/service/schedule coverage, booking rules, HTTPS detection, and the public-booking gate; each item links to its corrective admin screen.
+- [x] Add responsive status presentation and a Persian setup guide. The readiness screen never mutates content, options, schedules, database state, or the public-booking constant.
+- [x] Add WordPress smoke assertions for unique checks and complete actionable status records.
+- [ ] Execute the full CI suite against the new exact head SHA. The GitHub connector currently reports no workflow runs or status checks for the new commit; automated validation is therefore UNVERIFIED until a run is triggered and completed.
+
+
+- [x] Add a live operational overview to the booking-management screen: active bookings for the current local day, all bookings awaiting confirmation, and confirmed bookings from the next local day onward. The cards link directly to the pending queue, use the WordPress timezone, and are read-only aggregates.
+- [x] Add responsive styling and smoke assertions for the new operational metrics.
+- [ ] Confirm the new exact commit through PHP, WordPress activation, privacy/integration, and Chromium/Firefox/WebKit browser CI before marking the operational overview PASS.
+
+
+## Booking operations — daily schedule
+
+- Added a timezone-safe daily schedule filter to the booking operations screen. Staff can filter by salon-local date, specialist, and booking status; the selected day is shown in chronological order while the unfiltered history remains newest-first.
+- Date boundaries are converted from the WordPress salon timezone to UTC before querying, including daylight-saving transitions. Invalid dates and unauthorized specialist filters are discarded safely.
+- Booking overview metrics are calculated in the booking-list scope; booking detail queries use the explicit bookings table. Public booking remains explicitly gated and disabled by default.
+
+
+## Resource scheduling follow-up — 2026-11-11
+
+- [x] Add optional per-resource weekly working hours in the resource editor (rooms, beds, chairs, devices).
+- [x] Enforce resource-local working windows in the shared availability allocator using the WordPress timezone; the complete booking interval including service buffers must fit within the resource window.
+- [x] Preserve backward compatibility: resources without an enabled custom schedule remain unrestricted by resource-specific hours.
+- [ ] Add focused automated coverage for enabled/disabled days, boundary fits, buffer spillover, and timezone/DST boundaries; exact-head CI validation remains pending.
+- [ ] Implement multi-resource bundles (e.g. room + device in one appointment) across allocation, booking snapshots, rescheduling, and admin display.
+
+
+## Multi-resource booking bundle — 2026-11-11
+
+- [x] Group selected service resources by resource type; every selected type is a mandatory requirement, while multiple resources within one type are alternatives.
+- [x] Allocate one available resource per required type, enforcing each resource's own weekly schedule and shared booking conflicts.
+- [x] Add additive schema v5 relation table for complete booking-to-resource assignments; retain the legacy primary resource_id column for existing integrations and historical rows.
+- [x] Persist the complete resource set atomically on booking creation and rescheduling; show all assigned resources in booking detail and audit notes.
+- [ ] Add exact-head WordPress/MariaDB integration cases for room+device, exhausted one-type pool, shared-resource cross-service conflicts, reschedule replacement, and rollback on relation-write failure.
+- [ ] Verify list view shows all assigned resources and run concurrency stress before release readiness.
+
+
+## Booking operations — unified daily calendar — 2026-11-11
+
+- [x] Add a salon-timezone daily operational calendar grouped into specialist lanes, ordered by appointment start time.
+- [x] Show customer, service, time interval, assigned resource bundle, and current booking status in each calendar entry; entries link to the existing permission-checked booking detail screen.
+- [x] Add previous/next-day navigation that preserves specialist, resource, and status filters.
+- [x] Add a resource-specific filter that includes both v5 booking-resource relations and legacy single-resource bookings, while retaining status/date/specialist scoping.
+- [x] Add responsive admin styling and focused WordPress smoke assertions for the calendar, resource filter, and date navigation.
+- [ ] Exact-head CI execution and seeded multi-resource operational display validation remain pending.
+
+
+## Product development — customer CRM and service catalogue — 2026-11-11
+
+### Task 1: Customer operations workspace
+- [x] Add a Persian-first customer directory under Specialists, derived from booking history without duplicating customer PII into a second customer database.
+- [x] Search by customer name, phone, and email; show visit count, completed service count, completed-booking amount total, and last visit.
+- [x] Add customer-specific chronological booking history with links to the existing permission-checked booking detail and audit screen.
+- [x] Scope all directory aggregates and history to specialists the current operator is authorized to edit; exclude empty-phone records from customer identity grouping.
+- [ ] Validate seeded guest/customer data and role/capability boundaries in disposable WordPress/MariaDB integration.
+
+### Task 2: Actionable service catalogue
+- [x] Add service-list columns for duration, price/price-from, assigned specialist count, and required resource types.
+- [x] Add numeric sorting for duration and price, preserving the native WordPress catalogue and existing hierarchical service-category taxonomy.
+- [x] Add an assignment filter for services with or without a published specialist; retain existing edit screens as the source of truth for duration, pricing, specialist assignment, and resource requirements.
+- [x] Add focused WordPress smoke assertions for CRM access scoping and catalogue columns/filter/sorting.
+- [ ] Execute exact-head PHP syntax, WordPress activation/smoke, privacy integration, and browser CI before marking runtime acceptance PASS.
+
+
+## Salon finance and public catalogue — 2026-11-11
+
+### Task 1: Read-only financial operations
+- [x] Add a date-range financial workspace under «متخصصان ← گزارش مالی».
+- [x] Report completed-booking recognized revenue, completed/open/cancelled counts, and the non-final value of pending/confirmed bookings.
+- [x] Break down booking volume and completed revenue by service and specialist; scope every query to specialists the operator may edit.
+- [x] Convert UTC booking boundaries using the salon WordPress timezone and display IRR snapshots as toman.
+- [x] Explicitly distinguish recognized booking revenue from cash receipts/profit: expenses, discounts, refunds, payment transactions, and settlements are not represented by the current schema.
+- [ ] Validate financial totals against seeded WordPress/MariaDB fixtures and role boundaries; exact-head CI remains required.
+
+### Task 2: Public service and specialist journey
+- [x] Keep dedicated service and specialist archive/detail templates as the public catalogue source.
+- [x] Add contextual contact CTAs to both catalogue archives and detail pages; do not route visitors into a disabled online booking flow.
+- [x] Show service duration/pricing and specialist role/services using escaped public content and existing media/card helpers.
+- [ ] Browser-check Persian RTL, image fallback, archive pagination, mobile layout, and contact-page destination; production contact details and live content remain owner-verifiable.
+
+
+## Financial ledger and contact inquiry workflow — 2026-11-11
+
+### Task 1: Auditable manual finance ledger
+- [x] Add additive DB v6 finance-entry table with immutable-by-UI records, actor provenance, type, category, description, amount, optional specialist, and UTC occurrence time.
+- [x] Add administrator-only income/expense registration with nonce, validation, toman-to-IRR conversion, and a latest-200 register.
+- [x] Keep manually recorded receipts distinct from completed-booking recognized revenue and from gateway transactions.
+- [ ] Seeded WordPress/MariaDB validation, accounting reconciliation, correction workflow, and owner-defined categories remain pending; no bank/gateway integration is claimed.
+
+### Task 2: Secure public contact and private inbox
+- [x] Add a public Persian inquiry form with nonce, field validation, phone normalization, honeypot, short-window abuse throttle, and safe post/redirect/get feedback.
+- [x] Persist inquiries in an additive DB v6 table without storing requester IP addresses.
+- [x] Add administrator-only inbox and controlled new/in-progress/closed status updates.
+- [ ] Browser accessibility/RTL review, disposable DB integration, retention/deletion policy, and real email/SMS notifications remain pending.
+
+
+## Phase 4 — Finance operations and customer relationship workflows
+
+**Status:** [~] IMPLEMENTED ON FEATURE BRANCH — runtime acceptance pending
+
+- [~] Add immutable finance adjustments linked to original manual ledger entries; preserve original records and actor/reason provenance.
+- [~] Add a UTF-8 CSV export for manual entries and their adjustments.
+- [~] Add an administrator-only manual-ledger statement with adjusted income/expense/net totals. Completed-booking revenue remains a separate operational metric; no bank/gateway reconciliation is claimed.
+- [~] Add internal customer notes and scheduled follow-up tasks, including a completion action.
+- [~] Add contact-inquiry-to-existing-customer linkage by phone, only when a matching booking is within the current user's editable-specialist scope.
+- [ ] Runtime WordPress/MariaDB migration, finance adjustment, CSV export, CRM privacy-scope and browser workflows on the disposable integration environment.
+- [ ] Decide a formal finance correction policy, retention period, and whether accounting-grade P&L/tax reporting is in scope.
+
+
+## Finance integrity and CRM follow-up operations — 2026-11-11
+
+### Task 1: Finance adjustment integrity
+- [x] Lock the source ledger entry during correction and calculate the current adjusted balance before accepting another adjustment.
+- [x] Reject a decrease that would make the adjusted source entry negative; roll back failed writes.
+- [x] Calculate income and expense adjustment deltas independently so an expense correction cannot alter recognized ledger income, and vice versa.
+- [ ] Execute exact-head PHP lint, WordPress/MariaDB adjustment integration, concurrent correction, and CSV regression tests before runtime acceptance.
+
+### Task 2: CRM follow-up work queue
+- [x] Add a global open-follow-up queue to the customer relationship workspace, scoped to bookings for specialists the current operator may edit.
+- [x] Surface overdue count and individual overdue tasks without exposing unrelated customers.
+- [x] Render due times in the salon's configured WordPress timezone and link each task to its permission-checked customer record.
+- [ ] Validate role boundaries, overdue/timezone edge cases, seeded MariaDB data, and browser RTL layout on the exact head SHA.
+
+These changes do not enable public booking, payment processing, or SMS delivery.
+
+
+## Booking operations and auditability — 2026-11-11
+
+### Task 1: Operational performance report
+- [x] Add a specialist/service/status aggregate report with salon-local inclusive date filtering.
+- [x] Scope every aggregate and specialist filter to records the current operator can edit; reject forged out-of-scope specialist IDs.
+- [x] Add UTF-8 CSV export protected by WordPress capability and nonce checks.
+- [x] Escape spreadsheet formula-leading untrusted text cells and distinguish completed-booking recorded value from cash received or profit.
+- [ ] Run PHP lint, seeded WordPress/MariaDB report tests, CSV formula-injection fixtures, and role-boundary checks on the exact head.
+
+### Task 2: Cancellation and no-show audit reasons
+- [x] Require a non-empty reason in the admin transition handler before cancellation or no-show.
+- [x] Pass the sanitized reason through the existing transactional lifecycle into the immutable booking event note.
+- [x] Expose required reason fields in both booking list actions and booking detail actions.
+- [ ] Verify the rendered forms, audit timeline, and failure/rollback behavior in a live WordPress browser session.
+
+No public booking, payment, SMS, production deployment, or PR merge is enabled by these changes.
+
+
+## Booking finance and customer loyalty — 2026-11-11
+
+### Task 1: Booking-level invoice adjustments
+- [x] Add additive DB v8 append-only booking finance events for discounts, surcharges, and manually recorded refunds.
+- [x] Preserve the original booking price snapshot and calculate a distinct adjusted invoice amount; keep refund records separate from invoice discounts.
+- [x] Serialize writes with a booking-row lock and reject cumulative discounts/refunds beyond the available invoice amount.
+- [x] Record actor, UTC timestamp, amount, and mandatory reason; provide a per-booking history and recent-booking entry point.
+- [x] Include finance-event notes in booking personal-data export and anonymize those notes with terminal-booking privacy erasure.
+- [ ] Validate DB migration, concurrent event writes, boundary amounts, and privacy erasure in disposable WordPress/MariaDB integration.
+- [ ] Payment settlement, gateway refund execution, receipts, and bank reconciliation remain NOT IMPLEMENTED.
+
+### Task 2: Customer loyalty and retention insights
+- [x] Add a permission-scoped customer loyalty workspace derived from completed booking history without creating a duplicate customer PII store.
+- [x] Calculate non-monetary engagement points and visit-based tiers; provide repeat, loyal, VIP, and 60-day lapsed-customer segments.
+- [x] Add name/phone/email filtering and show completed visits, completed service value, and last completed visit.
+- [x] Explicitly prevent points from being represented as cash value, redeemable credit, discounts, or payment evidence.
+- [ ] Validate seeded customer segments, salon timezone boundaries, and role/capability isolation in disposable WordPress/MariaDB integration.
+- [ ] Configurable reward rules, point redemption, expiry, and customer-facing loyalty portal remain NOT IMPLEMENTED pending owner policy.
+
+
+## Resource maintenance and utilization — 2026-11-12
+
+### Task 1: Controlled resource maintenance windows
+- [x] Add additive DB v9 maintenance records with resource, UTC interval, reason, status, creator, and cancellation actor/timestamp.
+- [x] Add a Persian-first admin workspace to create future maintenance windows and cancel them without deleting history.
+- [x] Serialize maintenance writes with the same per-resource advisory locks used by booking allocation.
+- [x] Reject maintenance intervals that overlap active bookings or another active maintenance window.
+- [x] Enforce active maintenance windows in the shared resource allocator so public/admin slot suggestions and transactional booking rechecks exclude blocked capacity.
+- [ ] Verify maintenance/booking concurrency, DST conversion, rollback/error paths, and schema upgrade on disposable WordPress/MariaDB.
+
+### Task 2: Resource operations report
+- [x] Add a salon-local date-range report by resource and resource type.
+- [x] Separate pending/confirmed reserved time, completed service time, and active maintenance time; clip durations to the selected report window.
+- [x] Include both legacy single-resource assignments and v5 multi-resource booking relations without duplicate booking counts.
+- [x] Scope all rows to resources editable by the current operator.
+- [x] Add nonce-protected UTF-8 CSV export with spreadsheet formula protection for resource names.
+- [ ] Validate report totals against seeded multi-resource fixtures, role boundaries, and CSV import behavior in disposable WordPress/MariaDB.
+
+The report deliberately does not calculate utilization percentages or theoretical free capacity because resource weekly schedules may be unrestricted or vary by weekday. Maintenance windows do not cancel or move existing appointments; creation is rejected when an active appointment conflicts.
+
+
+### Resource maintenance hardening — follow-up delivery
+- Corrected two escaped namespace calls in the database installer that were parsed as calls to a nonexistent `tdbDelta()`; the WordPress `dbDelta()` calls are now valid PHP function calls.
+- Maintenance conflict checks now include configured pre-service and post-service booking buffers, not just the appointment's visible start/end.
+- Each conflict lookup resets and inspects the database error state independently. Null results or SQL errors block maintenance creation; they are not interpreted as zero conflicts.
+- Resource operations reporting now distinguishes active maintenance from cancelled maintenance history, including separately clipped appointment-independent downtime minutes and CSV columns.
+- Added smoke assertions for the installer regression, booking-buffer overlap logic, and cancelled-maintenance reporting.
+- Exact-final-SHA CI and disposable WordPress/MariaDB runtime validation remain pending after this code update.
+
+
+## Customer waitlist and appointment email reminders — product delivery
+
+### Task A: consent-based waitlist
+- Added the standalone `[parisan_waitlist]` shortcode for customers who cannot find a suitable slot. It captures service, optional preferred specialist, date, daypart, name, phone, optional email, and explicit consent to contact.
+- The public intake is gated by the existing public-booking feature flag; this work does not enable public booking or publish the shortcode automatically.
+- Validates that the requested service is published, the selected specialist is eligible, the requested date is within the configured booking horizon, and no matching availability remains in the requested daypart across eligible specialists.
+- Includes same-origin/referrer validation, WordPress nonce, honeypot, rate limiting, normalized phone input, and fail-closed availability checks.
+- Added a permission-scoped Persian admin queue with waiting/contacted/booked/closed states and retained handling metadata. Staff can progress contacted requests to booked or closed.
+- Added WordPress personal-data export and erasure coverage for waitlist entries. Waitlist requests are leads only, never bookings; there is no automatic customer notification.
+
+### Task B: explicit-consent appointment email reminders
+- Added a dedicated booking email-reminder consent field to both public booking and receptionist-created bookings; no reminder is queued unless the customer explicitly opts in and supplies a valid email address.
+- Added a durable reminder queue with unique 24-hour and 2-hour reminder records, UTC scheduling, atomic worker claims, sent/skipped/failed states, timestamps, attempt counts, and bounded retries (maximum three attempts).
+- Uses WordPress `wp_mail`; delivery depends on the site's configured mail transport. No SMS gateway or third-party messaging integration is claimed.
+- Booking rescheduling recalculates unsent reminder times. Terminal booking transitions, customer cancellation, and privacy erasure prevent pending reminders from being sent.
+- Added a Persian admin delivery-status screen and a staff-controlled consent-revocation action. Revoking consent clears the booking consent flag and suppresses pending reminder delivery. No reminder is sent for historical bookings without recorded opt-in.
+- Schema upgraded additively to v11; existing bookings default to no email-reminder consent.
+- Public booking remains disabled unless the existing owner-controlled feature flag is separately enabled.
+
+### Validation boundaries
+- Added smoke and WordPress/MariaDB integration assertions for schema v11, waitlist controls, explicit consent, and reminder queue creation.
+- Calendar markup now retains its lane container on empty days. Resource allocation now resolves legacy serialized service-resource assignments by decoding actual metadata and fails closed on booking-query errors.
+- Exact-final-SHA CI is pending. Real outbound email delivery, SMTP configuration, and end-to-end browser validation remain unverified until the new run completes.

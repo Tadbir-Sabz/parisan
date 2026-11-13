@@ -20,6 +20,27 @@ function parisan_core_public_booking_enabled() {
 }
 
 /**
+ * Explain the safe booking launch gate to site administrators.
+ *
+ * @return void
+ */
+function parisan_core_public_booking_admin_notice() {
+	if ( parisan_core_public_booking_enabled() || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	echo '<div class="notice notice-info"><p><strong>' . esc_html__( 'رزرو عمومی پاریسان هنوز غیرفعال است.', 'parisan-core' ) . '</strong> ';
+	echo esc_html__( 'این وضعیت پیش‌فرض امن است. پیش از فعال‌سازی، این موارد را بررسی کنید:', 'parisan-core' );
+	echo '</p><ul style="list-style:disc;margin-inline-start:2em">';
+	echo '<li>' . esc_html__( 'HTTPS معتبر و استقرار هم‌مبدأ سایت و API', 'parisan-core' ) . '</li>';
+	echo '<li>' . esc_html__( 'تشخیص IP واقعی کاربر و محدودسازی درخواست‌ها در reverse proxy', 'parisan-core' ) . '</li>';
+	echo '<li>' . esc_html__( 'حذف توکن‌ها و اطلاعات مشتری از لاگ‌ها و هدرهای ثبت‌شده', 'parisan-core' ) . '</li>';
+	echo '<li>' . esc_html__( 'تست مرورگر، دسترس‌پذیری، رزرو هم‌زمان و بازیابی خطا', 'parisan-core' ) . '</li>';
+	echo '</ul><p>' . esc_html__( 'پس از تکمیل بررسی‌ها، مالک سایت می‌تواند با تعریف PARISAN_PUBLIC_BOOKING_ENABLED به مقدار boolean true در wp-config.php قابلیت را آگاهانه فعال کند. این اعلان به‌تنهایی مجوز فعال‌سازی نیست.', 'parisan-core' ) . '</p></div>';
+}
+add_action( 'admin_notices', 'parisan_core_public_booking_admin_notice' );
+
+
+/**
  * Hash a customer access token with the site's authentication salt.
  *
  * @param string $token Raw high-entropy token.
@@ -249,8 +270,8 @@ function parisan_core_rest_public_availability( $request ) {
 	$requested = DateTimeImmutable::createFromFormat( '!Y-m-d', $date, $timezone );
 	$errors = DateTimeImmutable::getLastErrors();
 	$today = new DateTimeImmutable( 'today', $timezone );
-	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || $requested > $today->modify( '+90 days' ) ) {
-		return parisan_core_public_booking_error( __( 'تاریخ باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || ! parisan_core_is_booking_date_within_horizon( $date ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ خارج از بازه مجاز رزرو است.', 'parisan-core' ), 400 );
 	}
 
 	$slots = parisan_core_get_available_slots( $staff_id, $service_id, $date );
@@ -292,8 +313,8 @@ function parisan_core_rest_public_create_booking( $request ) {
 	$requested_date = DateTimeImmutable::createFromFormat( '!Y-m-d', $booking_date, $booking_timezone );
 	$date_errors = DateTimeImmutable::getLastErrors();
 	$today = new DateTimeImmutable( 'today', $booking_timezone );
-	if ( false === $requested_date || ( is_array( $date_errors ) && ( $date_errors['warning_count'] || $date_errors['error_count'] ) ) || $requested_date->format( 'Y-m-d' ) !== $booking_date || $requested_date < $today || $requested_date > $today->modify( '+90 days' ) ) {
-		return parisan_core_public_booking_error( __( 'تاریخ رزرو باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+	if ( false === $requested_date || ( is_array( $date_errors ) && ( $date_errors['warning_count'] || $date_errors['error_count'] ) ) || $requested_date->format( 'Y-m-d' ) !== $booking_date || $requested_date < $today || ! parisan_core_is_booking_date_within_horizon( $booking_date ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ رزرو خارج از بازه مجاز است.', 'parisan-core' ), 400 );
 	}
 
 	$idempotency = $request->get_header( 'idempotency-key' );
@@ -314,6 +335,7 @@ function parisan_core_rest_public_create_booking( $request ) {
 		'customer_name' => $request->get_param( 'customer_name' ),
 		'customer_phone' => $request->get_param( 'customer_phone' ),
 		'customer_email' => $request->get_param( 'customer_email' ),
+		'customer_email_consent' => $request->get_param( 'customer_email_consent' ),
 		'idempotency_token' => $idempotency,
 		'customer_access_token' => $customer_token,
 	);
@@ -416,8 +438,8 @@ function parisan_core_rest_customer_availability( $request ) {
 	$requested = DateTimeImmutable::createFromFormat( '!Y-m-d', $date, $timezone );
 	$errors = DateTimeImmutable::getLastErrors();
 	$today = new DateTimeImmutable( 'today', $timezone );
-	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || $requested > $today->modify( '+90 days' ) ) {
-		return parisan_core_public_booking_error( __( 'تاریخ باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || ! parisan_core_is_booking_date_within_horizon( $date ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ خارج از بازه مجاز رزرو است.', 'parisan-core' ), 400 );
 	}
 
 	$duration = absint( $booking['duration_minutes'] );
@@ -472,8 +494,8 @@ function parisan_core_rest_customer_reschedule_booking( $request ) {
 	$requested = DateTimeImmutable::createFromFormat( '!Y-m-d', $date, $timezone );
 	$errors = DateTimeImmutable::getLastErrors();
 	$today = new DateTimeImmutable( 'today', $timezone );
-	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || $requested > $today->modify( '+90 days' ) ) {
-		return parisan_core_public_booking_error( __( 'تاریخ باید در بازه ۹۰ روز آینده باشد.', 'parisan-core' ), 400 );
+	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date || $requested < $today || ! parisan_core_is_booking_date_within_horizon( $date ) ) {
+		return parisan_core_public_booking_error( __( 'تاریخ خارج از بازه مجاز رزرو است.', 'parisan-core' ), 400 );
 	}
 
 	$token = parisan_core_public_booking_request_token( $request );
@@ -593,6 +615,7 @@ function parisan_core_cancel_booking_with_customer_token( $booking_id, $token ) 
 			return new WP_Error( 'parisan_customer_booking_unavailable' );
 		}
 		$transaction_started = false;
+		if ( function_exists( 'parisan_core_skip_booking_reminders' ) ) { parisan_core_skip_booking_reminders( $booking_id, 'customer_cancelled' ); }
 		return true;
 	} finally {
 		if ( $transaction_started ) {
@@ -751,7 +774,7 @@ add_action( 'wp_enqueue_scripts', 'parisan_core_maybe_enqueue_public_booking_ass
  */
 function parisan_core_booking_shortcode() {
 	if ( ! parisan_core_public_booking_enabled() ) {
-		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'رزرو آنلاین در حال حاضر فعال نیست.', 'parisan-core' ) . '</p></section>';
+		return '<section class="parisan-booking-shell" dir="rtl"><p class="parisan-booking-notice">' . esc_html__( 'رزرو آنلاین در حال حاضر فعال نیست. برای هماهنگی نوبت با سالن تماس بگیرید.', 'parisan-core' ) . '</p></section>';
 	}
 
 	$services = get_posts(
@@ -793,7 +816,7 @@ function parisan_core_booking_shortcode() {
 
 	$today = current_datetime();
 	$minimum_date = $today->format( 'Y-m-d' );
-	$maximum_date = $today->modify( '+90 days' )->format( 'Y-m-d' );
+	$maximum_date = $today->modify( '+' . parisan_core_get_booking_horizon_days() . ' days' )->format( 'Y-m-d' );
 
 	ob_start();
 	?>
@@ -856,6 +879,7 @@ function parisan_core_booking_shortcode() {
 				<p class="parisan-booking-field parisan-booking-field-wide">
 					<label for="parisan-booking-email"><?php esc_html_e( 'ایمیل (اختیاری)', 'parisan-core' ); ?></label>
 					<input id="parisan-booking-email" name="customer_email" type="email" maxlength="190" autocomplete="email">
+					<label><input type="checkbox" name="customer_email_consent" value="1"> <?php esc_html_e( 'مایلم یادآوری نوبت را از طریق ایمیل دریافت کنم.', 'parisan-core' ); ?></label>
 				</p>
 			</div>
 			<p class="parisan-booking-privacy-note"><?php esc_html_e( 'اطلاعات تماس شما فقط برای ثبت و مدیریت درخواست نوبت استفاده می‌شود.', 'parisan-core' ); ?>

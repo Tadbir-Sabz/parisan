@@ -36,20 +36,32 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 	$bookings_table = $wpdb->prefix . 'parisan_bookings';
 	$events_table = $wpdb->prefix . 'parisan_booking_events';
 	$tokens_table = $wpdb->prefix . 'parisan_customer_tokens';
-	foreach ( array( $bookings_table, $events_table, $tokens_table ) as $table ) {
+	foreach ( array( $bookings_table, $events_table, $tokens_table, $wpdb->prefix . 'parisan_booking_resources' ) as $table ) {
 		$table_status = $wpdb->get_row( $wpdb->prepare( 'SHOW TABLE STATUS LIKE %s', $wpdb->esc_like( $table ) ), ARRAY_A );
 		if ( ! is_array( $table_status ) || empty( $table_status['Engine'] ) || 'innodb' !== strtolower( $table_status['Engine'] ) ) {
 			return new WP_Error( 'parisan_transaction_storage_unavailable', __( 'ذخیره‌ساز تراکنشی امن برای رزرو آماده نیست.', 'parisan-core' ) );
 		}
 	}
-	$staff_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT staff_id FROM {$bookings_table} WHERE id = %d", $booking_id ) );
-	if ( ! $staff_id ) {
+	$lock_booking = $wpdb->get_row( $wpdb->prepare( "SELECT staff_id, service_id, resource_id FROM {$bookings_table} WHERE id = %d", $booking_id ), ARRAY_A );
+	if ( ! is_array( $lock_booking ) || empty( $lock_booking['staff_id'] ) ) {
 		return new WP_Error( 'parisan_booking_not_found', __( 'رزرو موردنظر پیدا نشد.', 'parisan-core' ) );
 	}
+	$staff_id = (int) $lock_booking['staff_id'];
 
 	$lock_name = parisan_core_acquire_staff_schedule_lock( $staff_id );
 	if ( is_wp_error( $lock_name ) ) {
 		return new WP_Error( 'parisan_booking_lock_unavailable', __( 'رزرو در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
+	}
+
+	$resource_ids = array_merge( parisan_core_get_service_resource_ids( (int) $lock_booking['service_id'] ), parisan_core_get_booking_resource_ids( $booking_id ) );
+	if ( ! empty( $lock_booking['resource_id'] ) ) {
+		$resource_ids[] = (int) $lock_booking['resource_id'];
+	}
+	$resource_locks = parisan_core_acquire_resource_schedule_locks( $resource_ids );
+	if ( is_wp_error( $resource_locks ) ) {
+		parisan_core_release_resource_schedule_locks( $resource_locks );
+		parisan_core_release_staff_schedule_lock( $lock_name );
+		return new WP_Error( 'parisan_resource_lock_unavailable', __( 'ظرفیت منابع در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
 
 	$transaction_started = false;
@@ -60,13 +72,14 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 		$transaction_started = true;
 		$booking = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id, service_id, staff_id, starts_at_utc, ends_at_utc, duration_minutes, salon_timezone, status
+				"SELECT id, service_id, staff_id, resource_id, starts_at_utc, ends_at_utc, duration_minutes, salon_timezone, status
 				FROM {$bookings_table} WHERE id = %d FOR UPDATE",
 				$booking_id
 			),
 			ARRAY_A
 		);
-		if ( ! is_array( $booking ) ) {
+		$previous_resource_ids = parisan_core_get_booking_resource_ids( $booking_id );
+	if ( ! is_array( $booking ) ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
 			return new WP_Error( 'parisan_booking_not_found', __( 'رزرو موردنظر پیدا نشد.', 'parisan-core' ) );
@@ -151,9 +164,13 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			return new WP_Error( 'parisan_booking_availability_failed', __( 'امکان بررسی ظرفیت زمان جدید وجود ندارد.', 'parisan-core' ) );
 		}
 		$slot_available = false;
+		$selected_resource_id = 0;
+		$selected_resource_ids = array();
 		foreach ( $slots as $slot ) {
 			if ( isset( $slot['starts_at_local'] ) && hash_equals( $slot['starts_at_local'], $new_start_local ) ) {
 				$slot_available = true;
+				$selected_resource_id = isset( $slot['resource_id'] ) ? absint( $slot['resource_id'] ) : 0;
+				$selected_resource_ids = isset( $slot['resource_ids'] ) && is_array( $slot['resource_ids'] ) ? array_values( array_unique( array_map( 'absint', $slot['resource_ids'] ) ) ) : ( $selected_resource_id ? array( $selected_resource_id ) : array() );
 				break;
 			}
 		}
@@ -171,14 +188,20 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			array(
 				'starts_at_utc' => $new_start_sql,
 				'ends_at_utc' => $new_end_sql,
+				'resource_id' => $selected_resource_id,
 				'duration_minutes' => $duration,
 				'salon_timezone' => $timezone->getName(),
 				'updated_at_utc' => $now,
 			),
 			array( 'id' => $booking_id, 'status' => $booking['status'] ),
-			array( '%s', '%s', '%d', '%s', '%s' ),
+			array( '%s', '%s', '%d', '%d', '%s', '%s' ),
 			array( '%d', '%s' )
 		);
+		if ( ! parisan_core_store_booking_resources( $booking_id, $selected_resource_ids ) ) {
+			$wpdb->query( 'ROLLBACK' );
+			$transaction_started = false;
+			return new WP_Error( 'parisan_booking_resources_store_failed', __( 'ذخیره منابع زمان جدید انجام نشد؛ زمان نوبت تغییر نکرد.', 'parisan-core' ) );
+		}
 		if ( false === $updated || 1 !== $updated ) {
 			$wpdb->query( 'ROLLBACK' );
 			$transaction_started = false;
@@ -199,7 +222,7 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			return new WP_Error( 'parisan_booking_token_expiry_update_failed', __( 'به‌روزرسانی اعتبار دسترسی مشتری انجام نشد؛ زمان رزرو تغییر نکرد.', 'parisan-core' ) );
 		}
 
-		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql;
+		$event_note = 'زمان قبلی (UTC): ' . $booking['starts_at_utc'] . '؛ زمان جدید (UTC): ' . $new_start_sql . '؛ منابع قبلی: #' . implode( ', #', $previous_resource_ids ) . '؛ منابع جدید: #' . implode( ', #', $selected_resource_ids );
 		if ( '' !== $note ) {
 			$event_note .= ' — ' . $note;
 		}
@@ -227,11 +250,13 @@ function parisan_core_reschedule_booking( $booking_id, $new_start_local, $note =
 			return new WP_Error( 'parisan_booking_commit_failed', __( 'تأیید نهایی تغییر زمان انجام نشد.', 'parisan-core' ) );
 		}
 		$transaction_started = false;
+		if ( function_exists( 'parisan_core_sync_booking_reminders' ) ) { parisan_core_sync_booking_reminders( $booking_id ); }
 		return array( 'booking_id' => $booking_id, 'starts_at_utc' => $new_start_sql, 'ends_at_utc' => $new_end_sql, 'duration_minutes' => $duration, 'reused' => false );
 	} finally {
 		if ( $transaction_started ) {
 			$wpdb->query( 'ROLLBACK' );
 		}
+		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_staff_schedule_lock( $lock_name );
 	}
 }

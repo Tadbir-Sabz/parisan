@@ -112,7 +112,8 @@
 			starts_at_local: String(data.get('starts_at_local') || ''),
 			customer_name: String(data.get('customer_name') || '').trim(),
 			customer_phone: String(data.get('customer_phone') || '').trim(),
-			customer_email: String(data.get('customer_email') || '').trim()
+			customer_email: String(data.get('customer_email') || '').trim(),
+			customer_email_consent: data.get('customer_email_consent') === '1'
 		};
 		if (!payload.service_id || !payload.staff_id || !payload.starts_at_local) {
 			setLive(message('selectTargets'));

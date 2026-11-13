@@ -19,13 +19,22 @@ function parisan_core_normalize_weekly_schedule( $input ) {
 		$off = ! empty( $row['off'] );
 		$start = isset( $row['start'] ) && is_string( $row['start'] ) ? $row['start'] : '';
 		$end = isset( $row['end'] ) && is_string( $row['end'] ) ? $row['end'] : '';
+		$break_start = isset( $row['break_start'] ) && is_string( $row['break_start'] ) ? $row['break_start'] : '';
+		$break_end = isset( $row['break_end'] ) && is_string( $row['break_end'] ) ? $row['break_end'] : '';
 		$valid_time = static function ( $time ) {
 			return 1 === preg_match( '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $time );
 		};
+		$has_break = '' !== $break_start || '' !== $break_end;
+		$valid_break = ! $has_break || ( $valid_time( $break_start ) && $valid_time( $break_end ) && $break_start < $break_end && $break_start >= $start && $break_end <= $end );
 		if ( $off ) {
 			$schedule[ $day ] = array( 'off' => true );
-		} elseif ( $valid_time( $start ) && $valid_time( $end ) && $end > $start ) {
-			$schedule[ $day ] = array( 'off' => false, 'start' => $start, 'end' => $end );
+		} elseif ( $valid_time( $start ) && $valid_time( $end ) && $end > $start && $valid_break ) {
+			$normalized = array( 'off' => false, 'start' => $start, 'end' => $end );
+			if ( $has_break ) {
+				$normalized['break_start'] = $break_start;
+				$normalized['break_end'] = $break_end;
+			}
+			$schedule[ $day ] = $normalized;
 		} else {
 			$schedule[ $day ] = array( 'off' => true );
 		}
@@ -137,6 +146,14 @@ function parisan_core_calculate_available_slots( $date, $weekly_schedule, $timez
 	};
 	$busy = $normalize_intervals( $busy_intervals );
 	$blocked = $normalize_intervals( $exceptions );
+	if ( ! empty( $hours['break_start'] ) || ! empty( $hours['break_end'] ) ) {
+		$break_start = parisan_core_local_datetime_to_utc( $date, isset( $hours['break_start'] ) ? $hours['break_start'] : '', $timezone );
+		$break_end = parisan_core_local_datetime_to_utc( $date, isset( $hours['break_end'] ) ? $hours['break_end'] : '', $timezone );
+		if ( false === $break_start || false === $break_end || $break_end <= $break_start ) {
+			return array();
+		}
+		$blocked[] = array( 'start' => $break_start, 'end' => $break_end );
+	}
 	$slots = array();
 	$step = new DateInterval( 'PT' . $slot_interval_minutes . 'M' );
 	$service_duration = new DateInterval( 'PT' . $duration_minutes . 'M' );

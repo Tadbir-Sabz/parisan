@@ -8,6 +8,76 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Return the maximum number of days customers may book ahead.
+ *
+ * @return int
+ */
+function parisan_core_get_booking_horizon_days() {
+	$value = get_option( 'parisan_booking_horizon_days', 90 );
+	$value = is_scalar( $value ) ? (int) $value : 90;
+	return min( 365, max( 1, $value ) );
+}
+
+/**
+ * Filter candidate slots using the salon-wide lead-time and booking horizon.
+ *
+ * The same adapter is used by public and receptionist availability, and the
+ * transactional booking writer reuses it while holding the staff lock.
+ *
+ * @param array                 $slots Candidate slots.
+ * @param DateTimeImmutable|null $now_utc Optional UTC clock for deterministic tests.
+ * @return array
+ */
+function parisan_core_filter_booking_window_slots( $slots, $now_utc = null ) {
+	if ( ! is_array( $slots ) ) {
+		return array();
+	}
+	$now_utc = $now_utc instanceof DateTimeImmutable
+		? $now_utc->setTimezone( new DateTimeZone( 'UTC' ) )
+		: new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
+	$lead_minutes = get_option( 'parisan_booking_lead_time_minutes', 0 );
+	$lead_minutes = is_scalar( $lead_minutes ) ? min( 10080, max( 0, (int) $lead_minutes ) ) : 0;
+	$earliest = $now_utc->modify( '+' . $lead_minutes . ' minutes' );
+	$horizon_local = $now_utc->setTimezone( wp_timezone() )->modify( '+' . parisan_core_get_booking_horizon_days() . ' days' );
+	$latest_utc = $horizon_local->setTimezone( new DateTimeZone( 'UTC' ) );
+	$filtered = array();
+	foreach ( $slots as $slot ) {
+		if ( ! is_array( $slot ) || empty( $slot['starts_at_utc'] ) || ! is_string( $slot['starts_at_utc'] ) ) {
+			continue;
+		}
+		try {
+			$start = new DateTimeImmutable( $slot['starts_at_utc'], new DateTimeZone( 'UTC' ) );
+		} catch ( Exception $exception ) {
+			continue;
+		}
+		if ( $start >= $earliest && $start <= $latest_utc ) {
+			$filtered[] = $slot;
+		}
+	}
+	return $filtered;
+}
+
+/**
+ * Check whether a salon-local date falls inside the configured calendar horizon.
+ *
+ * @param string $date Local date in Y-m-d format.
+ * @return bool
+ */
+function parisan_core_is_booking_date_within_horizon( $date ) {
+	if ( ! is_string( $date ) || ! preg_match( '/^\d{4}-\d{2}-\d{2}$/D', $date ) ) {
+		return false;
+	}
+	$timezone = wp_timezone();
+	$requested = DateTimeImmutable::createFromFormat( '!Y-m-d', $date, $timezone );
+	$errors = DateTimeImmutable::getLastErrors();
+	if ( false === $requested || ( is_array( $errors ) && ( $errors['warning_count'] || $errors['error_count'] ) ) || $requested->format( 'Y-m-d' ) !== $date ) {
+		return false;
+	}
+	$today = new DateTimeImmutable( 'today', $timezone );
+	return $requested >= $today && $requested <= $today->modify( '+' . parisan_core_get_booking_horizon_days() . ' days' );
+}
+
+/**
  * Fetch available slots for a published service and eligible staff member.
  *
  * The calculation is read-only. It does not reserve a slot and must never be
@@ -93,7 +163,7 @@ function parisan_core_get_available_slots( $staff_id, $service_id, $date, $exclu
 	$before = absint( get_option( 'parisan_booking_buffer_before_minutes', 0 ) );
 	$after = absint( get_option( 'parisan_booking_buffer_after_minutes', 0 ) );
 
-	return parisan_core_calculate_available_slots(
+	$slots = parisan_core_calculate_available_slots(
 		$date,
 		$weekly,
 		$timezone->getName(),
@@ -104,4 +174,6 @@ function parisan_core_get_available_slots( $staff_id, $service_id, $date, $exclu
 		min( 240, $before ),
 		min( 240, $after )
 	);
+	$slots = parisan_core_assign_resources_to_slots( $slots, $service_id, $range_start, $range_end, min( 240, $before ), min( 240, $after ), $exclude_booking_id );
+	return parisan_core_filter_booking_window_slots( $slots );
 }

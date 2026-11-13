@@ -22,23 +22,104 @@
 		if (toggle) {
 			toggle.hidden = false;
 			toggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-			toggle.setAttribute('aria-label', isDark ? 'فعال‌سازی حالت روشن' : 'فعال‌سازی حالت تیره');
-			toggle.textContent = isDark ? 'حالت روشن' : 'حالت تیره';
+			toggle.setAttribute('aria-label', isDark ? 'فعال‌سازی طرح روز' : 'فعال‌سازی طرح شب');
+			toggle.textContent = isDark ? 'طرح روز' : 'طرح شب';
 		}
 		if (persist) {
 			try { window.localStorage.setItem(storageKey, isDark ? 'dark' : 'light'); } catch (error) { /* Storage is optional. */ }
 		}
 	}
+
+	var menuToggle = document.querySelector('.parisan-mobile-menu-toggle');
+	var primaryNavigation = document.querySelector('.primary-navigation');
+
+	if (menuToggle && primaryNavigation) {
+		menuToggle.hidden = false;
+		menuToggle.setAttribute('aria-expanded', 'false');
+		root.classList.add('parisan-mobile-nav-ready');
+
+		function closePrimaryNavigation(returnFocus) {
+			menuToggle.setAttribute('aria-expanded', 'false');
+			menuToggle.textContent = 'باز کردن منو';
+			primaryNavigation.classList.remove('is-open');
+			if (returnFocus) { menuToggle.focus(); }
+		}
+
+		menuToggle.addEventListener('click', function () {
+			var isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+			if (isOpen) {
+				closePrimaryNavigation(false);
+				return;
+			}
+			menuToggle.setAttribute('aria-expanded', 'true');
+			menuToggle.textContent = 'بستن منو';
+			primaryNavigation.classList.add('is-open');
+			var firstLink = primaryNavigation.querySelector('a');
+			if (firstLink) { firstLink.focus(); }
+		});
+
+		primaryNavigation.addEventListener('click', function (event) {
+			if (event.target && event.target.closest && event.target.closest('a')) {
+				closePrimaryNavigation(false);
+			}
+		});
+
+		document.addEventListener('keydown', function (event) {
+			if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') {
+				closePrimaryNavigation(true);
+			}
+		});
+
+		// Dismiss the compact menu when the user interacts with the page outside the header.
+		document.addEventListener('click', function (event) {
+			if (menuToggle.getAttribute('aria-expanded') !== 'true') { return; }
+			var header = menuToggle.closest('.site-header');
+			if (header && event.target && !header.contains(event.target)) {
+				closePrimaryNavigation(false);
+			}
+		});
+
+		// A menu opened on a phone must not remain in a stale open state after rotation/resizing.
+		var desktopViewport = window.matchMedia ? window.matchMedia('(min-width: 761px)') : null;
+		function closeMenuOnDesktop() {
+			if (desktopViewport && desktopViewport.matches && menuToggle.getAttribute('aria-expanded') === 'true') {
+				closePrimaryNavigation(false);
+			}
+		}
+		if (desktopViewport) {
+			if (typeof desktopViewport.addEventListener === 'function') {
+				desktopViewport.addEventListener('change', closeMenuOnDesktop);
+			} else if (typeof desktopViewport.addListener === 'function') {
+				desktopViewport.addListener(closeMenuOnDesktop);
+			}
+		}
+	}
+
 	applyTheme(readPreference() || systemPreference(), false);
 	if (toggle) {
 		toggle.addEventListener('click', function () {
 			applyTheme(root.getAttribute('data-parisan-theme') === 'dark' ? 'light' : 'dark', true);
 		});
 	}
-	if (mobileBooking && bookingSection && 'IntersectionObserver' in window) {
-		var observer = new IntersectionObserver(function (entries) {
-			entries.forEach(function (entry) { mobileBooking.hidden = entry.isIntersecting; });
+	var heroSection = document.querySelector('.hero-section');
+	if (mobileBooking) {
+		// Start hidden to prevent a first-paint overlap before the observer's initial callback.
+		mobileBooking.hidden = true;
+		if (typeof window.IntersectionObserver === 'function') {
+			var heroIsVisible = false;
+			var bookingIsVisible = false;
+			var observer = new window.IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.target === heroSection) { heroIsVisible = entry.isIntersecting; }
+				if (entry.target === bookingSection) { bookingIsVisible = entry.isIntersecting; }
+			});
+			mobileBooking.hidden = heroIsVisible || bookingIsVisible;
 		}, { root: null, threshold: 0.08 });
-		observer.observe(bookingSection);
+			if (heroSection) { observer.observe(heroSection); }
+			if (bookingSection) { observer.observe(bookingSection); }
+		} else {
+			// Without reliable visibility tracking, prefer no floating overlay to covering content.
+			mobileBooking.hidden = true;
+		}
 	}
 }());

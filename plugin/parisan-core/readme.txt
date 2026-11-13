@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.22.0
+Stable tag: 0.23.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,7 +42,7 @@ The availability foundation calculates candidate appointment starts for a salon-
 
 Availability results are advisory only and do not reserve a slot. The internal booking service rechecks capacity under a per-staff advisory lock and transaction; calendar exception writes use the same lock. Services with a starting-from price must have a final price confirmed before booking.
 
-The public REST API is disabled by default. The owner must explicitly define `PARISAN_PUBLIC_BOOKING_ENABLED` as boolean `true` in `wp-config.php` before routes are registered. The API includes read-only availability, pending booking creation, and token-scoped customer view/cancellation. Customer tokens are 256-bit random values; only HMAC digests are stored, and tokens expire 30 days after the scheduled appointment end. State-changing anonymous requests require a matching Origin and are rate-limited. The customer view does not expose name, phone, email, or event history. Do not enable the feature until HTTPS, reverse-proxy source-IP behavior, same-origin deployment, logging/header redaction, browser UX, and concurrency/security testing have been reviewed.
+The public REST API is disabled by default. The owner must explicitly define `PARISAN_PUBLIC_BOOKING_ENABLED` as boolean `true` in `wp-config.php` before routes are registered. While disabled, the homepage and shortcode direct visitors to salon contact rather than implying that an online slot can be booked. Administrators see a Persian readiness checklist covering HTTPS, same-origin deployment, reverse-proxy client-IP/rate-limit behavior, log/header redaction, browser/accessibility, and concurrency testing. This notice is guidance, not an infrastructure verification or activation approval. The API includes read-only availability, pending booking creation, and token-scoped customer view/cancellation. Customer tokens are 256-bit random values; only HMAC digests are stored, and tokens expire 30 days after the scheduled appointment end. State-changing anonymous requests require a matching Origin and are rate-limited. The customer view does not expose name, phone, email, or event history. Do not enable the feature until HTTPS, reverse-proxy source-IP behavior, same-origin deployment, logging/header redaction, browser UX, and concurrency/security testing have been reviewed.
 
 WordPress privacy export includes booking details and associated event notes. Erasure anonymizes terminal bookings and removes their free-form event notes while preserving operational history. Pending and confirmed bookings are retained while needed to fulfil the appointment. Automatic anonymization is disabled by default and requires an administrator to choose a retention period. The site owner remains responsible for selecting a period appropriate to applicable legal and accounting duties, and for backup/processor retention.
 

@@ -34,8 +34,13 @@ $wpdb->query( "DROP TABLE IF EXISTS {$tokens_table}" );
 update_option( 'parisan_core_db_version', 2, false );
 parisan_core_install_database();
 $schema = (int) get_option( 'parisan_core_db_version', 0 );
-parisan_public_integration_assert( 3 === $schema, 'schema v2 upgrades to schema v3' );
-parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tokens_table ) ) === $tokens_table, 'customer token table is created by the v2-to-v3 upgrade' );
+parisan_public_integration_assert( 11 === $schema, 'schema v2 upgrades directly to the current additive schema v11' );
+parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tokens_table ) ) === $tokens_table, 'customer token table is created by the v2-to-v5 upgrade' );
+$resource_column = $wpdb->get_row( $wpdb->prepare( "SHOW COLUMNS FROM {$bookings_table} LIKE %s", 'resource_id' ), ARRAY_A );
+parisan_public_integration_assert( is_array( $resource_column ) && '0' === (string) $resource_column['Default'], 'v5 migration preserves the backward-compatible primary resource assignment column' );
+$booking_resources_table = $wpdb->prefix . 'parisan_booking_resources';
+parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $booking_resources_table ) ) === $booking_resources_table, 'v5 migration creates the booking-to-resource assignment relation table' );
+
 
 $now = current_time( 'mysql', true );
 $booking_inserted = $wpdb->insert(
