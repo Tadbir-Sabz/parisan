@@ -3,7 +3,7 @@
  * Plugin Name: Parisan Core
  * Plugin URI: https://github.com/Tadbir-Sabz/parisan
  * Description: First-party salon operations foundation for the Parisan Beauty theme.
- * Version: 0.32.0
+ * Version: 0.33.0
  * Author: Tadbir-Sabz
  * License: GPL-2.0-or-later
  * Text Domain: parisan-core
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_VERSION', '0.32.0' );
+define( 'PARISAN_CORE_VERSION', '0.33.0' );
 define( 'PARISAN_CORE_FILE', __FILE__ );
 define( 'PARISAN_CORE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PARISAN_CORE_URL', plugin_dir_url( __FILE__ ) );
@@ -24,9 +24,11 @@ require_once PARISAN_CORE_DIR . 'includes/resource-maintenance-admin.php';
 require_once PARISAN_CORE_DIR . 'includes/resource-operations-report.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-waitlist.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-reminders.php';
+require_once PARISAN_CORE_DIR . 'includes/jalali.php';
 require_once PARISAN_CORE_DIR . 'includes/schedule.php';
 require_once PARISAN_CORE_DIR . 'includes/availability.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-service.php';
+require_once PARISAN_CORE_DIR . 'includes/date-overrides.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-lifecycle.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-reschedule.php';
 require_once PARISAN_CORE_DIR . 'includes/booking-admin.php';

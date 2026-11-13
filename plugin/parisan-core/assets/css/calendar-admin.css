@@ -1,0 +1,641 @@
+/**
+ * Parisan Persian calendar administration.
+ *
+ * The screen is RTL-first, but the grid uses logical properties so the same
+ * markup remains usable when WordPress admin is rendered in another direction.
+ */
+
+.parisan-calendar-admin {
+	--pc-ink: #2c2426;
+	--pc-muted: #6d6367;
+	--pc-line: #e3d9df;
+	--pc-surface: #fff;
+	--pc-surface-alt: #faf6f8;
+	--pc-plum: #6f4657;
+	--pc-plum-dark: #55323f;
+	--pc-open: #1f7a4d;
+	--pc-open-bg: #eaf7ef;
+	--pc-closed: #6d6367;
+	--pc-closed-bg: #f3f0f1;
+	--pc-holiday: #a12f45;
+	--pc-holiday-bg: #fdeef1;
+	--pc-special: #8a5a12;
+	--pc-special-bg: #fdf3e2;
+	--pc-exception: #7b4a99;
+	--pc-exception-bg: #f4edfa;
+	--pc-focus: #2271b1;
+	max-width: 1440px;
+	color: var(--pc-ink);
+}
+
+.parisan-calendar-admin > h1 {
+	margin-block: 20px 8px;
+	font-size: 27px;
+	font-weight: 700;
+}
+
+.parisan-calendar-admin > .description {
+	max-width: 980px;
+	font-size: 13px;
+	line-height: 2;
+}
+
+.parisan-calendar-timezone {
+	display: inline-block;
+	margin: 4px 0 18px;
+	padding: 4px 12px;
+	border: 1px solid var(--pc-line);
+	border-radius: 999px;
+	background: var(--pc-surface-alt);
+	color: var(--pc-muted);
+	font-size: 12px;
+	direction: ltr;
+}
+
+/* Toolbar ----------------------------------------------------------------- */
+
+.parisan-calendar-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 12px 20px;
+	margin-block: 8px 20px;
+	padding: 14px 16px;
+	border: 1px solid var(--pc-line);
+	border-radius: 12px;
+	background: var(--pc-surface);
+	box-shadow: 0 1px 2px rgba(44, 36, 38, .04);
+}
+
+.parisan-calendar-view-tabs,
+.parisan-calendar-period-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.parisan-calendar-view-tabs .button,
+.parisan-calendar-period-nav .button {
+	min-height: 32px;
+	line-height: 30px;
+}
+
+.parisan-calendar-jump,
+.parisan-calendar-filter {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 6px 8px;
+	margin: 0;
+}
+
+.parisan-calendar-jump label,
+.parisan-calendar-filter label {
+	display: block;
+	width: 100%;
+	color: var(--pc-muted);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.parisan-calendar-jump select,
+.parisan-calendar-jump input[type="number"],
+.parisan-calendar-filter select {
+	min-height: 32px;
+	margin: 0;
+}
+
+.parisan-calendar-jump input[type="number"] {
+	width: 88px;
+}
+
+/* Panels ------------------------------------------------------------------ */
+
+.parisan-calendar-panel {
+	margin-block: 0 24px;
+	padding: 18px;
+	border: 1px solid var(--pc-line);
+	border-radius: 12px;
+	background: var(--pc-surface);
+}
+
+.parisan-calendar-panel-heading {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 6px 18px;
+	margin-block-end: 14px;
+}
+
+.parisan-calendar-panel-heading h2 {
+	margin: 0;
+	color: var(--pc-plum-dark);
+	font-size: 21px;
+	font-weight: 700;
+}
+
+.parisan-calendar-panel-heading p {
+	margin: 0;
+	color: var(--pc-muted);
+	font-size: 12px;
+}
+
+.parisan-calendar-scroll {
+	max-width: 100%;
+	overflow-x: auto;
+	border-radius: 10px;
+}
+
+.parisan-calendar-scroll:focus-visible {
+	outline: 2px solid var(--pc-focus);
+	outline-offset: 2px;
+}
+
+/* Month grid -------------------------------------------------------------- */
+
+.parisan-calendar-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	background: var(--pc-surface);
+}
+
+.parisan-calendar-table th,
+.parisan-calendar-table td {
+	border: 0;
+}
+
+.parisan-calendar-month {
+	min-width: 720px;
+	table-layout: fixed;
+}
+
+.parisan-calendar-month thead th {
+	padding: 9px 4px;
+	border-block-end: 1px solid var(--pc-line);
+	color: var(--pc-muted);
+	font-size: 12px;
+	font-weight: 700;
+	text-align: center;
+}
+
+.parisan-calendar-month tbody td {
+	padding: 3px;
+	vertical-align: top;
+}
+
+.parisan-calendar-day {
+	position: relative;
+	border-radius: 9px;
+	background: var(--pc-surface);
+	transition: background-color .15s ease, box-shadow .15s ease;
+}
+
+.parisan-calendar-day > a {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-height: 92px;
+	padding: 8px 10px;
+	border: 1px solid var(--pc-line);
+	border-radius: 9px;
+	color: inherit;
+	text-decoration: none;
+	background: var(--pc-surface);
+}
+
+.parisan-calendar-day > a:hover {
+	border-color: var(--pc-plum);
+	background: var(--pc-surface-alt);
+}
+
+.parisan-calendar-day > a:focus-visible {
+	outline: 2px solid var(--pc-focus);
+	outline-offset: 1px;
+}
+
+.parisan-calendar-day.is-outside > a {
+	opacity: .48;
+}
+
+.parisan-calendar-day.is-closed > a {
+	background: var(--pc-closed-bg);
+}
+
+.parisan-calendar-day.is-holiday > a {
+	border-color: rgba(161, 47, 69, .35);
+	background: var(--pc-holiday-bg);
+}
+
+.parisan-calendar-day.is-special > a {
+	border-color: rgba(138, 90, 18, .4);
+	background: var(--pc-special-bg);
+}
+
+.parisan-calendar-day.is-today > a {
+	box-shadow: inset 0 0 0 2px var(--pc-plum);
+}
+
+.parisan-calendar-day.has-exception > a {
+	border-inline-start: 4px solid var(--pc-exception);
+}
+
+.parisan-calendar-day-number {
+	color: var(--pc-ink);
+	font-size: 19px;
+	font-weight: 700;
+	line-height: 1.4;
+}
+
+.parisan-calendar-day-gregorian {
+	color: var(--pc-muted);
+	font-size: 10px;
+	direction: ltr;
+	text-align: end;
+	opacity: .8;
+}
+
+.parisan-calendar-day-state {
+	margin-block-start: 4px;
+	color: var(--pc-muted);
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.parisan-calendar-day.is-holiday .parisan-calendar-day-state {
+	color: var(--pc-holiday);
+}
+
+.parisan-calendar-day.is-special .parisan-calendar-day-state {
+	color: var(--pc-special);
+}
+
+.parisan-calendar-day.is-open .parisan-calendar-day-state {
+	color: var(--pc-open);
+}
+
+.parisan-calendar-day-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
+	margin-block-start: auto;
+	padding-block-start: 4px;
+}
+
+.parisan-calendar-badge {
+	display: inline-block;
+	padding: 1px 6px;
+	border-radius: 999px;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.7;
+	white-space: nowrap;
+}
+
+.parisan-calendar-badge.is-booking {
+	background: #e7f1fb;
+	color: #14558c;
+}
+
+.parisan-calendar-badge.is-exception {
+	background: var(--pc-exception-bg);
+	color: var(--pc-exception);
+}
+
+/* Week and day views ------------------------------------------------------ */
+
+.parisan-calendar-week {
+	min-width: 960px;
+	table-layout: fixed;
+}
+
+.parisan-calendar-week thead th,
+.parisan-calendar-day-detail thead th {
+	padding: 8px 10px;
+	border-block-end: 1px solid var(--pc-line);
+	background: var(--pc-surface-alt);
+	color: var(--pc-muted);
+	font-size: 12px;
+	text-align: start;
+}
+
+.parisan-calendar-week tbody th,
+.parisan-calendar-day-detail tbody th {
+	padding: 10px;
+	border-block-end: 1px solid var(--pc-line);
+	font-size: 13px;
+	font-weight: 600;
+	text-align: start;
+}
+
+.parisan-calendar-week tbody td,
+.parisan-calendar-day-detail tbody td {
+	padding: 10px;
+	border-block-end: 1px solid var(--pc-line);
+	font-size: 12px;
+	vertical-align: top;
+}
+
+.parisan-calendar-week tbody tr:last-child th,
+.parisan-calendar-week tbody tr:last-child td,
+.parisan-calendar-day-detail tbody tr:last-child th,
+.parisan-calendar-day-detail tbody tr:last-child td {
+	border-block-end: 0;
+}
+
+.parisan-calendar-week thead th.is-open {
+	box-shadow: inset 0 -3px 0 var(--pc-open);
+}
+
+.parisan-calendar-week thead th.is-holiday {
+	box-shadow: inset 0 -3px 0 var(--pc-holiday);
+	background: var(--pc-holiday-bg);
+}
+
+.parisan-calendar-week thead th.is-special {
+	box-shadow: inset 0 -3px 0 var(--pc-special);
+	background: var(--pc-special-bg);
+}
+
+.parisan-calendar-week thead th.is-closed {
+	box-shadow: inset 0 -3px 0 var(--pc-closed);
+}
+
+.parisan-calendar-week thead th a {
+	color: inherit;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.parisan-calendar-week thead th a:hover {
+	color: var(--pc-plum);
+}
+
+.parisan-calendar-header-state {
+	display: block;
+	margin-block-start: 2px;
+	font-size: 10px;
+	font-weight: 500;
+	opacity: .85;
+}
+
+.parisan-calendar-week td.is-open {
+	background: var(--pc-open-bg);
+}
+
+.parisan-calendar-week td.is-closed {
+	background: var(--pc-closed-bg);
+	color: var(--pc-muted);
+}
+
+.parisan-calendar-hours {
+	display: block;
+	font-weight: 600;
+}
+
+.parisan-calendar-source {
+	display: block;
+	margin-block: 2px 4px;
+	color: var(--pc-muted);
+	font-size: 10px;
+}
+
+.parisan-calendar-day-actions {
+	display: flex;
+	gap: 8px;
+	margin-block-end: 14px;
+}
+
+.parisan-calendar-overrides-table {
+	margin-block-start: 10px;
+}
+
+/* Legend ------------------------------------------------------------------ */
+
+.parisan-calendar-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 18px;
+	margin-block: 0 22px;
+	padding: 12px 16px;
+	border: 1px dashed var(--pc-line);
+	border-radius: 10px;
+	background: var(--pc-surface-alt);
+	color: var(--pc-muted);
+	font-size: 12px;
+}
+
+.parisan-calendar-legend span::before {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-inline-end: 6px;
+	border-radius: 3px;
+	background: var(--pc-closed);
+	content: "";
+	vertical-align: middle;
+}
+
+.parisan-calendar-legend .is-open::before {
+	background: var(--pc-open);
+}
+
+.parisan-calendar-legend .is-closed::before {
+	background: var(--pc-closed);
+}
+
+.parisan-calendar-legend .is-holiday::before {
+	background: var(--pc-holiday);
+}
+
+.parisan-calendar-legend .is-special::before {
+	background: var(--pc-special);
+}
+
+.parisan-calendar-legend .is-exception::before {
+	background: var(--pc-exception);
+}
+
+.parisan-calendar-legend .is-booking::before {
+	background: #14558c;
+}
+
+/* Forms ------------------------------------------------------------------- */
+
+.parisan-calendar-forms {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+	gap: 20px;
+	align-items: start;
+}
+
+.parisan-calendar-form-card {
+	padding: 20px 22px;
+	border: 1px solid var(--pc-line);
+	border-radius: 12px;
+	background: var(--pc-surface);
+}
+
+.parisan-calendar-form-card h2 {
+	margin: 0 0 6px;
+	color: var(--pc-plum-dark);
+	font-size: 17px;
+}
+
+.parisan-calendar-form-card > p {
+	margin: 0 0 16px;
+	color: var(--pc-muted);
+	font-size: 12px;
+	line-height: 1.9;
+}
+
+.parisan-calendar-form-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+	gap: 12px 14px;
+}
+
+.parisan-calendar-form-grid p {
+	margin: 0;
+}
+
+.parisan-calendar-form-grid label {
+	display: block;
+	margin-block-end: 4px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.parisan-calendar-form-grid input[type="text"],
+.parisan-calendar-form-grid input[type="time"],
+.parisan-calendar-form-grid input[type="number"],
+.parisan-calendar-form-grid select {
+	width: 100%;
+	min-height: 34px;
+	margin: 0;
+}
+
+.parisan-calendar-form-grid .description {
+	display: block;
+	margin-block-start: 3px;
+	color: var(--pc-muted);
+	font-size: 10px;
+}
+
+.parisan-calendar-field-wide {
+	grid-column: 1 / -1;
+}
+
+.parisan-calendar-form-card .submit {
+	margin: 16px 0 0;
+	padding: 0;
+}
+
+.parisan-calendar-form-error {
+	margin: 10px 0 0;
+	padding: 8px 12px;
+	border-inline-start: 4px solid var(--pc-holiday);
+	border-radius: 6px;
+	background: var(--pc-holiday-bg);
+	color: var(--pc-holiday);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.parisan-calendar-form-error:empty {
+	display: none;
+}
+
+/* Responsive -------------------------------------------------------------- */
+
+@media (max-width: 960px) {
+	.parisan-calendar-toolbar {
+		align-items: stretch;
+	}
+
+	.parisan-calendar-jump,
+	.parisan-calendar-filter {
+		flex: 1 1 240px;
+	}
+}
+
+@media (max-width: 782px) {
+	.parisan-calendar-admin > h1 {
+		font-size: 23px;
+	}
+
+	.parisan-calendar-panel {
+		padding: 12px;
+	}
+
+	.parisan-calendar-month {
+		min-width: 640px;
+	}
+
+	.parisan-calendar-day > a {
+		min-height: 82px;
+		padding: 6px 7px;
+	}
+
+	.parisan-calendar-day-number {
+		font-size: 16px;
+	}
+
+	.parisan-calendar-day-gregorian,
+	.parisan-calendar-day-state {
+		font-size: 9px;
+	}
+
+	.parisan-calendar-forms {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.parisan-calendar-day,
+	.parisan-calendar-day > a {
+		transition: none;
+	}
+}
+
+/* Dark admin environments ------------------------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+	.parisan-calendar-admin {
+		--pc-ink: #f2ecef;
+		--pc-muted: #c3b8be;
+		--pc-line: #4b3f46;
+		--pc-surface: #241d21;
+		--pc-surface-alt: #2e252a;
+		--pc-plum: #d9a7bc;
+		--pc-plum-dark: #f0c8d7;
+		--pc-open: #7fd6a4;
+		--pc-open-bg: #1c3528;
+		--pc-closed: #c3b8be;
+		--pc-closed-bg: #2b2428;
+		--pc-holiday: #ff9db0;
+		--pc-holiday-bg: #3b2028;
+		--pc-special: #f0c079;
+		--pc-special-bg: #3a2d1b;
+		--pc-exception: #cfa8ee;
+		--pc-exception-bg: #32233d;
+		--pc-focus: #72b7ea;
+	}
+
+	.parisan-calendar-badge.is-booking {
+		background: #1d3550;
+		color: #a9d0f5;
+	}
+
+	.parisan-calendar-form-error {
+		background: #3b2028;
+	}
+
+	.parisan-calendar-table,
+	.parisan-calendar-panel,
+	.parisan-calendar-toolbar,
+	.parisan-calendar-form-card {
+		box-shadow: none;
+	}
+}

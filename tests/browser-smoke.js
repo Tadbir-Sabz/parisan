@@ -262,6 +262,40 @@ const { chromium, firefox, webkit } = require('playwright');
 		assert.equal(await fallbackPage.locator('.primary-navigation').isVisible(), true, 'main navigation remains available without IntersectionObserver');
 		await fallbackContext.close();
 
+		// Authenticated admin calendar: verify the Jalali RTL grid, keyboard
+		// navigation, and responsive overflow behavior against real WordPress.
+		const adminContext = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+		const adminPage = await adminContext.newPage();
+		const adminErrors = [];
+		const adminConsoleErrors = [];
+		adminPage.on('pageerror', error => adminErrors.push(error.message));
+		adminPage.on('console', message => {
+			if (message.type() === 'error') adminConsoleErrors.push(message.text());
+		});
+		const baseUrl = process.env.PARISAN_TEST_URL || 'http://127.0.0.1:8080/';
+		await adminPage.goto(new URL('/wp-login.php', baseUrl).toString(), { waitUntil: 'domcontentloaded' });
+		await adminPage.locator('#user_login').fill(process.env.PARISAN_ADMIN_USER || 'parisan-ci');
+		await adminPage.locator('#user_pass').fill(process.env.PARISAN_ADMIN_PASSWORD || 'ci-only-password');
+		await adminPage.locator('#wp-submit').click();
+		await adminPage.waitForURL(/\/wp-admin\//, { timeout: 15000 });
+		await adminPage.goto(new URL('/wp-admin/edit.php?post_type=parisan_staff&page=parisan-schedule-exceptions&view=month', baseUrl).toString(), { waitUntil: 'domcontentloaded' });
+		await adminPage.locator('.parisan-calendar-admin').waitFor({ state: 'visible', timeout: 15000 });
+		assert.equal(await adminPage.locator('.parisan-calendar-admin').getAttribute('dir'), 'rtl', 'admin calendar renders in explicit RTL direction');
+		assert.equal(await adminPage.locator('[data-parisan-calendar-grid]').count(), 1, 'admin calendar renders one Jalali month grid');
+		assert.equal(await adminPage.locator('[data-calendar-day]').count(), 42, 'admin calendar renders a complete six-week Jalali grid');
+		assert.equal(await adminPage.locator('.parisan-calendar-day.is-open').count() > 0, true, 'seeded weekly schedules appear as open Jalali dates');
+		const calendarDays = adminPage.locator('[data-calendar-day]');
+		await calendarDays.nth(7).focus();
+		await adminPage.keyboard.press('ArrowDown');
+		assert.equal(await adminPage.evaluate(() => document.activeElement && document.activeElement.hasAttribute('data-calendar-day')), true, 'arrow keys move focus between calendar day links');
+		await adminPage.setViewportSize({ width: 390, height: 844 });
+		assert.equal(await adminPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true, 'admin calendar has no mobile document overflow');
+		assert.equal(await adminPage.locator('.parisan-calendar-scroll').first().evaluate(el => getComputedStyle(el).overflowX), 'auto', 'admin calendar keeps wide grids inside a horizontal scroll region on mobile');
+		await adminPage.screenshot({ path: 'artifacts/parisan-admin-calendar-mobile.png', fullPage: false });
+		await adminContext.close();
+		assert.deepEqual(adminErrors, [], 'admin calendar reports no uncaught JavaScript errors');
+		assert.deepEqual(adminConsoleErrors, [], 'admin calendar reports no console errors');
+
 		assert.deepEqual(errors, [], 'browser reports no uncaught JavaScript errors');
 		assert.deepEqual(consoleErrors, [], 'browser reports no console errors');
 		assert.deepEqual(failedRequests, [], 'browser reports no failed page requests');

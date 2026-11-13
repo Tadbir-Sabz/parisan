@@ -91,5 +91,59 @@ parisan_test_expect( is_array( $all_day ) && 86400 === $all_day['end']->getTimes
 parisan_test_expect( false === parisan_core_local_interval_to_utc( '2026-11-09', '13:00', '2026-11-09', '12:00', new DateTimeZone( 'Europe/Berlin' ) ), 'rejects an exception whose end precedes its start' );
 parisan_test_expect( false === parisan_core_local_interval_to_utc( '2026-03-29', '02:30', '2026-03-29', '03:30', new DateTimeZone( 'Europe/Berlin' ) ), 'rejects a date exception crossing a nonexistent DST local time' );
 
+$holiday_override = parisan_core_normalize_date_override(
+	array(
+		'staff_id'      => 0,
+		'override_date' => '2026-11-09',
+		'override_type' => 'holiday',
+		'is_closed'     => true,
+		'note'          => 'تعطیلی سالن',
+	)
+);
+parisan_test_expect( is_array( $holiday_override ) && true === $holiday_override['is_closed'] && 'holiday' === $holiday_override['override_type'], 'normalizes a salon-wide holiday override' );
+$special_override = parisan_core_normalize_date_override(
+	array(
+		'staff_id'      => 0,
+		'override_date' => '2026-11-08',
+		'override_type' => 'special_day',
+		'start'         => '10:00',
+		'end'           => '14:00',
+		'break_start'   => '12:00',
+		'break_end'     => '12:30',
+	)
+);
+parisan_test_expect( is_array( $special_override ) && false === $special_override['is_closed'] && '10:00' === $special_override['start'] && '12:30' === $special_override['break_end'], 'normalizes a salon-wide special working day with a break' );
+parisan_test_expect( false === parisan_core_normalize_date_override( array( 'override_date' => '2026-11-09', 'override_type' => 'custom_hours', 'start' => '18:00', 'end' => '09:00' ) ), 'rejects an override whose end precedes its start' );
+parisan_test_expect( false === parisan_core_normalize_date_override( array( 'override_date' => '2026-02-30', 'override_type' => 'holiday' ) ), 'rejects an impossible override date' );
+parisan_test_expect( false === parisan_core_normalize_date_override( array( 'override_date' => '2026-11-09', 'override_type' => 'custom_hours', 'start' => '09:00', 'end' => '18:00', 'break_start' => '19:00', 'break_end' => '20:00' ) ), 'rejects a break outside override working hours' );
+
+$resolved_holiday = parisan_core_resolve_effective_day_schedule( '2026-11-09', $weekly, null, $holiday_override );
+parisan_test_expect( ! empty( $resolved_holiday['off'] ) && 'salon_closure' === $resolved_holiday['source'], 'a salon holiday closes an otherwise working weekday' );
+$holiday_slots = parisan_core_calculate_available_slots( '2026-11-09', $weekly, 'Europe/Berlin', 60, 30, array(), array(), 0, 0, null, $holiday_override );
+parisan_test_expect( array() === $holiday_slots, 'holiday overrides produce no available slots' );
+
+$staff_leave = parisan_core_normalize_date_override( array( 'staff_id' => 12, 'override_date' => '2026-11-09', 'override_type' => 'closure' ) );
+$resolved_staff_leave = parisan_core_resolve_effective_day_schedule( '2026-11-09', $weekly, $staff_leave, null );
+parisan_test_expect( ! empty( $resolved_staff_leave['off'] ) && 'staff_closure' === $resolved_staff_leave['source'], 'a specialist closure overrides their weekly rule' );
+$salon_open_during_staff_leave = parisan_core_resolve_effective_day_schedule( '2026-11-09', $weekly, $staff_leave, $special_override );
+parisan_test_expect( 'staff_closure' === $salon_open_during_staff_leave['source'], 'a specialist closure still wins over a salon special day' );
+
+$special_slots = parisan_core_calculate_available_slots( '2026-11-08', $weekly, 'Europe/Berlin', 60, 30, array(), array(), 0, 0, null, $special_override );
+parisan_test_expect( 5 === count( $special_slots ) && '2026-11-08 10:00' === $special_slots[0]['starts_at_local'], 'a special working day opens a normally closed weekday with custom hours' );
+parisan_test_expect( ! in_array( '2026-11-08 12:00', array_column( $special_slots, 'starts_at_local' ), true ), 'special-day break blocks overlapping slots' );
+
+$staff_custom = parisan_core_normalize_date_override( array( 'staff_id' => 12, 'override_date' => '2026-11-09', 'override_type' => 'custom_hours', 'start' => '15:00', 'end' => '18:00' ) );
+$staff_custom_slots = parisan_core_calculate_available_slots( '2026-11-09', $weekly, 'Europe/Berlin', 60, 30, array(), array(), 0, 0, $staff_custom, null );
+parisan_test_expect( 5 === count( $staff_custom_slots ) && '2026-11-09 15:00' === $staff_custom_slots[0]['starts_at_local'], 'a specialist date override replaces that specialist weekly hours' );
+
+$dst_special = parisan_core_normalize_date_override( array( 'override_date' => '2026-03-29', 'override_type' => 'special_day', 'start' => '01:00', 'end' => '04:00' ) );
+$dst_slots = parisan_core_calculate_available_slots( '2026-03-29', $weekly, 'Europe/Berlin', 30, 30, array(), array(), 0, 0, null, $dst_special );
+$dst_local_starts = array_column( $dst_slots, 'starts_at_local' );
+parisan_test_expect( 4 === count( $dst_slots ) && ! preg_grep( '/ 02:/', $dst_local_starts ) && in_array( '2026-03-29 03:00', $dst_local_starts, true ), 'DST spring-forward custom hours skip the nonexistent local hour' );
+
+$midnight_weekly = parisan_core_normalize_weekly_schedule( array( 5 => array( 'start' => '00:00', 'end' => '02:00' ) ) );
+$midnight_slots = parisan_core_calculate_available_slots( '2026-11-13', $midnight_weekly, 'Asia/Tehran', 30, 30 );
+parisan_test_expect( 4 === count( $midnight_slots ) && '2026-11-12 20:30:00' === $midnight_slots[0]['starts_at_utc'], 'midnight local slots convert to the previous UTC date without changing the salon date' );
+
 echo "\nSchedule tests: {$passed} passed, {$failed} failed.\n";
 exit( 0 === $failed ? 0 : 1 );

@@ -1,8 +1,11 @@
 # Parisan Delivery Roadmap
 
-**Canonical branch:** main  
-**Active implementation branch:** `feat/parisan-final-completion`  
-**Roadmap status:** The theme, catalogue, booking foundation, and administrative tooling are merged into main. A final public-experience and admin QA pass is implemented on `feat/parisan-final-completion`: all public templates, Persian RTL layouts, day/night themes, contact/search/404 pages, owner-editable homepage content, and responsive behavior are browser-verified in Chromium at 360–1920 px. Public booking remains disabled by default. Firefox/WebKit CI, exact PHP 8.1/8.2/8.3 evidence, real screen-reader acceptance, and production deployment remain UNVERIFIED.  
+**Canonical branch:** main
+
+**Active implementation branch:** `feat/jalali-calendar-scheduling`
+
+**Roadmap status:** The theme, catalogue, booking foundation, and administrative tooling are merged into main. A Jalali calendar and scheduling milestone is implemented on `feat/jalali-calendar-scheduling` from verified `main` at `43ee629`: canonical Gregorian/Jalali conversion, a Persian RTL month/week/day calendar, salon/specialist date overrides (schema v12), a shared salon→staff lock order, and Jalali labels in the gated public booking API. Local pure-PHP tests pass (Jalali 77/77, schedule 45/45); exact-head WordPress/MariaDB and browser CI remain UNVERIFIED. Public booking remains disabled by default. Production deployment, real screen-reader acceptance, and production infrastructure validation remain UNVERIFIED.
+
 **Rule:** Update this file in the same delivery slice whenever phase status, scope, dependencies, or acceptance evidence changes.
 
 ## Status legend
@@ -78,7 +81,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [~] Recurring weekly specialist breaks are implemented in the schedule editor and availability engine. Configurable minimum lead time (0–10,080 minutes) and booking horizon (1–365 days, default 90) are implemented in the booking-rules admin screen and enforced by shared availability filtering, transactional booking rechecks, public booking creation, and customer rescheduling. Shared resource inventory, service-to-resource pools, resource-aware availability, transactional resource locks, and booking resource snapshots are implemented. Per-resource weekly working hours are now implemented in the resource editor and enforced against the complete buffered interval during shared availability calculation; exact-SHA automated validation is pending. Multi-resource bundles are implemented by resource type: a service selecting room and device types must receive one free resource from each type, while multiple resources of one type form an alternative pool. Booking assignments are persisted in the new booking_resources relation table and legacy resource_id remains as the primary/backward-compatible reference. Exact-SHA integration validation and concurrent multi-connection stress remain pending.
 - [x] Implement and CI-verify internal concurrency-safe booking creation: per-staff advisory lock, InnoDB fail-closed gate, locked availability recheck, idempotency, and atomic pending booking + audit event transaction (run 42376217290). Multi-connection stress and lock-timeout behavior remain UNVERIFIED. The public route wrapper is separately feature-gated and reuses this service.
 - [x] Implement internal booking state machine, audit trail, authorized manual receptionist booking, and concurrency-safe rescheduling; browser workflows and walk-in UX remain unverified/not started.
-- [ ] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone.
+- [x] Implement Persian/Jalali calendar UI backed by canonical UTC timestamps and salon IANA timezone. Canonical conversion, leap-year/Esfand validation, Persian labels/digits, strict form parsing, month/week/day RTL admin calendar, salon holidays, specialist closures, special working days, custom hours, partial-day exceptions, conflict warnings, keyboard navigation, and additive schema v12 date overrides are implemented on `feat/jalali-calendar-scheduling` (ADR-0013). Local Jalali 77/77 and schedule 45/45 PASS; exact-head WordPress/MariaDB and browser CI remain UNVERIFIED.
 - [~] Implement a gated public API foundation for availability, pending booking creation, token-scoped customer view, and cancellation (ADR-0012). Routes and the wizard remain disabled unless the owner explicitly defines `PARISAN_PUBLIC_BOOKING_ENABLED=true`; initial Persian RTL shortcode UI is implemented, while browser/device/accessibility review remains UNVERIFIED.
 - [~] Implement non-account customer ownership using 256-bit random, HMAC-digested, expiring, revocable access tokens (ADR-0012). Customer registration/login and account-based ownership remain future options.
 - [x] Add token-scoped booking view, availability, cancellation, and self-service rescheduling APIs plus the Persian shortcode UI for lookup/rescheduling/cancellation. Disposable WordPress/MariaDB integration verifies token ownership, same-origin enforcement, the 90-day horizon, current-booking exclusion from conflict checks, duration/price preservation, and token-expiry adjustment; browser/device/accessibility workflows remain UNVERIFIED.
@@ -201,7 +204,7 @@ As of merged `main` (`1039a003b10f14d23f8f23ad5d1cc7caa91a782b`) after PR #4:
 - Exact-HEAD CI PASS: PHP 8.1/8.2/8.3 + activation [run 43493484039](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484039), privacy matrix [run 43493484035](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484035), WordPress/MariaDB [run 43493484051](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484051), and Chromium/Firefox/WebKit [run 43493484116](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484116).
 - Theme 0.7.1 and Core 0.32.0 packages are rebuilt from merged `main`; the complete source archive and Persian backup/update handoff guide are part of the delivery.
 - Public booking remains disabled by default. No production site, customer database, live SMS, or payment system has been accessed.
-- Remaining UNVERIFIED: real screen-reader/WCAG manual acceptance, real devices, reverse-proxy/multi-node rate limiting, multi-connection stress, production HTTPS/DNS/backup/restore, and real email delivery. Jalali calendar UI, live SMS/payment, WooCommerce/Elementor adapters, setup wizard, and tagged release are not implemented.
+- Remaining UNVERIFIED: real screen-reader/WCAG manual acceptance, real devices, reverse-proxy/multi-node rate limiting, multi-connection stress, production HTTPS/DNS/backup/restore, and real email delivery. Jalali calendar UI and date overrides are implemented on `feat/jalali-calendar-scheduling` with local suite evidence; exact-head CI remains pending. Live SMS/payment, WooCommerce/Elementor adapters, setup wizard, and tagged release are not implemented.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
 
@@ -475,7 +478,7 @@ The report deliberately does not calculate utilization percentages or theoretica
 - **PASS (scope: Chromium, disposable WordPress/MariaDB, synthetic data):** public templates, RTL responsiveness, day/night themes, booking-disabled messaging, owner-editable content, SEO output, admin screens, PHP/JS/integration suites listed above.
 - **PASS (exact-HEAD CI on `1c15781`):** PHP 8.1/8.2/8.3 lint/activation, privacy matrix, WordPress/MariaDB privacy and customer access, and Chromium/Firefox/WebKit browser smoke ([runs 43493484039, 43493484035, 43493484051, 43493484116](https://github.com/Tadbir-Sabz/parisan/actions)).
 - **UNVERIFIED:** real screen-reader acceptance; human visual review in Firefox/WebKit; real-device testing; reverse-proxy rate limiting; multi-connection stress; production HTTPS/DNS/backup/restore; real email delivery.
-- **NOT IMPLEMENTED:** Jalali calendar UI, live SMS, online payment, gateway refunds, WooCommerce/Elementor adapters, setup wizard, tagged production release.
+- **NOT IMPLEMENTED:** live SMS, online payment, gateway refunds, WooCommerce/Elementor adapters, setup wizard, tagged production release.
 - Public booking remains disabled by default. PR #4 merged this scope; no production deployment is implied by this QA pass.
 
 ### Evidence and reproduction
@@ -484,3 +487,42 @@ The report deliberately does not calculate utilization percentages or theoretica
 - Full local screenshot set (not committed due to size): `artifacts/final/`.
 - Exact commands, artifacts, ZIP checksums, and remaining gaps: `docs/FINAL-REPORT.md`.
 - Persian installation/admin/QA guide: `docs/FINAL-ADMIN-QA.fa.md`.
+
+## Jalali calendar and scheduling — 2026-11-14
+
+**Branch:** `feat/jalali-calendar-scheduling`, based on verified `main` at `43ee629ae8c2ebfb579b644062d4e33730948c26`; review pending, not merged.
+
+**Environment:** Windows local PHP 8.4.26 / Node 24.20.0 for pure tests and syntax; disposable WordPress/MariaDB and Chromium/Firefox/WebKit are CI-gated. No production site, customer data, live SMS, or payment provider was accessed.
+
+### Delivered in this slice
+
+- Canonical Gregorian/Jalali conversion, leap-year and Esfand validation, Persian/English labels, Persian/Arabic digit handling, strict Jalali form parsing, timezone-safe formatting, 42-cell month grids, and month navigation (ADR-0013).
+- Additive schema v12 `parisan_schedule_date_overrides` with one row per specialist and local date; salon-wide scope uses `staff_id = 0`.
+- Override precedence: salon closure → specialist closure → specialist override → salon special day/custom hours → weekly rule. Malformed overrides fail closed.
+- Persian RTL month/week/day admin calendar with Jalali navigation, staff filtering, holidays, specialist closures, special working days, custom hours, partial-day exceptions, conflict warnings, day detail, legend, keyboard grid navigation, and responsive/dark-mode styling.
+- Salon→staff advisory-lock order shared by booking creation and date-override writes/deletes; delete authorization uses the stored row's staff scope.
+- Gated `GET /wp-json/parisan/v1/availability-days` route and Jalali `date_label`/`time_label` fields in public availability/customer-booking responses. The route exposes only date, Jalali label, and availability boolean; public booking remains disabled by default.
+- Theme smoke, public default-off/enabled integration, calendar integration, and authenticated admin-calendar browser coverage updated for schema v12 and the new behavior.
+- Core version `0.33.0` on the branch; `dist/` packages remain the merged `main` delivery (Core `0.32.0`) until release packaging.
+
+### Local evidence
+
+- `php tests/run-jalali-tests.php` — 77 passed, 0 failed.
+- `php tests/run-schedule-tests.php` — 45 passed, 0 failed.
+- `php -l` on all changed/created PHP files — PASS, 0 failures.
+- `node --check` for `calendar-admin.js`, `public-booking.js`, and `browser-smoke.js` — PASS.
+- `git diff --check` — clean.
+
+### Status boundaries
+
+- **PASS (local, pure PHP/syntax):** conversion, leap years, Esfand boundaries, parsing, labels, grids, weekly/override precedence, DST gap rejection, and Tehran midnight/UTC-date boundary.
+- **UNVERIFIED (CI-gated):** WordPress/MariaDB schema-v12 calendar integration, transactional holiday rejection, lock serialization, public default-off/enabled route behavior, Jalali label privacy, theme smoke, and authenticated Chromium/Firefox/WebKit admin-calendar checks.
+- **NOT IMPLEMENTED:** bundled official holiday dataset, external holiday API, multi-day range entry, SMS, payments/refunds, WooCommerce/Elementor adapters, setup wizard, production deployment, tagged release.
+- Public booking remains disabled by default and no production activation is implied.
+
+### Evidence and reproduction
+
+- Persian operator guide: `docs/JALALI-CALENDAR.fa.md`.
+- Architecture decision: `docs/decisions/ADR-0013-jalali-calendar-and-date-overrides.md`.
+- Implementation report with commands and gaps: `docs/JALALI-CALENDAR-REPORT.md`.
+- CI run URLs and PR URL are recorded in the implementation report after the exact-head workflows complete.

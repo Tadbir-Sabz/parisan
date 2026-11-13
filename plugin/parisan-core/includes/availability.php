@@ -159,6 +159,8 @@ function parisan_core_get_available_slots( $staff_id, $service_id, $date, $exclu
 
 	$weekly = get_post_meta( $staff_id, '_parisan_staff_weekly_schedule', true );
 	$weekly = parisan_core_normalize_weekly_schedule( $weekly );
+	$staff_override = parisan_core_get_date_override( $staff_id, $date );
+	$salon_override = parisan_core_get_date_override( 0, $date );
 	$interval = absint( get_option( 'parisan_booking_slot_interval_minutes', 15 ) );
 	$before = absint( get_option( 'parisan_booking_buffer_before_minutes', 0 ) );
 	$after = absint( get_option( 'parisan_booking_buffer_after_minutes', 0 ) );
@@ -172,7 +174,9 @@ function parisan_core_get_available_slots( $staff_id, $service_id, $date, $exclu
 		$to_intervals( $busy_rows ),
 		$to_intervals( $exception_rows ),
 		min( 240, $before ),
-		min( 240, $after )
+		min( 240, $after ),
+		$staff_override,
+		$salon_override
 	);
 	$slots = parisan_core_assign_resources_to_slots( $slots, $service_id, $range_start, $range_end, min( 240, $before ), min( 240, $after ), $exclude_booking_id );
 	return parisan_core_filter_booking_window_slots( $slots );

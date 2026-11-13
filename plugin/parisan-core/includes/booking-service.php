@@ -46,6 +46,37 @@ function parisan_core_release_staff_schedule_lock( $lock_name ) {
 }
 
 /**
+ * Acquire the salon-wide calendar lock used to protect salon holidays and
+ * special-day overrides from racing with booking creation.
+ *
+ * Booking creation takes this lock before the per-staff lock. All date-override
+ * writes also take this lock before the per-staff lock, so a salon holiday or a
+ * specialist leave cannot be committed in the middle of a booking.
+ *
+ * @return string|WP_Error Lock name or safe error.
+ */
+function parisan_core_acquire_salon_calendar_lock() {
+	global $wpdb;
+
+	$lock_name = 'parisan:' . substr( hash( 'sha256', $wpdb->dbname . '|' . $wpdb->prefix . '|calendar|salon' ), 0, 48 );
+	$acquired = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 5)', $lock_name ) );
+	if ( '1' !== (string) $acquired ) {
+		return new WP_Error( 'parisan_calendar_lock_unavailable', __( 'تقویم سالن در حال تغییر است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
+	}
+	return $lock_name;
+}
+
+/**
+ * Release the salon-wide calendar lock.
+ *
+ * @param string $lock_name Lock name returned by the acquire helper.
+ * @return void
+ */
+function parisan_core_release_salon_calendar_lock( $lock_name ) {
+	parisan_core_release_staff_schedule_lock( $lock_name );
+}
+
+/**
  * Create a pending booking after revalidating availability under a staff lock.
  *
  * Required input keys: staff_id, service_id, starts_at_local (Y-m-d H:i),
@@ -131,14 +162,20 @@ function parisan_core_create_booking( $input ) {
 		}
 	}
 
+	$salon_lock_name = parisan_core_acquire_salon_calendar_lock();
+	if ( is_wp_error( $salon_lock_name ) ) {
+		return new WP_Error( 'parisan_booking_lock_unavailable', __( 'سامانه در حال پردازش تغییر تقویم است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
+	}
 	$lock_name = parisan_core_acquire_staff_schedule_lock( $staff_id );
 	if ( is_wp_error( $lock_name ) ) {
+		parisan_core_release_salon_calendar_lock( $salon_lock_name );
 		return new WP_Error( 'parisan_booking_lock_unavailable', __( 'سامانه در حال پردازش رزرو دیگری است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
 	$resource_locks = parisan_core_acquire_resource_schedule_locks( parisan_core_get_service_resource_ids( $service_id ) );
 	if ( is_wp_error( $resource_locks ) ) {
 		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_staff_schedule_lock( $lock_name );
+		parisan_core_release_salon_calendar_lock( $salon_lock_name );
 		return new WP_Error( 'parisan_resource_lock_unavailable', __( 'ظرفیت منابع خدمت در حال پردازش است؛ لطفاً دوباره تلاش کنید.', 'parisan-core' ) );
 	}
 
@@ -297,5 +334,6 @@ function parisan_core_create_booking( $input ) {
 		}
 		parisan_core_release_resource_schedule_locks( $resource_locks );
 		parisan_core_release_staff_schedule_lock( $lock_name );
+		parisan_core_release_salon_calendar_lock( $salon_lock_name );
 	}
 }

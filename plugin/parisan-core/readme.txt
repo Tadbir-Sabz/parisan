@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.32.0
+Stable tag: 0.33.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,14 @@ Break management, resource schedules, full account-based customer portal/resched
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.33.0 =
+* Added canonical Gregorian/Jalali conversion, leap-year and Esfand validation, Persian labels/digits, strict Jalali form parsing, and month-grid helpers.
+* Added the Persian RTL month/week/day calendar with salon holidays, specialist closures, special working days, custom hours, partial-day exceptions, conflict warnings, and keyboard navigation.
+* Added additive schema v12 `parisan_schedule_date_overrides` with one row per specialist and local date; weekly rules remain the recurring base.
+* Booking creation and calendar writes now share a salon→staff advisory-lock order.
+* Added gated Jalali day chips (`/availability-days`) and Jalali date/time labels to public availability and customer booking responses. Public booking remains disabled by default.
+* Added standalone Jalali/schedule suites, disposable WordPress/MariaDB calendar integration coverage, and authenticated admin-calendar browser checks.
 
 = 0.32.0 =
 * Final public templates, RTL/day-night polish, owner-editable homepage/contact settings, and a booking-disabled contact CTA.
