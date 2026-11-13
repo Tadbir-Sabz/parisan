@@ -42,6 +42,14 @@ $booking_resources_table = $wpdb->prefix . 'parisan_booking_resources';
 parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $booking_resources_table ) ) === $booking_resources_table, 'v5 migration creates the booking-to-resource assignment relation table' );
 
 
+$integration_idempotency_key = hash( 'sha256', 'public-token-integration-booking' );
+$stale_booking_ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$bookings_table} WHERE idempotency_key = %s", $integration_idempotency_key ) );
+foreach ( array_map( 'absint', $stale_booking_ids ) as $stale_booking_id ) {
+	$wpdb->delete( $tokens_table, array( 'booking_id' => $stale_booking_id ), array( '%d' ) );
+	$wpdb->delete( $events_table, array( 'booking_id' => $stale_booking_id ), array( '%d' ) );
+	$wpdb->delete( $bookings_table, array( 'id' => $stale_booking_id ), array( '%d' ) );
+}
+
 $now = current_time( 'mysql', true );
 $booking_inserted = $wpdb->insert(
 	$bookings_table,
@@ -60,13 +68,20 @@ $booking_inserted = $wpdb->insert(
 		'status' => 'pending',
 		'price_amount' => 150000,
 		'currency_code' => 'IRR',
-		'idempotency_key' => hash( 'sha256', 'public-token-integration-booking' ),
+		'idempotency_key' => $integration_idempotency_key,
 		'created_at_utc' => $now,
 		'updated_at_utc' => $now,
 	)
 );
 parisan_public_integration_assert( false !== $booking_inserted, 'synthetic booking inserted' );
 $booking_id = (int) $wpdb->insert_id;
+register_shutdown_function(
+	function () use ( $booking_id, $bookings_table, $events_table, $tokens_table, $wpdb ) {
+		$wpdb->delete( $tokens_table, array( 'booking_id' => $booking_id ), array( '%d' ) );
+		$wpdb->delete( $events_table, array( 'booking_id' => $booking_id ), array( '%d' ) );
+		$wpdb->delete( $bookings_table, array( 'id' => $booking_id ), array( '%d' ) );
+	}
+);
 
 $token_one = bin2hex( random_bytes( 32 ) );
 parisan_public_integration_assert( false !== $wpdb->query( 'START TRANSACTION' ), 'token transaction started' );

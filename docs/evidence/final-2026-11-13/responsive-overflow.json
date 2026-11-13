@@ -1,0 +1,578 @@
+[
+  {
+    "width": 1920,
+    "route": "/",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 132,
+    "breadTop": null
+  },
+  {
+    "width": 1920,
+    "route": "/services/",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1920,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1920,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1920,
+    "route": "/portfolio/",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1920,
+    "route": "/journal/",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1920,
+    "route": "/contact/",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1920,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 1920,
+    "innerWidth": 1920,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1440,
+    "route": "/",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 132,
+    "breadTop": null
+  },
+  {
+    "width": 1440,
+    "route": "/services/",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1440,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1440,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1440,
+    "route": "/portfolio/",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1440,
+    "route": "/journal/",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1440,
+    "route": "/contact/",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1440,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 1440,
+    "innerWidth": 1440,
+    "headerBottom": 130,
+    "breadTop": 146
+  },
+  {
+    "width": 1280,
+    "route": "/",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 130,
+    "breadTop": null
+  },
+  {
+    "width": 1280,
+    "route": "/services/",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1280,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1280,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1280,
+    "route": "/portfolio/",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1280,
+    "route": "/journal/",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1280,
+    "route": "/contact/",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1280,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 1280,
+    "innerWidth": 1280,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1024,
+    "route": "/",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 130,
+    "breadTop": null
+  },
+  {
+    "width": 1024,
+    "route": "/services/",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1024,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1024,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1024,
+    "route": "/portfolio/",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1024,
+    "route": "/journal/",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1024,
+    "route": "/contact/",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 1024,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 1024,
+    "innerWidth": 1024,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 768,
+    "route": "/",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 130,
+    "breadTop": null
+  },
+  {
+    "width": 768,
+    "route": "/services/",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 768,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 768,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 768,
+    "route": "/portfolio/",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 768,
+    "route": "/journal/",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 768,
+    "route": "/contact/",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 768,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 768,
+    "innerWidth": 768,
+    "headerBottom": 128,
+    "breadTop": 144
+  },
+  {
+    "width": 430,
+    "route": "/",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": null
+  },
+  {
+    "width": 430,
+    "route": "/services/",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 430,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 430,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 430,
+    "route": "/portfolio/",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 430,
+    "route": "/journal/",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 430,
+    "route": "/contact/",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 430,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 430,
+    "innerWidth": 430,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 390,
+    "route": "/",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": null
+  },
+  {
+    "width": 390,
+    "route": "/services/",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 390,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 390,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 390,
+    "route": "/portfolio/",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 390,
+    "route": "/journal/",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 390,
+    "route": "/contact/",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 390,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 390,
+    "innerWidth": 390,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 375,
+    "route": "/",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": null
+  },
+  {
+    "width": 375,
+    "route": "/services/",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 375,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 375,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 375,
+    "route": "/portfolio/",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 375,
+    "route": "/journal/",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 375,
+    "route": "/contact/",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 375,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 375,
+    "innerWidth": 375,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 360,
+    "route": "/",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": null
+  },
+  {
+    "width": 360,
+    "route": "/services/",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 360,
+    "route": "/services/skin-hydration/",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 360,
+    "route": "/specialists/nazanin/",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 360,
+    "route": "/portfolio/",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 360,
+    "route": "/journal/",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 360,
+    "route": "/contact/",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": 210
+  },
+  {
+    "width": 360,
+    "route": "/?s=%D9%BE%D9%88%D8%B3%D8%AA",
+    "scrollWidth": 360,
+    "innerWidth": 360,
+    "headerBottom": 198,
+    "breadTop": 210
+  }
+]

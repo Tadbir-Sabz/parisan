@@ -80,8 +80,49 @@ function parisan_privacy_integration_insert_booking( $email, $status, $token, $u
 	return $booking_id;
 }
 
+$privacy_fixture_keys = array(
+	hash( 'sha256', 'privacy-terminal-0001' ),
+	hash( 'sha256', 'privacy-active-0002' ),
+	hash( 'sha256', 'privacy-rollback-0003' ),
+	hash( 'sha256', 'privacy-retention-0004' ),
+);
+$privacy_fixture_ids = array();
+$privacy_tables = array(
+	'bookings'  => $wpdb->prefix . 'parisan_bookings',
+	'events'    => $wpdb->prefix . 'parisan_booking_events',
+	'tokens'    => $wpdb->prefix . 'parisan_customer_tokens',
+	'reminders' => $wpdb->prefix . 'parisan_booking_reminders',
+);
+$cleanup_booking = static function ( $booking_id ) use ( $wpdb, $privacy_tables ) {
+	$booking_id = absint( $booking_id );
+	if ( ! $booking_id ) {
+		return;
+	}
+	foreach ( array( 'tokens', 'events', 'reminders' ) as $table_key ) {
+		$table = $privacy_tables[ $table_key ];
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
+			$wpdb->delete( $table, array( 'booking_id' => $booking_id ), array( '%d' ) );
+		}
+	}
+	$wpdb->delete( $privacy_tables['bookings'], array( 'id' => $booking_id ), array( '%d' ) );
+};
+foreach ( $privacy_fixture_keys as $privacy_fixture_key ) {
+	$stale_ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM {$privacy_tables['bookings']} WHERE idempotency_key = %s", $privacy_fixture_key ) );
+	foreach ( array_map( 'absint', $stale_ids ) as $stale_id ) {
+		$cleanup_booking( $stale_id );
+	}
+}
+register_shutdown_function(
+	static function () use ( &$privacy_fixture_ids, $cleanup_booking ) {
+		foreach ( $privacy_fixture_ids as $fixture_id ) {
+			$cleanup_booking( $fixture_id );
+		}
+	}
+);
+
 $terminal_id = parisan_privacy_integration_insert_booking( 'privacy@example.test', 'completed', 'privacy-terminal-0001', '2026-11-01 00:00:00' );
 $active_id = parisan_privacy_integration_insert_booking( 'privacy@example.test', 'pending', 'privacy-active-0002', '2026-11-01 00:00:00' );
+$privacy_fixture_ids = array( $terminal_id, $active_id );
 $terminal_customer_token = parisan_privacy_integration_issue_customer_token( $terminal_id );
 
 $export = parisan_core_privacy_exporter_callback( 'privacy@example.test', 1 );
@@ -108,6 +149,7 @@ parisan_privacy_integration_assert( false === parisan_core_resolve_customer_acce
 parisan_privacy_integration_assert( 'Synthetic Privacy Customer' === $active['customer_name'] && '09123456789' === $active['customer_phone'], 'active booking contact data is preserved' );
 
 $rollback_id = parisan_privacy_integration_insert_booking( 'rollback@example.test', 'completed', 'privacy-rollback-0003', '2026-11-01 00:00:00' );
+$privacy_fixture_ids[] = $rollback_id;
 $rollback_customer_token = parisan_privacy_integration_issue_customer_token( $rollback_id );
 $events_table = $wpdb->prefix . 'parisan_booking_events';
 $trigger = 'parisan_privacy_force_event_update_failure';
@@ -124,6 +166,7 @@ parisan_privacy_integration_assert( 'Synthetic Privacy Customer' === $rollback_r
 parisan_privacy_integration_assert( is_array( parisan_core_resolve_customer_access_token( $rollback_customer_token ) ), 'failed erasure rolls token revocation back too' );
 
 $retention_id = parisan_privacy_integration_insert_booking( 'retention@example.test', 'completed', 'privacy-retention-0004', '2025-01-01 00:00:00' );
+$privacy_fixture_ids[] = $retention_id;
 $retention_customer_token = parisan_privacy_integration_issue_customer_token( $retention_id );
 update_option( PARISAN_CORE_RETENTION_OPTION, 90, false );
 $retention_result = parisan_core_run_booking_retention_cleanup();

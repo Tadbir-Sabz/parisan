@@ -1,0 +1,12 @@
+# Local QA artifacts and packaged deliverables (not committed)
+artifacts/
+dist/
+
+# Tooling output
+node_modules/
+*.log
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini

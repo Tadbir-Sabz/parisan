@@ -54,6 +54,22 @@ parisan_theme_smoke_assert( function_exists( 'parisan_customize_homepage_content
 parisan_theme_smoke_assert( function_exists( 'parisan_blog_index_url' ), 'blog index URL resolver is registered' );
 $original_posts_page = get_option( 'page_for_posts' );
 $original_show_on_front = get_option( 'show_on_front', 'posts' );
+$parisan_theme_smoke_fixtures = array();
+register_shutdown_function(
+	function () use ( &$parisan_theme_smoke_fixtures, $original_posts_page, $original_show_on_front ) {
+		update_option( 'page_for_posts', $original_posts_page );
+		update_option( 'show_on_front', $original_show_on_front );
+		foreach ( array( 'parisan_home_hero_title', 'parisan_brand_accent', 'parisan_hero_image', 'parisan_hero_position_x', 'parisan_hero_position_y', 'parisan_hero_image_alt', 'parisan_home_benefit_1_title' ) as $theme_mod ) {
+			remove_theme_mod( $theme_mod );
+		}
+		foreach ( $parisan_theme_smoke_fixtures as $fixture_id ) {
+			$fixture_id = absint( $fixture_id );
+			if ( $fixture_id && get_post( $fixture_id ) ) {
+				wp_delete_post( $fixture_id, true );
+			}
+		}
+	}
+);
 update_option( 'page_for_posts', 0 );
 update_option( 'show_on_front', 'posts' );
 parisan_theme_smoke_assert( home_url( '/' ) === parisan_blog_index_url(), 'blog fallback uses the home URL when latest posts are the front page' );
@@ -65,6 +81,7 @@ $static_front_navigation = ob_get_clean();
 parisan_theme_smoke_assert( false === strpos( $static_front_navigation, 'مجله' ), 'fallback navigation omits the blog link when WordPress has no posts index' );
 $posts_page_id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => 'Synthetic Posts Index' ), true );
 parisan_theme_smoke_assert( ! is_wp_error( $posts_page_id ), 'synthetic posts index page is created' );
+$parisan_theme_smoke_fixtures[] = $posts_page_id;
 update_option( 'page_for_posts', $posts_page_id );
 parisan_theme_smoke_assert( get_permalink( $posts_page_id ) === parisan_blog_index_url(), 'blog resolver uses the configured WordPress posts page' );
 update_option( 'page_for_posts', $original_posts_page );
@@ -78,6 +95,8 @@ set_theme_mod( 'parisan_brand_accent', 'red;}</style><script>alert(1)</script>' 
 parisan_theme_smoke_assert( '#6f4657' === parisan_safe_theme_color( 'parisan_brand_accent', '#6f4657' ), 'unsafe brand color falls back to the safe default' );
 remove_theme_mod( 'parisan_brand_accent' );
 parisan_theme_smoke_assert( is_string( get_post_type_archive_link( 'parisan_portfolio' ) ) && '' !== get_post_type_archive_link( 'parisan_portfolio' ), 'portfolio archive URL is available' );
+$service_type_object = get_post_type_object( 'parisan_service' );
+parisan_theme_smoke_assert( $service_type_object instanceof WP_Post_Type && '' !== trim( (string) $service_type_object->description ), 'service archive exposes a Persian SEO description' );
 parisan_theme_smoke_assert( function_exists( 'parisan_primary_menu_fallback' ), 'primary navigation fallback is registered' );
 parisan_theme_smoke_assert( function_exists( 'parisan_footer_menu_fallback' ), 'footer navigation fallback is registered' );
 $header_source = file_get_contents( get_template_directory() . '/header.php' );
@@ -110,6 +129,7 @@ $service_id = wp_insert_post(
 	true
 );
 parisan_theme_smoke_assert( ! is_wp_error( $service_id ), 'synthetic service is created' );
+$parisan_theme_smoke_fixtures[] = $service_id;
 update_post_meta( $service_id, '_parisan_duration', 45 );
 update_post_meta( $service_id, '_parisan_price', 250000 );
 update_post_meta( $service_id, '_parisan_price_type', 'fixed' );
@@ -124,6 +144,7 @@ $portfolio_id = wp_insert_post(
 	true
 );
 parisan_theme_smoke_assert( ! is_wp_error( $portfolio_id ), 'synthetic portfolio work is created' );
+$parisan_theme_smoke_fixtures[] = $portfolio_id;
 
 $staff_id = wp_insert_post(
 	array(
@@ -135,6 +156,7 @@ $staff_id = wp_insert_post(
 	true
 );
 parisan_theme_smoke_assert( ! is_wp_error( $staff_id ), 'synthetic specialist is created' );
+$parisan_theme_smoke_fixtures[] = $staff_id;
 update_post_meta( $staff_id, '_parisan_staff_role', 'متخصص آزمایشی' );
 
 global $wp_query, $post;
@@ -183,7 +205,7 @@ parisan_theme_smoke_assert( false !== strpos( $homepage, 'مجلهٔ پاریس�
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'تجربه‌ای متناسب با شما' ), 'homepage renders the Persian introduction eyebrow' );
 parisan_theme_smoke_assert( false === strpos( $homepage, 'A MORE PERSONAL EXPERIENCE' ) && false === strpos( $homepage, 'THE PARISAN JOURNAL' ) && false === strpos( $homepage, 'MAKE TIME FOR YOURSELF' ), 'homepage default editorial labels contain no leftover English-only copy' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'id="booking"' ), 'homepage exposes the booking anchor' );
-parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false !== strpos( $homepage, 'برای هماهنگی نوبت با سالن تماس بگیرید' ), 'disabled booking state explains how to contact the salon' );
+parisan_theme_smoke_assert( false !== strpos( $homepage, 'رزرو آنلاین در حال حاضر فعال نیست' ) && false !== strpos( $homepage, 'برای دریافت راهنمایی با سالن تماس بگیرید' ), 'disabled booking state explains how to contact the salon' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo' ) && false !== strpos( $homepage, 'https://example.test/parisan-hero.jpg' ), 'legacy owner-selected hero image URL remains backward-compatible' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'hero-art-photo-night' ) && false !== strpos( $homepage, '/assets/images/hero-night.jpg' ), 'homepage includes a distinct bundled local night portrait' );
 parisan_theme_smoke_assert( false === strpos( $homepage, 'images.unsplash.com' ), 'homepage does not depend on external Unsplash image URLs' );
@@ -317,7 +339,8 @@ $public_staff_archive = file_get_contents( $theme_root . '/archive-parisan_staff
 $public_service_single = file_get_contents( $theme_root . '/single-parisan_service.php' );
 $public_staff_single = file_get_contents( $theme_root . '/single-parisan_staff.php' );
 parisan_theme_smoke_assert( false !== strpos( $public_service_archive, '/contact/' ) && false !== strpos( $public_staff_archive, '/contact/' ), 'public service and specialist archives provide contact CTAs' );
-parisan_theme_smoke_assert( false !== strpos( $public_service_single, '/contact/' ) && false !== strpos( $public_staff_single, '/contact/' ), 'public service and specialist detail pages route enquiries to salon contact, not online booking' );
+$public_cta_source = file_get_contents( $theme_root . '/functions.php' );
+parisan_theme_smoke_assert( false !== strpos( $public_service_single, 'parisan_booking_cta_url' ) && false !== strpos( $public_staff_single, 'parisan_booking_cta_url' ) && false !== strpos( $public_cta_source, "home_url( '/contact/' )" ), 'public service and specialist detail pages route enquiries to salon contact, not online booking' );
 parisan_theme_smoke_assert( false !== strpos( $public_staff_single, '_parisan_staff_services' ) && false !== strpos( $public_service_single, '_parisan_price' ), 'public detail templates expose existing specialist-service and service-pricing data' );
 
 

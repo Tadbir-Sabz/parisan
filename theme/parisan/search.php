@@ -16,7 +16,7 @@ $parisan_search_count = isset( $GLOBALS['wp_query']->found_posts ) ? absint( $GL
 		<p class="search-results-count" role="status" aria-live="polite"><?php echo esc_html( sprintf( _n( '%s نتیجه پیدا شد', '%s نتیجه پیدا شد', $parisan_search_count, 'parisan' ), number_format_i18n( $parisan_search_count ) ) ); ?></p>
 		<?php get_search_form(); ?>
 	</header>
-	<div class="container post-grid" aria-labelledby="search-results-title">
+	<section class="container post-grid" aria-labelledby="search-results-title">
 		<?php if ( have_posts() ) : ?>
 			<?php $parisan_index = 0; ?>
 			<?php while ( have_posts() ) : the_post(); ?>
@@ -45,7 +45,7 @@ $parisan_search_count = isset( $GLOBALS['wp_query']->found_posts ) ? absint( $GL
 				<?php get_search_form(); ?>
 			</div>
 		<?php endif; ?>
-	</div>
+	</section>
 	<div class="container catalog-pagination">
 		<?php the_posts_pagination( array( 'mid_size' => 1, 'prev_text' => __( 'نتایج قبلی', 'parisan' ), 'next_text' => __( 'نتایج بعدی', 'parisan' ), 'aria_label' => __( 'صفحه‌بندی نتایج جستجو', 'parisan' ) ) ); ?>
 	</div>

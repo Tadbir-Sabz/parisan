@@ -17,6 +17,18 @@ if ( ! function_exists( 'parisan_core_get_breadcrumb_items' ) || ! function_exis
 	exit( 1 );
 }
 
+$parisan_breadcrumb_fixtures = array();
+register_shutdown_function(
+	function () use ( &$parisan_breadcrumb_fixtures ) {
+		foreach ( $parisan_breadcrumb_fixtures as $fixture_id ) {
+			$fixture_id = absint( $fixture_id );
+			if ( $fixture_id && get_post( $fixture_id ) ) {
+				wp_delete_post( $fixture_id, true );
+			}
+		}
+	}
+);
+
 $service_id = wp_insert_post(
 	array(
 		'post_type'   => 'parisan_service',
@@ -26,6 +38,7 @@ $service_id = wp_insert_post(
 	true
 );
 parisan_test_breadcrumb_assert( ! is_wp_error( $service_id ), 'Could not create the synthetic service.' );
+$parisan_breadcrumb_fixtures[] = $service_id;
 
 $query = new WP_Query(
 	array(
@@ -81,6 +94,8 @@ $noindex_service_id = wp_insert_post(
 	true
 );
 parisan_test_breadcrumb_assert( ! is_wp_error( $visible_service_id ) && ! is_wp_error( $noindex_service_id ), 'Could not create synthetic sitemap services.' );
+$parisan_breadcrumb_fixtures[] = $visible_service_id;
+$parisan_breadcrumb_fixtures[] = $noindex_service_id;
 update_post_meta( $noindex_service_id, '_parisan_seo_noindex', '1' );
 
 $sitemap_args = apply_filters(
@@ -154,6 +169,7 @@ $ordinary_id = wp_insert_post(
 	true
 );
 parisan_test_breadcrumb_assert( ! is_wp_error( $ordinary_id ), 'Could not create unrelated synthetic post.' );
+$parisan_breadcrumb_fixtures[] = $ordinary_id;
 do_action( 'deleted_post', $ordinary_id, get_post( $ordinary_id ) );
 parisan_test_breadcrumb_assert( empty( $invalidated_ids ), 'Unrelated post deletion must not trigger Parisan public cache invalidation.' );
 do_action( 'deleted_post', $service_id, get_post( $service_id ) );

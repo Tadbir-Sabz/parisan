@@ -14,6 +14,7 @@ get_header();
 		$role     = get_post_meta( get_the_ID(), '_parisan_staff_role', true );
 		$services = get_post_meta( get_the_ID(), '_parisan_staff_services', true );
 		$services = is_array( $services ) ? array_map( 'absint', $services ) : array();
+		$hours    = parisan_staff_schedule_rows( get_the_ID() );
 		?>
 		<article <?php post_class( 'container specialist-detail' ); ?>>
 			<?php if ( has_post_thumbnail() ) : ?>
@@ -36,7 +37,18 @@ get_header();
 						</ul>
 					</section>
 				<?php endif; ?>
-				<a class="button" href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'تماس با سالن برای هماهنگی', 'parisan' ); ?></a>
+				<?php if ( $hours ) : ?>
+					<section class="specialist-hours" aria-labelledby="specialist-hours-title">
+						<h2 id="specialist-hours-title"><?php esc_html_e( 'ساعات حضور هفتگی', 'parisan' ); ?></h2>
+						<dl>
+							<?php foreach ( $hours as $day_label => $day_hours ) : ?>
+								<dt><?php echo esc_html( $day_label ); ?></dt>
+								<dd<?php echo 'تعطیل' === $day_hours ? ' class="is-off"' : ''; ?>><?php echo esc_html( $day_hours ); ?></dd>
+							<?php endforeach; ?>
+						</dl>
+					</section>
+				<?php endif; ?>
+				<a class="button" href="<?php echo esc_url( parisan_booking_cta_url() ); ?>"><?php echo esc_html( parisan_booking_cta_label() ); ?></a>
 			</div>
 		</article>
 	<?php endwhile; ?>

@@ -145,8 +145,9 @@ const { chromium, firefox, webkit } = require('playwright');
 		}, null, { timeout: 15000 });
 		assert.equal(await allCardImages.count(), 12, 'all twelve card images are present');
 		assert.equal(await allCardImages.evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)), true, 'all card images load successfully');
-		assert.equal(await page.locator('.parisan-booking-notice').count(), 1, 'disabled booking notice renders');
-		assert.match(await page.locator('.parisan-booking-notice').innerText(), /رزرو آنلاین در حال حاضر فعال نیست/, 'booking remains visibly disabled by default');
+		assert.equal((await page.locator('.parisan-booking-section h2').innerText()).trim(), 'برای هماهنگی نوبت با سالن در ارتباط باشید.', 'disabled booking replaces the online form with an owner-contact heading');
+		assert.match(await page.locator('.parisan-booking-section').innerText(), /رزرو آنلاین در حال حاضر فعال نیست/, 'booking remains visibly disabled by default');
+		assert.equal(await page.locator('.parisan-booking-section a.button[href="tel:02112345678"]').count(), 1, 'disabled booking section links to the salon phone number');
 		assert.equal(await page.locator('.parisan-mobile-menu-toggle').isVisible(), false, 'mobile menu toggle is hidden on desktop');
 		assert.equal(await page.locator('.primary-navigation a').count(), 6, 'concise six-item fallback navigation renders on desktop');
 

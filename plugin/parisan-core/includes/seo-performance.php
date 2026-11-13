@@ -60,11 +60,38 @@ function parisan_core_current_meta_description() {
 			$custom_description = get_post_meta( $post->ID, '_parisan_seo_description', true );
 			$description = $custom_description ? $custom_description : ( has_excerpt( $post ) ? $post->post_excerpt : wp_strip_all_tags( $post->post_content ) );
 		}
+	} elseif ( is_post_type_archive() ) {
+		$post_type = get_query_var( 'post_type' );
+		$post_type = is_array( $post_type ) ? reset( $post_type ) : $post_type;
+		$object    = $post_type ? get_post_type_object( $post_type ) : null;
+		if ( $object instanceof WP_Post_Type ) {
+			$description = $object->description;
+		}
+	} elseif ( is_category() || is_tag() || is_tax() ) {
+		$term = get_queried_object();
+		if ( $term instanceof WP_Term ) {
+			$description = $term->description ? $term->description : $term->name;
+		}
+	} elseif ( is_home() ) {
+		$posts_page_id = absint( get_option( 'page_for_posts' ) );
+		if ( $posts_page_id ) {
+			$description = get_post_field( 'post_excerpt', $posts_page_id );
+			if ( '' === trim( (string) $description ) ) {
+				$description = get_post_field( 'post_content', $posts_page_id );
+			}
+		}
+	} elseif ( is_author() ) {
+		$description = get_the_author_meta( 'description', get_queried_object_id() );
+	} elseif ( is_date() ) {
+		$description = get_the_archive_title();
 	}
-	if ( '' === trim( $description ) ) {
+	if ( '' === trim( (string) $description ) ) {
 		$description = parisan_core_seo_settings()['default_description'];
 	}
-	$description = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( $description ) ) );
+	if ( '' === trim( (string) $description ) ) {
+		$description = get_bloginfo( 'description' );
+	}
+	$description = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $description ) ) );
 	if ( function_exists( 'mb_substr' ) ) {
 		return mb_substr( $description, 0, 160 );
 	}
@@ -72,24 +99,71 @@ function parisan_core_current_meta_description() {
 }
 
 /**
+ * Resolve the canonical public URL, including active archive pagination.
+ *
+ * @return string
+ */
+function parisan_core_current_canonical_url() {
+	$url = '';
+	if ( is_singular() ) {
+		$url = (string) get_permalink();
+	} elseif ( is_front_page() ) {
+		$url = home_url( '/' );
+	} elseif ( is_home() ) {
+		$posts_page_id = absint( get_option( 'page_for_posts' ) );
+		$url = $posts_page_id ? (string) get_permalink( $posts_page_id ) : home_url( '/' );
+	} elseif ( is_post_type_archive() ) {
+		$post_type = get_query_var( 'post_type' );
+		$post_type = is_array( $post_type ) ? reset( $post_type ) : $post_type;
+		$url = $post_type ? (string) get_post_type_archive_link( $post_type ) : '';
+	} elseif ( is_category() || is_tag() || is_tax() ) {
+		$term = get_queried_object();
+		$term_url = $term instanceof WP_Term ? get_term_link( $term ) : '';
+		$url = is_wp_error( $term_url ) ? '' : (string) $term_url;
+	} elseif ( is_author() ) {
+		$url = (string) get_author_posts_url( get_queried_object_id() );
+	} elseif ( is_date() ) {
+		if ( is_day() ) {
+			$url = (string) get_day_link( get_query_var( 'year' ), get_query_var( 'monthnum' ), get_query_var( 'day' ) );
+		} elseif ( is_month() ) {
+			$url = (string) get_month_link( get_query_var( 'year' ), get_query_var( 'monthnum' ) );
+		} elseif ( is_year() ) {
+			$url = (string) get_year_link( get_query_var( 'year' ) );
+		}
+	}
+	$paged = max( 1, absint( get_query_var( 'paged' ) ) );
+	if ( $url && $paged > 1 && ( is_archive() || is_home() ) ) {
+		$url = (string) get_pagenum_link( $paged );
+	}
+	return $url;
+}
+
+/**
+ * Give an editor-provided SEO title precedence over the generated title.
+ *
+ * @param string $title Generated document title.
+ * @return string
+ */
+function parisan_core_filter_document_title( $title ) {
+	if ( is_admin() || parisan_core_seo_plugin_controls_output() || ! is_singular() ) {
+		return $title;
+	}
+	$custom_title = get_post_meta( get_queried_object_id(), '_parisan_seo_title', true );
+	return $custom_title ? $custom_title : $title;
+}
+add_filter( 'pre_get_document_title', 'parisan_core_filter_document_title', 20 );
+
+/**
  * Emit first-party metadata only when no SEO plugin owns the document head.
  *
  * @return void
  */
 function parisan_core_output_seo_metadata() {
-	if ( is_admin() || is_feed() || is_404() || parisan_core_seo_plugin_controls_output() || ! ( is_singular() || is_front_page() || is_post_type_archive() ) ) {
+	if ( is_admin() || is_feed() || is_404() || is_search() || parisan_core_seo_plugin_controls_output() || ! ( is_singular() || is_front_page() || is_home() || is_archive() ) ) {
 		return;
 	}
 	$description = parisan_core_current_meta_description();
-	$url = home_url( '/' );
-	if ( is_singular() ) {
-		$url = get_permalink();
-	} elseif ( is_post_type_archive() ) {
-		$queried_type = get_query_var( 'post_type' );
-		if ( is_string( $queried_type ) && $queried_type ) {
-			$url = get_post_type_archive_link( $queried_type );
-		}
-	}
+	$url = parisan_core_current_canonical_url();
 	$title = wp_get_document_title();
 	if ( is_singular() ) {
 		$custom_title = get_post_meta( get_queried_object_id(), '_parisan_seo_title', true );
@@ -104,19 +178,52 @@ function parisan_core_output_seo_metadata() {
 		printf( "<link rel=\"canonical\" href=\"%s\">\n", esc_url( $url ) );
 		printf( "<meta property=\"og:url\" content=\"%s\">\n", esc_url( $url ) );
 	}
-	printf( "<meta property=\"og:type\" content=\"%s\">\n", is_singular( 'parisan_service' ) ? 'product' : 'website' );
+	printf( "<meta property=\"og:site_name\" content=\"%s\">\n", esc_attr( get_bloginfo( 'name' ) ) );
+	$og_type = 'website';
+	if ( is_singular( 'parisan_service' ) ) {
+		$og_type = 'product';
+	} elseif ( is_singular( 'post' ) ) {
+		$og_type = 'article';
+	} elseif ( is_singular( 'parisan_staff' ) ) {
+		$og_type = 'profile';
+	}
+	printf( "<meta property=\"og:type\" content=\"%s\">\n", esc_attr( $og_type ) );
 	printf( "<meta property=\"og:title\" content=\"%s\">\n", esc_attr( $title ) );
 	if ( $description ) {
 		printf( "<meta property=\"og:description\" content=\"%s\">\n", esc_attr( $description ) );
 	}
+	printf( "<meta name=\"twitter:card\" content=\"summary_large_image\">\n" );
 	if ( is_singular() && has_post_thumbnail() ) {
 		$image = get_the_post_thumbnail_url( get_queried_object_id(), 'large' );
 		if ( $image ) {
 			printf( "<meta property=\"og:image\" content=\"%s\">\n", esc_url( $image ) );
+			printf( "<meta name=\"twitter:image\" content=\"%s\">\n", esc_url( $image ) );
 		}
 	}
+	if ( is_singular( 'post' ) ) {
+		printf( "<meta property=\"article:published_time\" content=\"%s\">\n", esc_attr( get_post_time( DATE_W3C, true, get_queried_object_id() ) ) );
+	}
 	$settings = parisan_core_seo_settings();
-	if ( $settings['output_json_ld'] && ! is_front_page() && is_singular( 'parisan_service' ) ) {
+	if ( ! $settings['output_json_ld'] ) {
+		return;
+	}
+	$schema = null;
+	if ( is_front_page() ) {
+		$schema = array(
+			'@context'    => 'https://schema.org',
+			'@type'       => 'BeautySalon',
+			'name'        => $settings['organization_name'],
+			'url'         => $settings['organization_url'] ? $settings['organization_url'] : home_url( '/' ),
+			'description' => $description,
+		);
+		$logo_id = absint( get_theme_mod( 'custom_logo', 0 ) );
+		if ( $logo_id ) {
+			$logo = wp_get_attachment_image_url( $logo_id, 'full' );
+			if ( $logo ) {
+				$schema['logo'] = $logo;
+			}
+		}
+	} elseif ( is_singular( 'parisan_service' ) ) {
 		$post_id = get_queried_object_id();
 		$schema = array(
 			'@context' => 'https://schema.org',
@@ -133,7 +240,53 @@ function parisan_core_output_seo_metadata() {
 		if ( $excerpt ) {
 			$schema['description'] = wp_strip_all_tags( $excerpt );
 		}
-		echo "<script type=\"application/ld+json\">" . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "</script>\n";
+	} elseif ( is_singular( 'post' ) ) {
+		$post_id = get_queried_object_id();
+		$schema = array(
+			'@context'      => 'https://schema.org',
+			'@type'         => 'Article',
+			'headline'      => get_the_title( $post_id ),
+			'url'           => get_permalink( $post_id ),
+			'datePublished' => get_post_time( DATE_W3C, true, $post_id ),
+			'dateModified'  => get_post_modified_time( DATE_W3C, true, $post_id ),
+			'author'        => array(
+				'@type' => 'Person',
+				'name'  => get_the_author_meta( 'display_name', (int) get_post_field( 'post_author', $post_id ) ),
+			),
+			'publisher'     => array(
+				'@type' => 'BeautySalon',
+				'name'  => $settings['organization_name'],
+				'url'   => $settings['organization_url'],
+			),
+		);
+		$excerpt = get_the_excerpt( $post_id );
+		if ( $excerpt ) {
+			$schema['description'] = wp_strip_all_tags( $excerpt );
+		}
+		$image = get_the_post_thumbnail_url( $post_id, 'large' );
+		if ( $image ) {
+			$schema['image'] = $image;
+		}
+	} elseif ( is_singular( 'parisan_staff' ) ) {
+		$post_id = get_queried_object_id();
+		$schema = array(
+			'@context' => 'https://schema.org',
+			'@type'    => 'Person',
+			'name'     => get_the_title( $post_id ),
+			'url'      => get_permalink( $post_id ),
+			'worksFor' => array(
+				'@type' => 'BeautySalon',
+				'name'  => $settings['organization_name'],
+				'url'   => $settings['organization_url'],
+			),
+		);
+		$role = get_post_meta( $post_id, '_parisan_staff_role', true );
+		if ( $role ) {
+			$schema['jobTitle'] = $role;
+		}
+	}
+	if ( $schema ) {
+		echo "<script type=\"application/ld+json\">" . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . "</script>\n";
 	}
 }
 add_action( 'wp_head', 'parisan_core_output_seo_metadata', 2 );
@@ -280,7 +433,7 @@ function parisan_core_register_seo_settings() {
 	add_settings_field( 'default_description', __( 'توضیحات پیش‌فرض سایت', 'parisan-core' ), 'parisan_core_render_seo_description_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
 	add_settings_field( 'organization_name', __( 'نام سالن / کسب‌وکار', 'parisan-core' ), 'parisan_core_render_seo_name_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
 	add_settings_field( 'organization_url', __( 'نشانی رسمی سایت', 'parisan-core' ), 'parisan_core_render_seo_url_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
-	add_settings_field( 'output_json_ld', __( 'داده ساختاریافته خدمات', 'parisan-core' ), 'parisan_core_render_seo_schema_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
+	add_settings_field( 'output_json_ld', __( 'داده ساختاریافتهٔ سایت', 'parisan-core' ), 'parisan_core_render_seo_schema_field', 'parisan-core-seo', 'parisan_core_seo_defaults' );
 
 }
 add_action( 'admin_init', 'parisan_core_register_seo_settings' );
@@ -328,7 +481,7 @@ function parisan_core_render_seo_url_field() {
 /** Render structured-data toggle. */
 function parisan_core_render_seo_schema_field() {
 	$s = parisan_core_seo_settings();
-	printf( '<label><input type="checkbox" name="%1$s[output_json_ld]" value="1" %2$s> %3$s</label>', esc_attr( PARISAN_CORE_SEO_OPTION ), checked( 1, $s['output_json_ld'], false ), esc_html__( 'برای صفحه اختصاصی هر خدمت، Service JSON-LD تولید شود.', 'parisan-core' ) );
+	printf( '<label><input type="checkbox" name="%1$s[output_json_ld]" value="1" %2$s> %3$s</label>', esc_attr( PARISAN_CORE_SEO_OPTION ), checked( 1, $s['output_json_ld'], false ), esc_html__( 'برای صفحه اصلی، خدمات، متخصصان و مطالب، داده ساختاریافتهٔ مرتبط تولید شود.', 'parisan-core' ) );
 }
 
 /**
