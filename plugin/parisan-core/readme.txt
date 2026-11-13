@@ -1,7 +1,7 @@
 === Parisan Core ===
 Contributors: tadbir-sabz
 Tags: salon, appointments, beauty, booking
-Stable tag: 0.23.0
+Stable tag: 0.32.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,12 @@ Break management, resource schedules, full account-based customer portal/resched
 The plugin creates or upgrades its additive schema on activation/plugin load. Deactivation and theme switching do not delete business data. Date and time entries use the WordPress site's configured timezone.
 
 == Changelog ==
+
+= 0.32.0 =
+* Final public templates, RTL/day-night polish, owner-editable homepage/contact settings, and a booking-disabled contact CTA.
+* Archive descriptions, canonical/pagination metadata, Open Graph/Twitter tags, and BeautySalon/Service/Article/Person/BreadcrumbList JSON-LD with SEO-plugin ownership detection.
+* Expanded admin operations, setup readiness, customer access scoping, and privacy/retention hardening.
+* Verified PHP 8.1/8.2/8.3, disposable WordPress/MariaDB, and Chromium/Firefox/WebKit CI on the delivery head. Public booking remains disabled by default.
 
 = 0.20.0 =
 * Added a Persian admin diagnostics table for the persistent object-cache runtime flag, object-cache drop-in presence, and supported page-cache purge APIs.

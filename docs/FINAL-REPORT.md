@@ -1,9 +1,12 @@
 # Parisan Final Implementation Report
 
 **Date:** 2026-11-13  
-**Baseline:** `main` at `74ad70c5c6ef2d3e602f76735ef2415afa148712`  
-**Delivery branch:** `feat/parisan-final-completion`  
+**Baseline `main`:** `74ad70c5c6ef2d3e602f76735ef2415afa148712`  
+**Delivery PR:** [#4](https://github.com/Tadbir-Sabz/parisan/pull/4) — head `1c15781ddd9bd26ec931816cf1b3fa52f51e06cb`  
+**Merge commit:** `1039a003b10f14d23f8f23ad5d1cc7caa91a782b` (merged 2026-11-13T19:40:20Z)  
 **Product:** Parisan Beauty WordPress theme + Parisan Core plugin, Persian-first RTL salon platform
+
+This report was refreshed in a docs-only handoff commit after the implementation merge. The final `main` HEAD, package sizes, and authoritative SHA-256 checksums are recorded in the delivery message and `dist/SHA256SUMS.txt`.
 
 ---
 
@@ -19,14 +22,14 @@
 | Admin experience | **PASS (visual/functional smoke)** | Persian settings hub, bookings, customers, finance, SEO diagnostics, specialist list, Customizer, and mobile settings were rendered and inspected. |
 | SEO output | **PASS (first-party scope)** | Canonical, titles, descriptions, archive metadata, OG/Twitter tags, and JSON-LD (BeautySalon, Service, Article, Person, BreadcrumbList) pass smoke tests. SEO-plugin ownership detection prevents duplicate output. Real search-engine validation remains UNVERIFIED. |
 | Booking/privacy engine | **PASS (disposable WordPress/MariaDB)** | Schedule, availability, token lifecycle, cancellation, privacy export/erasure, retention, rate limiting, and intentional rollback tests pass. |
-| Cross-browser | **UNVERIFIED locally** | Firefox/WebKit are configured in CI and must pass on the exact delivery head. No local Firefox/WebKit acceptance run was performed. |
-| PHP 8.1/8.2/8.3 runtime | **UNVERIFIED locally** | Local runtime is PHP 8.4.26. The CI matrix covers 8.1/8.2/8.3 and must pass on the exact delivery head. |
+| Cross-browser | **PASS (CI, exact head)** | Chromium, Firefox, and WebKit browser smoke passed on `1c15781` in [run 43493484116](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484116). Local human visual review in Firefox/WebKit remains UNVERIFIED. |
+| PHP 8.1/8.2/8.3 runtime | **PASS (CI, exact head)** | PHP syntax, JavaScript syntax, and WordPress activation passed in [run 43493484039](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484039); the privacy/rate-limit matrix passed in [run 43493484035](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484035). Local runtime is PHP 8.4.26. |
 | Screen-reader acceptance | **UNVERIFIED** | axe-core reports zero violations in Chromium, but no real screen-reader session was performed. Gradient/image contrast and decorative-arrow nodes remain manual-review items. |
 | Jalali calendar UI | **UNVERIFIED / not implemented** | Dates are stored canonically in UTC and rendered in the salon timezone, but the admin/public calendar presentation is Gregorian. |
 | Production readiness | **UNVERIFIED** | No production site, DNS, HTTPS, reverse proxy, live SMS, payment gateway, or customer data was touched. |
-| Theme/Core packages | **PASS (local artifact)** | ZIPs built from the delivery tree; contents and checksums recorded in section 8. |
+| Theme/Core packages | **PASS (merged-main rebuild)** | WordPress-rooted ZIPs rebuilt from merged `main`; entry, root, required-file, forbidden-file, and Git-blob validation passed. Authoritative SHA-256 values are in `dist/SHA256SUMS.txt` and the delivery message. |
 
-**Overall:** PASS for the implemented public, admin, and booking-foundation scope on a disposable environment. The delivery is **not** a production-release sign-off; explicit UNVERIFIED items remain.
+**Overall:** PASS for the implemented public, admin, and booking-foundation scope on a disposable environment, with exact-HEAD CI green and packages rebuilt from merged `main`. The delivery is **not** a production-release sign-off; explicit UNVERIFIED items remain.
 
 ---
 
@@ -101,6 +104,17 @@ All commands were run from the repository root on 2026-11-13. `wp` below means `
 | Responsive measurements | Final screenshot runner | **PASS** — 72 combinations, `scrollWidth === innerWidth`, breadcrumb below header |
 | Screenshot capture | Final screenshot runner | **PASS** — 50 PNG screenshots, 0 page errors, 2 expected 404 console errors |
 
+### Exact-HEAD CI (GitHub Actions)
+
+| Workflow | Exact head | Run | Result |
+|---|---|---|---|
+| PHP syntax, JavaScript syntax, WordPress activation smoke (PHP 8.1/8.2/8.3) | `1c15781` | [43493484039](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484039) | **PASS** — PHP lint on 8.1/8.2/8.3, JS syntax, activation smoke |
+| Privacy/rate-limit tests (PHP 8.1/8.2/8.3) | `1c15781` | [43493484035](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484035) | **PASS** — 26 assertions per matrix job; the PHP 8.3 runner was rerun after a reporting hang and passed |
+| WordPress/MariaDB privacy and customer access | `1c15781` | [43493484051](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484051) | **PASS** — export/erasure, retention, rate limiting, customer access scoping |
+| Browser smoke (Chromium/Firefox/WebKit) | `1c15781` | [43493484116](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484116) | **PASS** — desktop/mobile, day/night persistence, axe-core, disabled-booking CTA |
+
+All check runs were attached to the exact PR head `1c15781ddd9bd26ec931816cf1b3fa52f51e06cb`; PR #4 reported 11/11 successful checks before merge.
+
 ### Test isolation
 
 The theme smoke, breadcrumb, booking, and privacy integration scripts clean up synthetic posts, bookings, options, theme mods, and tokens through shutdown handlers. The local database ends with four synthetic demo bookings (#1 pending, #2 confirmed, #3 completed, #4 cancelled) and no test fixtures. Public booking remains disabled.
@@ -149,14 +163,17 @@ Visual issues found and fixed during this pass included RTL header ordering, sti
 
 ## 8. Packages
 
-| Artifact | Path | SHA-256 |
-|---|---|---|
-| Theme 0.7.1 | `dist/parisan-theme-0.7.1.zip` | `D6B65D190D1D7C2301B3A921C2A72F8DAA2EF3AEAE8E6020A4C7979E294610BA` |
-| Core 0.32.0 | `dist/parisan-core-0.32.0.zip` | `CA4D5AE0226F604B3E5BD8BB0508753EB428F5EBA6D347AEBAF913F1291AA525` |
+| Artifact | Path | WordPress root | File entries |
+|---|---|---|---|
+| Theme 0.7.1 | `dist/parisan-theme.zip` | `parisan/` | 47 |
+| Core 0.32.0 | `dist/parisan-core.zip` | `parisan-core/` | 38 |
+| Complete source | `dist/parisan-complete-source.zip` | single top-level source folder | complete merged tree |
 
-- Theme archive root: `parisan/`; 48 entries.
-- Plugin archive root: `parisan-core/`; 39 entries.
-- ZIPs are built from the same working tree that is committed on the delivery branch. Rebuild only if theme/plugin source changes after this report.
+- Build source: committed tree of merged `main` (`1039a00`); package validation compares every archived file to its Git blob.
+- ZIPs contain no `.git`, database dumps, secrets, caches, temporary test files, `node_modules/`, or `dist/` artifacts.
+- Theme and Core archives passed entry-by-entry validation: 0 Git-blob mismatches, no missing or extra files, all required templates/assets present, and complete PHP sources.
+- Authoritative SHA-256 checksums and byte sizes are written to `dist/SHA256SUMS.txt` after the final build and repeated in the handoff delivery message. They are intentionally not embedded here because this document is committed after the package build.
+- Package build, clean-WordPress installation/activation, and final integrity results are recorded in `dist/package-validation.json` and the delivery message.
 
 ---
 
@@ -164,25 +181,29 @@ Visual issues found and fixed during this pass included RTL header ordering, sti
 
 - Baseline `main`: `74ad70c5c6ef2d3e602f76735ef2415afa148712`.
 - Delivery branch: `feat/parisan-final-completion`.
-- Implementation commit and PR number are recorded in the final delivery message and GitHub PR.
-- Required exact-HEAD checks: PHP 8.1/8.2/8.3 lint and unit matrix, WordPress activation smoke, privacy/public-booking integration, and Chromium/Firefox/WebKit browser smoke.
-- Merge is performed only after the exact-HEAD workflow set is green. The merge commit SHA and run IDs are reported in the final delivery message.
+- Pull request: [#4](https://github.com/Tadbir-Sabz/parisan/pull/4) — 11 checks, all successful.
+- Verified head: `1c15781ddd9bd26ec931816cf1b3fa52f51e06cb`.
+- Merge commit: `1039a003b10f14d23f8f23ad5d1cc7caa91a782b`, merged at `2026-11-13T19:40:20Z` with a merge commit that preserves `9c58480`, `1386d8a`, and `1c15781`.
+- Post-merge verification: local `main` fast-forwarded to the merge commit; all delivery commits are ancestors of `main`; theme, plugin, test, workflow, and documentation trees match the verified PR head.
+- A docs-only follow-up PR updates this report and the Persian handoff guides without changing theme/plugin source. The final `main` HEAD after that merge and the package checksums are reported in the delivery message.
+- No production deployment, DNS change, live credential rotation, customer SMS, or payment action was performed.
 
 ---
 
 ## 10. Known gaps
 
 1. Jalali calendar UI is not implemented; admin dates display as `mm/dd/yyyy`.
-2. Exact PHP 8.1/8.2/8.3 execution is not available locally; only CI can provide it.
-3. Firefox/WebKit and real-device visual acceptance depend on CI/real hardware.
+2. Local runtime is PHP 8.4.26; PHP 8.1/8.2/8.3 are verified in the exact-HEAD CI matrix only.
+3. Firefox/WebKit automated smoke passes in CI, but human visual review and real-device acceptance remain UNVERIFIED.
 4. No real screen-reader acceptance; manual contrast review of gradients/images is still required for a formal WCAG 2.2 AA claim.
 5. Reverse-proxy IP handling, multi-node rate limiting, and multi-connection booking stress are unverified.
 6. Live SMS, online payment, gateway refunds, WooCommerce, and Elementor integrations are not implemented.
 7. A setup wizard, demo importer with rollback, SBOM, support policy, tagged release, production HTTPS/DNS, and backup/restore rehearsal are not delivered.
 8. No live email delivery was attempted; reminders depend on the site's `wp_mail` transport.
+9. The final docs-only handoff commit is verified by push CI but is not part of PR #4's exact-HEAD check set.
 
 ---
 
 ## 11. Next action
 
-Run the exact-HEAD GitHub Actions matrix, merge the green PR, rebuild/verify the ZIPs from merged `main`, and hand the owner the Persian admin guide plus the explicit production-readiness checklist. The single highest-value product step after that is the Jalali calendar UI backed by the existing UTC/timezone model.
+Deliver the verified packages, checksum manifest, complete source archive, and Persian handoff guide to the owner; keep public booking disabled and perform production backup/restore and HTTPS review before any deployment. The single highest-value product step after handoff is the Jalali calendar UI backed by the existing UTC/timezone model.
