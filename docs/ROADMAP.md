@@ -134,34 +134,34 @@ Build the product in usable vertical slices. Establish architecture and quality 
 
 ## Phase 7 — Admin polish, reports, hardening, and localization
 
-**Status:** [~] IN PROGRESS — Persian admin workspace, operations screens, SEO diagnostics, Persian manuals, and Chromium visual/axe review implemented; formal WCAG acceptance, cross-browser, and security sign-off remain pending
+**Status:** [~] IN PROGRESS — Persian admin workspace, operations screens, SEO diagnostics, Persian manuals, Chromium visual/axe review, and Chromium/Firefox/WebKit + PHP 8.1/8.2/8.3 exact-HEAD CI are complete; formal WCAG acceptance, real-device, and security sign-off remain pending
 
 - [ ] Complete unified Parisan dashboard, filters, bulk operations, exports, diagnostics, and role-specific views.
 - [ ] Add operational reports: bookings, cancellations, no-shows, revenue (where payment data exists), utilization, and service performance.
 - [~] Complete accessibility review against WCAG 2.2 AA target. Chromium axe-core runs report zero violations across homepage, catalogue/detail, article, search, and 404 at desktop/mobile; manual gradient/image contrast, focus-order review with assistive technology, and real screen-reader acceptance remain UNVERIFIED.
 - [~] Complete Persian localization, RTL visual review, English/LTR review, and Persian user/admin manuals. Persian RTL desktop/mobile day/night and admin screens are screenshot-verified; Persian install/admin/QA and privacy guides exist. English/LTR functional layout is implemented but not formally reviewed by a native reviewer.
 - [ ] Perform security review, dependency audit, privacy/retention review, and upgrade/uninstall tests.
-- [~] Perform cross-browser/device and supported WordPress/PHP compatibility testing. Chromium 360–1920 px is verified; Firefox/WebKit CI and the PHP 8.1/8.2/8.3 matrix are configured but exact-HEAD completion is pending. No real-device matrix has been run.
+- [~] Perform cross-browser/device and supported WordPress/PHP compatibility testing. Chromium 360–1920 px, Firefox/WebKit browser smoke, and the PHP 8.1/8.2/8.3 matrix PASS on the delivery head ([browser run 43493484116](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484116), [PHP run 43493484039](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484039), [privacy run 43493484035](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484035)). No real-device matrix has been run.
 - [ ] Complete performance and load tests for realistic booking volumes.
 
 **Gate P7:** release candidate passes security, accessibility, localization, compatibility, upgrade, and performance gates.
 
 ## Phase 8 — Packaging, release, and maintenance
 
-**Status:** [~] IN PROGRESS — theme/Core ZIPs, Persian installation/admin/privacy/SEO guides, and disposable clean-install evidence exist; release tagging, upgrade/rollback rehearsal, SBOM, and support policy remain pending
+**Status:** [~] IN PROGRESS — theme/Core ZIPs rebuilt from merged `main`, complete source archive, expanded Persian backup/update handoff guide, and disposable clean-install evidence exist; release tagging, real upgrade/rollback rehearsal, SBOM, and support policy remain pending
 
-- [x] Build distributable theme and Parisan Core packages from the same delivery revision. Theme `0.7.1` and Core `0.32.0` ZIPs are produced from verified `main`; checksums are recorded in the final report.
+- [x] Build distributable theme and Parisan Core packages from the same delivery revision. Theme `0.7.1` and Core `0.32.0` ZIPs are built from merged `main` and validated entry-by-entry against Git blobs; checksums are recorded in `dist/SHA256SUMS.txt` and the delivery message.
 - [ ] Include setup wizard, dependency/compatibility checks, demo content importer with safe rollback, and uninstall/data-retention choices.
-- [~] Produce Persian installation, configuration, booking operations, SMS, SEO, troubleshooting, and update guides. Installation/admin QA, privacy/retention, SEO/performance, and setup guides exist; SMS/troubleshooting/update guides are not written because those features are not implemented.
+- [~] Produce Persian installation, configuration, booking operations, SEO, troubleshooting, and update guides. Installation/admin/QA, privacy/retention, SEO/performance, setup, and backup/update/rollback procedures exist; dedicated SMS and troubleshooting guides are not written because those features are not implemented.
 - [ ] Produce release notes, changelog, licensing notices, SBOM/dependency inventory, and support policy.
-- [~] Validate clean install, upgrade from previous supported release, rollback plan, and theme-switch persistence. Clean activation, schema creation, seeded availability, booking, privacy, and theme-switch data persistence are covered by disposable WordPress/MariaDB tests; a real previous-release upgrade and rollback rehearsal are not.
+- [~] Validate clean install, upgrade from previous supported release, rollback plan, and theme-switch persistence. Clean activation, schema creation, seeded availability, booking, privacy, and theme-switch data persistence are covered by disposable WordPress/MariaDB tests; ZIP installation/activation in a clean WordPress is verified. A real previous-release upgrade and rollback rehearsal are not.
 - [ ] Tag release only after all gates have evidence and no unresolved release-blocking findings.
 
 **Gate P8:** reproducible release artifacts and documented support/upgrade process.
 
 ## Booking privacy and public endpoint readiness
 
-**Status:** [~] IN PROGRESS — see [ADR-0011](docs/decisions/ADR-0011-booking-personal-data-lifecycle.md).
+**Status:** [~] IN PROGRESS — see [ADR-0011](decisions/ADR-0011-booking-personal-data-lifecycle.md).
 
 - [x] Register booking records with WordPress personal-data export/erasure hooks; PHP matrix PASS [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545).
 - [x] Define and integration-test terminal-booking anonymization while preserving operational/event structure; active pending/confirmed bookings are reported as retained [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
@@ -169,7 +169,7 @@ Build the product in usable vertical slices. Establish architecture and quality 
 - [x] Add and test a reusable HMAC-keyed, MySQL-lock-serialized fixed-window request limiter; raw IPs are not stored and forwarded-IP headers are ignored [runs 42398990545 and 42398990422](https://github.com/Tadbir-Sabz/parisan/actions).
 - [x] Dedicated PHP 8.1/8.2/8.3 matrix assertions PASS [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545).
 - [x] Disposable WordPress/MariaDB erasure and forced transaction rollback PASS (run 42398990422). Browser privacy workflow, reverse-proxy IP topology, multi-node rate-limit behavior, and owner-approved retention period remain UNVERIFIED.
-- [~] Implemented gated public availability/create/customer-view/cancel routes, HMAC-digested 256-bit expiring customer tokens, rotation/revocation, same-origin mutation checks, endpoint rate limiting, no-store responses, and transactional customer cancellation (ADR-0012). Updated disposable WordPress/MariaDB integration CI is pending.
+- [x] Implemented gated public availability/create/customer-view/cancel routes, HMAC-digested 256-bit expiring customer tokens, rotation/revocation, same-origin mutation checks, endpoint rate limiting, no-store responses, and transactional customer cancellation (ADR-0012). WordPress/MariaDB integration PASS in [run 43493484051](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484051) on the delivery head. The routes remain disabled by default.
 - [ ] Before enabling the feature constant: complete end-to-end IDOR/replay/brute-force/concurrency tests, browser booking UX and accessibility, reverse-proxy/multi-node verification, security review, and explicit site-owner approval. The routes remain disabled by default.
 
 ## Cross-cutting workstreams
@@ -194,18 +194,14 @@ These apply throughout all phases:
 
 ## Current verified progress
 
-As of the active implementation branch:
+As of merged `main` (`1039a003b10f14d23f8f23ad5d1cc7caa91a782b`) after PR #4:
 
-- Product architecture, agent instructions, product plan, roadmap, and ADRs 0001–0011 are present in the repository.
-- Parisan theme and Core catalogue/scheduling foundations are implemented; browser rendering, responsive RTL, accessibility, and theme-switch persistence remain UNVERIFIED.
-- Availability and calendar exception integration passed [CI run 42374197402](https://github.com/Tadbir-Sabz/parisan/actions/runs/42374197402).
-- Internal booking creation and lifecycle passed [CI run 42376217290](https://github.com/Tadbir-Sabz/parisan/actions/runs/42376217290).
-- Manual booking, admin slot lookup, and booking detail/audit screens have CI evidence in runs 42376730497, 42376924602, and 42377058236.
-- Duration snapshots and concurrency-safe rescheduling passed [CI run 42377819791](https://github.com/Tadbir-Sabz/parisan/actions/runs/42377819791).
-- Privacy exporter/eraser, terminal-only anonymization, active-booking retention, rollback safety, opt-in retention, and request throttling passed the PHP matrix [run 42398990545](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990545) and disposable WordPress/MariaDB integration [run 42398990422](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990422).
-- Latest PHP syntax, schedule/availability, booking integration, and WordPress activation smoke tests passed [run 42398990464](https://github.com/Tadbir-Sabz/parisan/actions/runs/42398990464).
-- Public booking/customer portal, secure customer access tokens, resource-specific schedules and multi-resource bundles, browser visual/accessibility review, multi-connection stress, proxy/multi-node rate-limit verification, SMS, forms, SEO, caching, WooCommerce/Elementor adapters, packaging, and production deployment remain NOT STARTED or UNVERIFIED as marked above.
-- No production site, customer database, live SMS, or payment system has been accessed.
+- Product architecture, agent instructions, product plan, roadmap, and ADRs 0001–0012 are present in the repository.
+- Final public templates, Persian RTL, day/night themes, owner-editable homepage/contact content, SEO/schema, admin operations, privacy/customer scoping, and booking-disabled UX are merged.
+- Exact-HEAD CI PASS: PHP 8.1/8.2/8.3 + activation [run 43493484039](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484039), privacy matrix [run 43493484035](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484035), WordPress/MariaDB [run 43493484051](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484051), and Chromium/Firefox/WebKit [run 43493484116](https://github.com/Tadbir-Sabz/parisan/actions/runs/43493484116).
+- Theme 0.7.1 and Core 0.32.0 packages are rebuilt from merged `main`; the complete source archive and Persian backup/update handoff guide are part of the delivery.
+- Public booking remains disabled by default. No production site, customer database, live SMS, or payment system has been accessed.
+- Remaining UNVERIFIED: real screen-reader/WCAG manual acceptance, real devices, reverse-proxy/multi-node rate limiting, multi-connection stress, production HTTPS/DNS/backup/restore, and real email delivery. Jalali calendar UI, live SMS/payment, WooCommerce/Elementor adapters, setup wizard, and tagged release are not implemented.
 
 Do not infer runtime readiness from source files. Replace this section only with reproducible evidence.
 
@@ -439,12 +435,12 @@ The report deliberately does not calculate utilization percentages or theoretica
 ### Validation boundaries
 - Added smoke and WordPress/MariaDB integration assertions for schema v11, waitlist controls, explicit consent, and reminder queue creation.
 - Calendar markup now retains its lane container on empty days. Resource allocation now resolves legacy serialized service-resource assignments by decoding actual metadata and fails closed on booking-query errors.
-- Exact-final-SHA CI is pending. Real outbound email delivery, SMTP configuration, and end-to-end browser validation remain unverified until the new run completes.
+- Exact-final-SHA CI for this delivery is recorded in the final delivery section below. Real outbound email delivery, SMTP configuration, and end-to-end browser validation remain unverified.
 
 
 ## Final public-experience and admin QA — 2026-11-13
 
-**Branch:** `feat/parisan-final-completion`, based on verified `main` at `74ad70c5c6ef2d3e602f76735ef2415afa148712`.  
+**Branch:** `feat/parisan-final-completion`, based on verified `main` at `74ad70c5c6ef2d3e602f76735ef2415afa148712`; merged as `1039a003b10f14d23f8f23ad5d1cc7caa91a782b` (PR #4).  
 **Environment:** disposable WordPress 7.1.4 + MariaDB 11.4.8, PHP 8.4.26, local URL `http://127.0.0.1:8081`, synthetic demo content only. No production site, customer database, live SMS, or payment provider was accessed.
 
 ### Delivered in this slice
@@ -477,9 +473,10 @@ The report deliberately does not calculate utilization percentages or theoretica
 ### Status boundaries
 
 - **PASS (scope: Chromium, disposable WordPress/MariaDB, synthetic data):** public templates, RTL responsiveness, day/night themes, booking-disabled messaging, owner-editable content, SEO output, admin screens, PHP/JS/integration suites listed above.
-- **UNVERIFIED:** real screen-reader acceptance; Firefox/WebKit visual review; exact PHP 8.1/8.2/8.3 runtime evidence until exact-HEAD CI completes; reverse-proxy rate limiting; multi-connection stress; real-device testing; production HTTPS/DNS/backup.
+- **PASS (exact-HEAD CI on `1c15781`):** PHP 8.1/8.2/8.3 lint/activation, privacy matrix, WordPress/MariaDB privacy and customer access, and Chromium/Firefox/WebKit browser smoke ([runs 43493484039, 43493484035, 43493484051, 43493484116](https://github.com/Tadbir-Sabz/parisan/actions)).
+- **UNVERIFIED:** real screen-reader acceptance; human visual review in Firefox/WebKit; real-device testing; reverse-proxy rate limiting; multi-connection stress; production HTTPS/DNS/backup/restore; real email delivery.
 - **NOT IMPLEMENTED:** Jalali calendar UI, live SMS, online payment, gateway refunds, WooCommerce/Elementor adapters, setup wizard, tagged production release.
-- Public booking remains disabled by default. No production deployment or merge approval is implied by this QA pass.
+- Public booking remains disabled by default. PR #4 merged this scope; no production deployment is implied by this QA pass.
 
 ### Evidence and reproduction
 
