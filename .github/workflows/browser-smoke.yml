@@ -65,17 +65,17 @@ jobs:
           wp config create --path="$WP_PATH" --dbname=wordpress --dbuser=wordpress --dbpass=wordpress --dbhost=127.0.0.1 --skip-check
           wp core install --path="$WP_PATH" --url=http://127.0.0.1:8080 --title="استودیو زیبایی پاریسان" --admin_user=parisan-ci --admin_password="ci-only-password" --admin_email=ci@example.test --skip-email
           wp option update WPLANG fa_IR --path="$WP_PATH"
+          mkdir -p "$WP_PATH/wp-content/themes" "$WP_PATH/wp-content/plugins"
+          cp -R theme/parisan "$WP_PATH/wp-content/themes/parisan"
+          cp -R plugin/parisan-core "$WP_PATH/wp-content/plugins/parisan-core"
+          wp plugin activate parisan-core --path="$WP_PATH"
+          wp theme activate parisan --path="$WP_PATH"
           # Seed owner-provided contact details so the disabled-booking CTA exercises
           # Persian-digit phone normalization instead of the contact-page fallback.
           wp theme mod set parisan_contact_phone '۰۲۱-۱۲۳۴۵۶۷۸' --path="$WP_PATH"
           wp theme mod set parisan_contact_email 'hello@example.test' --path="$WP_PATH"
           wp theme mod set parisan_contact_address 'تهران، خیابان نمونه، پلاک ۱۲ — نشانی نمایشی' --path="$WP_PATH"
           wp theme mod set parisan_contact_hours 'شنبه تا پنجشنبه، ۱۰ تا ۲۰' --path="$WP_PATH"
-          mkdir -p "$WP_PATH/wp-content/themes" "$WP_PATH/wp-content/plugins"
-          cp -R theme/parisan "$WP_PATH/wp-content/themes/parisan"
-          cp -R plugin/parisan-core "$WP_PATH/wp-content/plugins/parisan-core"
-          wp plugin activate parisan-core --path="$WP_PATH"
-          wp theme activate parisan --path="$WP_PATH"
           # Replace WordPress's generic starter content with balanced 3-column Persian salon fixtures using bundled local imagery.
           wp post delete 1 --force --path="$WP_PATH"
           POST_1=$(wp post create --path="$WP_PATH" --post_type=post --post_status=publish --post_title="راهنمای انتخاب خدمات مراقبت پوست" --post_excerpt="چطور خدمات متناسب با نیاز پوست خود را آگاهانه انتخاب کنیم؟" --post_content="در این راهنما با چند نکته کاربردی برای انتخاب خدمات مراقبت پوست آشنا می‌شوید." --porcelain)
