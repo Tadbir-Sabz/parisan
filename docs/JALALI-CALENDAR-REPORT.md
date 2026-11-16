@@ -1,8 +1,10 @@
 # Parisan Jalali Calendar and Scheduling — Implementation Report
 
-**Date:** 2026-11-14
+**Date:** 2026-11-16
 
 **Branch:** `feat/jalali-calendar-scheduling`
+
+**Delivery head:** `40f3a6d98ae9443064581c830fda1d95e6111345`
 
 **Baseline `main`:** `43ee629ae8c2ebfb579b644062d4e33730948c26`
 
@@ -19,13 +21,13 @@
 | Jalali conversion library | **PASS (local)** | `php tests/run-jalali-tests.php` — 77 passed, 0 failed on PHP 8.4.26. Known date pairs, Esfand 29/30, leap years, invalid dates, reverse conversion, digits, parsing, formatting, month grids, and navigation. |
 | Schedule/override engine | **PASS (local)** | `php tests/run-schedule-tests.php` — 45 passed, 0 failed. Weekly rules, breaks, salon/staff overrides, precedence, custom hours, DST spring-forward, Tehran midnight/UTC-date boundary. |
 | PHP/JS syntax | **PASS (local)** | `php -l` on 15 edited/created PHP files; `node --check` on `calendar-admin.js`, `public-booking.js`, and `browser-smoke.js`; `git diff --check` clean. |
-| WordPress/MariaDB calendar integration | **UNVERIFIED locally; CI-gated** | `tests/run-calendar-integration.php` covers schema v12, unique index, holiday, staff closure, special day, invalid dates, transactional booking rejection, day summary, and independent-connection salon lock serialization. No local WordPress/MariaDB runtime is available. |
-| Public booking gating and labels | **UNVERIFIED locally; CI-gated** | Default-off route assertions, enabled-route assertions, Jalali date/time labels, day-chip privacy, holiday rejection, and specialist-closure isolation are in the disposable WordPress/MariaDB suites. |
-| Admin calendar browser UX | **UNVERIFIED locally; CI-gated** | Authenticated Chromium/Firefox/WebKit checks assert RTL direction, 42-cell grid, open-day states, arrow-key focus movement, mobile no-overflow, scroll-container behavior, and console cleanliness. |
-| Theme smoke integration | **UNVERIFIED locally; CI-gated** | `tests/run-theme-smoke.php` asserts schema v12, the new table, loaded calendar services, Jalali conversion/parse behavior, and calendar/public assets. |
+| WordPress/MariaDB calendar integration | **PASS (exact-head CI)** | `tests/run-calendar-integration.php` covers schema v12, unique index, holiday, staff closure, special day, invalid dates, transactional booking rejection, day summary, and independent-connection salon lock serialization; runtime evidence is from the disposable CI job. |
+| Public booking gating and labels | **PASS (exact-head CI)** | Default-off route assertions, enabled-route assertions, Jalali date/time labels, day-chip privacy, holiday rejection, and specialist-closure isolation are in the disposable WordPress/MariaDB suites. |
+| Admin calendar browser UX | **PASS (exact-head CI)** | Authenticated Chromium/Firefox/WebKit checks assert RTL direction, 42-cell grid, open-day states, arrow-key focus movement, mobile no-overflow, scroll-container behavior, and console cleanliness. |
+| Theme smoke integration | **PASS (exact-head CI)** | `tests/run-theme-smoke.php` asserts schema v12, the new table, loaded calendar services, Jalali conversion/parse behavior, and calendar/public assets. |
 | Production deployment | **NOT PERFORMED** | No production site, DNS, credentials, customer data, live SMS, or payment provider was touched. |
 
-**Overall:** implementation and local pure-PHP evidence are **PASS**. Runtime/integration/browser acceptance is **UNVERIFIED** until this exact head passes CI. No merge or public-booking activation is implied.
+**Overall:** implementation, local pure-PHP tests, and exact-head CI on `40f3a6d` are **PASS** for the scoped milestone. All 11 PR checks are green and PR #6 is mergeable; merge remains an owner review decision. No merge or public-booking activation is implied by this report.
 
 ---
 
@@ -116,7 +118,9 @@ New assets:
 - `.github/workflows/php-lint.yml`: calendar JS syntax, Jalali suite, schema v12/table/function assertions.
 - `.github/workflows/privacy-integration.yml`: runs `tests/run-calendar-integration.php`.
 - `.github/workflows/browser-smoke.yml`: seeds a full weekly schedule for `STAFF_1` and runs authenticated admin-calendar checks.
-- `tests/browser-smoke.js`: authenticated admin calendar assertions added.
+- `tests/browser-smoke.js`: authenticated admin calendar assertions added, including the seeded specialist filter.
+- Custom post types enable `map_meta_cap`, so object-level `edit_post` checks work for administrators and the calendar lists every editable specialist.
+- Month-grid day-state aggregation iterates the specialist list safely; the WordPress integration suite now asserts open, closed, and empty-specialist day states.
 - `tests/run-theme-smoke.php`, `tests/run-public-booking-integration.php`, and `tests/run-public-booking-enabled-integration.php`: updated for schema v12 and Jalali/calendar behavior.
 
 ### 2.8 Documentation
@@ -141,15 +145,21 @@ node --check tests/browser-smoke.js                            -> PASS
 git diff --check                                               -> clean
 ```
 
-CI-only suites updated and pending exact-head execution:
+Exact-head CI on `40f3a6d`:
 
 ```text
-wp eval-file tests/run-calendar-integration.php               -> UNVERIFIED (CI)
-wp eval-file tests/run-public-booking-integration.php         -> UNVERIFIED (CI)
-wp eval-file tests/run-public-booking-enabled-integration.php -> UNVERIFIED (CI)
-wp eval-file tests/run-theme-smoke.php                        -> UNVERIFIED (CI)
-node tests/browser-smoke.js                                   -> UNVERIFIED (CI)
+PHP syntax 8.1 / 8.2 / 8.3 + activation smoke                -> PASS
+Privacy and abuse-control matrix                             -> PASS
+WordPress/MariaDB calendar + public-booking integration      -> PASS
+Chromium / Firefox / WebKit browser smoke                    -> PASS
+wp eval-file tests/run-calendar-integration.php              -> PASS (WordPress/MariaDB job)
+wp eval-file tests/run-public-booking-integration.php        -> PASS (WordPress/MariaDB job)
+wp eval-file tests/run-public-booking-enabled-integration.php -> PASS (WordPress/MariaDB job)
+wp eval-file tests/run-theme-smoke.php                       -> PASS (activation smoke job)
+node tests/browser-smoke.js                                  -> PASS (all three browsers)
 ```
+
+CI runs: [PHP lint 43825509317](https://github.com/Tadbir-Sabz/parisan/actions/runs/43825509317), [WordPress/MariaDB integration 43825509413](https://github.com/Tadbir-Sabz/parisan/actions/runs/43825509413), [privacy and abuse controls 43825509399](https://github.com/Tadbir-Sabz/parisan/actions/runs/43825509399), [browser smoke 43825509305](https://github.com/Tadbir-Sabz/parisan/actions/runs/43825509305). PR #6 reports 11/11 checks successful and `mergeable_state = clean`.
 
 Local test coverage highlights:
 
@@ -163,7 +173,7 @@ Local test coverage highlights:
 - DST spring-forward rejection of nonexistent local times.
 - Tehran midnight slot converts to the previous UTC date without changing the salon date.
 
-CI integration coverage (when run):
+CI integration coverage:
 
 - Schema v12 and unique `(staff_id, override_date)` index.
 - Holiday/special-day/closure persistence and availability effects.
@@ -192,8 +202,8 @@ CI integration coverage (when run):
 
 ## 5. Known gaps and limitations
 
-- CI results for the exact head are pending; integration and browser status stays **UNVERIFIED** until they pass.
-- No local WordPress/MariaDB environment; only pure-PHP and syntax evidence is local.
+- Exact-head CI passed on `40f3a6d`; production deployment and real-device/screen-reader acceptance remain **UNVERIFIED**.
+- No local WordPress/MariaDB environment; runtime evidence comes from disposable CI jobs.
 - No bundled official holiday dataset and no external holiday API; holidays are owner-entered.
 - Multi-day holidays must be entered one date at a time.
 - Jalali library supports 1–3177, but admin form input is intentionally limited to 1200–1600.
@@ -208,8 +218,9 @@ CI integration coverage (when run):
 ## 6. Next action
 
 1. ~~Push `feat/jalali-calendar-scheduling` and open a PR against `main` without merging.~~ Done: [PR #6](https://github.com/Tadbir-Sabz/parisan/pull/6) is open.
-2. Run exact-head CI (PHP 8.1/8.2/8.3, WordPress/MariaDB calendar integration, privacy integration, Chromium/Firefox/WebKit).
-3. Record the exact CI run URLs and results in this report and `docs/ROADMAP.md`.
-4. Fix any CI findings before requesting review; do not infer PASS from local pure-PHP results.
+2. ~~Run exact-head CI (PHP 8.1/8.2/8.3, WordPress/MariaDB calendar integration, privacy integration, Chromium/Firefox/WebKit).~~ Done on `40f3a6d`; all 11 checks green.
+3. ~~Record the exact CI run URLs and results in this report and `docs/ROADMAP.md`.~~ Done.
+4. Independent review and owner merge decision for PR #6; do not merge automatically.
+5. After merge, continue with the customer-facing booking journey, notification queue, and release packaging in separate slices.
 
 Public booking remains disabled by default. No production deployment was performed.
