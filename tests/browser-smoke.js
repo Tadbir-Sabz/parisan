@@ -283,6 +283,7 @@ const { chromium, firefox, webkit } = require('playwright');
 		assert.equal(await adminPage.locator('.parisan-calendar-admin').getAttribute('dir'), 'rtl', 'admin calendar renders in explicit RTL direction');
 		assert.equal(await adminPage.locator('[data-parisan-calendar-grid]').count(), 1, 'admin calendar renders one Jalali month grid');
 		assert.equal(await adminPage.locator('[data-calendar-day]').count(), 42, 'admin calendar renders a complete six-week Jalali grid');
+		assert.equal(await adminPage.locator('#parisan-calendar-staff-filter option').count(), 4, 'admin calendar lists the all-specialists option plus every seeded specialist');
 		assert.equal(await adminPage.locator('.parisan-calendar-day.is-open').count() > 0, true, 'seeded weekly schedules appear as open Jalali dates');
 		const calendarDays = adminPage.locator('[data-calendar-day]');
 		await calendarDays.nth(7).focus();

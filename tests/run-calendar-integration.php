@@ -68,6 +68,15 @@ parisan_calendar_integration_assert( is_array( $base_slots ) && ! empty( $base_s
 $closed_sunday_schedule = parisan_core_get_staff_effective_day_schedule( (int) $staff_id, $sunday_date );
 parisan_calendar_integration_assert( ! empty( $closed_sunday_schedule['off'] ) && 'weekly_closed' === $closed_sunday_schedule['source'], 'the weekly closed day is resolved as closed' );
 
+$calendar_staff = array( get_post( (int) $staff_id ) );
+$calendar_weekly_map = parisan_core_calendar_weekly_map( $calendar_staff );
+$open_day_state = parisan_core_calendar_day_state( $monday_date, $calendar_staff, $calendar_weekly_map, array() );
+parisan_calendar_integration_assert( 'open' === $open_day_state['key'] && 1 === $open_day_state['open_count'] && 1 === $open_day_state['staff_count'], 'calendar day state aggregates open specialists for the Jalali month grid' );
+$closed_day_state = parisan_core_calendar_day_state( $sunday_date, $calendar_staff, $calendar_weekly_map, array() );
+parisan_calendar_integration_assert( 'closed' === $closed_day_state['key'] && 0 === $closed_day_state['open_count'], 'calendar day state stays closed when every specialist is off' );
+$empty_day_state = parisan_core_calendar_day_state( $monday_date, array(), array(), array() );
+parisan_calendar_integration_assert( 'closed' === $empty_day_state['key'] && 0 === $empty_day_state['staff_count'], 'calendar day state fails closed for an empty specialist list' );
+
 $holiday = parisan_core_save_date_override(
 	array(
 		'staff_id'      => 0,

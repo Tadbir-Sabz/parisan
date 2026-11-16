@@ -213,7 +213,7 @@ function parisan_core_calendar_day_state( $date, $staff, $weekly_map, $overrides
 		$state['label'] = __( 'تعطیلی سالن', 'parisan-core' );
 		return $state;
 	}
-	foreach ( is_array( $staff ) as $person ) {
+	foreach ( is_array( $staff ) ? $staff : array() as $person ) {
 		$staff_id = (int) $person->ID;
 		++$state['staff_count'];
 		$staff_override = isset( $overrides[ $staff_id . ':' . $date ] ) ? $overrides[ $staff_id . ':' . $date ] : null;
