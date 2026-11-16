@@ -6,7 +6,7 @@
 
 **Baseline `main`:** `43ee629ae8c2ebfb579b644062d4e33730948c26`
 
-**Pull request:** pending — URL is recorded in a follow-up documentation commit after the PR is opened
+**Pull request:** [#6](https://github.com/Tadbir-Sabz/parisan/pull/6) — open against `main`; not merged
 
 **Scope:** Canonical Jalali conversion, Persian RTL admin calendar, salon/specialist date overrides, schema v12, and Jalali labels in the gated public booking API. Public booking remains disabled by default.
 
@@ -207,9 +207,9 @@ CI integration coverage (when run):
 
 ## 6. Next action
 
-1. Push `feat/jalali-calendar-scheduling` and open a PR against `main` without merging.
+1. ~~Push `feat/jalali-calendar-scheduling` and open a PR against `main` without merging.~~ Done: [PR #6](https://github.com/Tadbir-Sabz/parisan/pull/6) is open.
 2. Run exact-head CI (PHP 8.1/8.2/8.3, WordPress/MariaDB calendar integration, privacy integration, Chromium/Firefox/WebKit).
-3. Record the PR URL and exact CI run URLs in this report and `docs/ROADMAP.md`.
+3. Record the exact CI run URLs and results in this report and `docs/ROADMAP.md`.
 4. Fix any CI findings before requesting review; do not infer PASS from local pure-PHP results.
 
 Public booking remains disabled by default. No production deployment was performed.

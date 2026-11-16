@@ -112,6 +112,7 @@ function parisan_core_register_post_types() {
 				'publicly_queryable' => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
 				'exclude_from_search' => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ),
 				'show_in_rest'       => true,
+				'map_meta_cap'       => true,
 				'has_archive'        => in_array( $type, array( 'parisan_faq', 'parisan_resource' ), true ) ? false : true,
 				'rewrite'            => array( 'slug' => $labels['slug'] ),
 				'menu_icon'          => $labels['icon'],

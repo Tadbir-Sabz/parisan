@@ -5,7 +5,7 @@
 **Project status:** Parisan's final public, admin, SEO, RTL, dark-mode, responsive, and QA delivery is merged into `main` (PR #4, merge `1039a00`). Exact-HEAD CI is green for PHP 8.1/8.2/8.3, WordPress/MariaDB, and Chromium/Firefox/WebKit. A Jalali calendar and scheduling milestone is implemented on `feat/jalali-calendar-scheduling`: canonical Gregorian/Jalali conversion, a Persian RTL month/week/day calendar, salon/specialist date overrides (schema v12), and Jalali labels in the gated public booking API. Local pure-PHP tests pass; exact-head integration and browser CI remain UNVERIFIED. Public booking remains disabled by default and production readiness remains UNVERIFIED pending real screen-reader, real-device, reverse-proxy/multi-node, and production infrastructure validation.
 
 **Canonical branch:** main
-**Active implementation branch:** `feat/jalali-calendar-scheduling` — review pending; not merged.
+**Active implementation branch:** [`feat/jalali-calendar-scheduling`](https://github.com/Tadbir-Sabz/parisan/pull/6) — PR #6 open; not merged.
 
 ## Mandatory reading for every agent
 

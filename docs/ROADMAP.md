@@ -490,7 +490,7 @@ The report deliberately does not calculate utilization percentages or theoretica
 
 ## Jalali calendar and scheduling — 2026-11-14
 
-**Branch:** `feat/jalali-calendar-scheduling`, based on verified `main` at `43ee629ae8c2ebfb579b644062d4e33730948c26`; review pending, not merged.
+**Branch:** `feat/jalali-calendar-scheduling`, based on verified `main` at `43ee629ae8c2ebfb579b644062d4e33730948c26`; open as [PR #6](https://github.com/Tadbir-Sabz/parisan/pull/6), not merged.
 
 **Environment:** Windows local PHP 8.4.26 / Node 24.20.0 for pure tests and syntax; disposable WordPress/MariaDB and Chromium/Firefox/WebKit are CI-gated. No production site, customer data, live SMS, or payment provider was accessed.
 
@@ -525,4 +525,4 @@ The report deliberately does not calculate utilization percentages or theoretica
 - Persian operator guide: `docs/JALALI-CALENDAR.fa.md`.
 - Architecture decision: `docs/decisions/ADR-0013-jalali-calendar-and-date-overrides.md`.
 - Implementation report with commands and gaps: `docs/JALALI-CALENDAR-REPORT.md`.
-- CI run URLs and PR URL are recorded in the implementation report after the exact-head workflows complete.
+- CI run URLs and exact-head results are recorded in the implementation report after the workflows complete. PR: https://github.com/Tadbir-Sabz/parisan/pull/6

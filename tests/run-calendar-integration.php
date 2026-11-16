@@ -51,6 +51,8 @@ $staff_id = wp_insert_post(
 	true
 );
 parisan_calendar_integration_assert( ! is_wp_error( $staff_id ), 'synthetic calendar specialist is created' );
+wp_set_current_user( 1 );
+parisan_calendar_integration_assert( current_user_can( 'edit_post', $staff_id ), 'administrators receive object-level edit capability for specialists' );
 update_post_meta( $staff_id, '_parisan_staff_services', array( (int) $service_id ) );
 update_post_meta( $staff_id, '_parisan_staff_weekly_schedule', array( 1 => array( 'start' => '09:00', 'end' => '17:00' ) ) );
 
@@ -137,7 +139,8 @@ parisan_calendar_integration_assert( true === parisan_core_delete_date_override(
 
 $range_overrides = parisan_core_get_date_overrides_for_range( $sunday_date, $monday_date );
 parisan_calendar_integration_assert( is_array( $range_overrides ) && 0 === count( $range_overrides ), 'deleted overrides no longer appear in the range query' );
-parisan_calendar_integration_assert( false === parisan_core_save_date_override( array( 'override_date' => '2026-02-30', 'override_type' => 'holiday' ) ), 'invalid override dates fail closed' );
+$invalid_override = parisan_core_save_date_override( array( 'override_date' => '2026-02-30', 'override_type' => 'holiday' ) );
+parisan_calendar_integration_assert( is_wp_error( $invalid_override ) && 'parisan_invalid_date_override' === $invalid_override->get_error_code(), 'invalid override dates fail closed' );
 
 $lock_name = parisan_core_acquire_salon_calendar_lock();
 parisan_calendar_integration_assert( is_string( $lock_name ) && '' !== $lock_name, 'salon calendar lock is acquired for booking/calendar serialization' );
