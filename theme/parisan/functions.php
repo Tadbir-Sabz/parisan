@@ -598,6 +598,26 @@ function parisan_enqueue_assets() {
 add_action( 'wp_enqueue_scripts', 'parisan_enqueue_assets' );
 
 /**
+ * Preload the bundled Persian variable font when it is the active brand font.
+ *
+ * The font is render-blocking only after CSS requests it; a same-origin preload
+ * removes that extra round trip without changing the selected typography.
+ *
+ * @return void
+ */
+function parisan_preload_primary_font() {
+	if ( is_admin() || 'vazirmatn' !== get_theme_mod( 'parisan_brand_font', 'vazirmatn' ) ) {
+		return;
+	}
+	$font_url = PARISAN_THEME_URI . '/assets/fonts/Vazirmatn-Variable.woff2';
+	printf(
+		'<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
+		esc_url( $font_url )
+	);
+}
+add_action( 'wp_head', 'parisan_preload_primary_font', 1 );
+
+/**
  * Determine whether public Parisan templates should render in Persian RTL.
  *
  * WordPress resets WPLANG to en_US when fa_IR translation packs are absent on disk,

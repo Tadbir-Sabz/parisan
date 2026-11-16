@@ -1,0 +1,138 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/theme.json",
+	"version": 2,
+	"settings": {
+		"appearanceTools": true,
+		"useRootPaddingAwareAlignments": true,
+		"layout": {
+			"contentSize": "760px",
+			"wideSize": "1160px"
+		},
+		"color": {
+			"defaultPalette": false,
+			"defaultGradients": false,
+			"custom": true,
+			"palette": [
+				{
+					"slug": "ink",
+					"name": "متن اصلی",
+					"color": "#282321"
+				},
+				{
+					"slug": "muted",
+					"name": "متن کم‌رنگ",
+					"color": "#77706b"
+				},
+				{
+					"slug": "paper",
+					"name": "پس‌زمینه اصلی",
+					"color": "#fbf8f3"
+				},
+				{
+					"slug": "surface",
+					"name": "سطح روشن",
+					"color": "#fffdf9"
+				},
+				{
+					"slug": "line",
+					"name": "خط جداکننده",
+					"color": "#e9e1d8"
+				},
+				{
+					"slug": "plum",
+					"name": "آلوی برند",
+					"color": "#6f4657"
+				},
+				{
+					"slug": "plum-dark",
+					"name": "آلوی تیره",
+					"color": "#573443"
+				},
+				{
+					"slug": "rose",
+					"name": "رز ملایم",
+					"color": "#d8b9b5"
+				},
+				{
+					"slug": "gold",
+					"name": "طلایی برند",
+					"color": "#b69a70"
+				},
+				{
+					"slug": "white",
+					"name": "سفید",
+					"color": "#ffffff"
+				}
+			]
+		},
+		"typography": {
+			"customFontSize": true,
+			"fontFamilies": [
+				{
+					"slug": "vazirmatn",
+					"name": "Vazirmatn",
+					"fontFamily": "Vazirmatn, Tahoma, \"Segoe UI\", sans-serif"
+				},
+				{
+					"slug": "system",
+					"name": "System UI",
+					"fontFamily": "Tahoma, \"Segoe UI\", system-ui, sans-serif"
+				},
+				{
+					"slug": "serif",
+					"name": "Serif Display",
+					"fontFamily": "Georgia, \"Times New Roman\", serif"
+				}
+			],
+			"fontSizes": [
+				{
+					"slug": "small",
+					"name": "کوچک",
+					"size": "13px"
+				},
+				{
+					"slug": "body",
+					"name": "متن",
+					"size": "16px"
+				},
+				{
+					"slug": "lead",
+					"name": "متن برجسته",
+					"size": "18px"
+				},
+				{
+					"slug": "heading",
+					"name": "تیتر",
+					"size": "clamp(30px, 3vw, 42px)"
+				},
+				{
+					"slug": "display",
+					"name": "نمایشی",
+					"size": "clamp(42px, 5vw, 68px)"
+				}
+			]
+		},
+		"spacing": {
+			"customSpacingSize": true,
+			"units": [ "px", "rem", "vw", "vh", "%" ],
+			"spacingSizes": [
+				{ "slug": "10", "name": "۱۰", "size": "4px" },
+				{ "slug": "20", "name": "۲۰", "size": "8px" },
+				{ "slug": "30", "name": "۳۰", "size": "12px" },
+				{ "slug": "40", "name": "۴۰", "size": "16px" },
+				{ "slug": "50", "name": "۵۰", "size": "24px" },
+				{ "slug": "60", "name": "۶۰", "size": "32px" },
+				{ "slug": "70", "name": "۷۰", "size": "48px" },
+				{ "slug": "80", "name": "۸۰", "size": "64px" },
+				{ "slug": "90", "name": "۹۰", "size": "88px" },
+				{ "slug": "100", "name": "۱۰۰", "size": "120px" }
+			]
+		},
+		"border": {
+			"radius": true,
+			"color": true,
+			"style": true,
+			"width": true
+		}
+	}
+}

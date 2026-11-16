@@ -1,0 +1,72 @@
+name: parisan-local
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress
+      MARIADB_ROOT_PASSWORD: local-root-only
+    volumes:
+      - parisan_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${PARISAN_PORT:-8080}:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: "1"
+      WORDPRESS_CONFIG_EXTRA: |
+        define( 'WP_ENVIRONMENT_TYPE', 'local' );
+        define( 'DISALLOW_FILE_EDIT', true );
+        define( 'PARISAN_PUBLIC_BOOKING_ENABLED', false );
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /var/www/html/wp-includes/version.php"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    volumes:
+      - parisan_wp_data:/var/www/html
+      - ./theme/parisan:/var/www/html/wp-content/themes/parisan:ro
+      - ./plugin/parisan-core:/var/www/html/wp-content/plugins/parisan-core:ro
+
+  cli:
+    image: wordpress:cli-php8.3
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      wordpress:
+        condition: service_healthy
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - parisan_wp_data:/var/www/html
+      - ./theme/parisan:/var/www/html/wp-content/themes/parisan:ro
+      - ./plugin/parisan-core:/var/www/html/wp-content/plugins/parisan-core:ro
+      - ./tests:/var/www/html/tests:ro
+    entrypoint: ["wp"]
+
+volumes:
+  parisan_db_data:
+  parisan_wp_data:

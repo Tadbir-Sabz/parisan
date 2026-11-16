@@ -216,6 +216,21 @@ parisan_theme_smoke_assert( false === strpos( $homepage, 'hero-art" role="img"' 
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-theme-toggle' ), 'accessible light/dark theme control renders in the site header' );
 parisan_theme_smoke_assert( false !== strpos( $homepage, 'parisan-mobile-booking' ), 'mobile booking shortcut renders in the site footer' );
 parisan_theme_smoke_assert( wp_script_is( 'parisan-theme', 'enqueued' ), 'theme interaction script is enqueued' );
+$theme_json_path = get_template_directory() . '/theme.json';
+$theme_json      = is_readable( $theme_json_path ) ? json_decode( (string) file_get_contents( $theme_json_path ), true ) : null;
+parisan_theme_smoke_assert( is_array( $theme_json ) && 2 === (int) $theme_json['version'] && ! empty( $theme_json['settings']['color']['palette'] ), 'theme.json provides the shared editor design tokens' );
+parisan_theme_smoke_assert( file_exists( get_template_directory() . '/assets/fonts/Vazirmatn-Variable.woff2' ), 'bundled Persian variable font is present for preload and front-end typography' );
+ob_start();
+parisan_preload_primary_font();
+$font_preload = (string) ob_get_clean();
+parisan_theme_smoke_assert( false !== strpos( $font_preload, 'rel="preload"' ) && false !== strpos( $font_preload, 'Vazirmatn-Variable.woff2' ) && false !== strpos( $font_preload, 'as="font"' ), 'default brand font is preloaded from the bundled theme asset' );
+$previous_brand_font = get_theme_mod( 'parisan_brand_font', 'vazirmatn' );
+set_theme_mod( 'parisan_brand_font', 'system' );
+ob_start();
+parisan_preload_primary_font();
+$font_preload_disabled = trim( (string) ob_get_clean() );
+set_theme_mod( 'parisan_brand_font', $previous_brand_font );
+parisan_theme_smoke_assert( '' === $font_preload_disabled, 'font preload is skipped when the owner selects a different brand font' );
 
 $rtl_attrs = parisan_filter_language_attributes( 'lang="en-US"' );
 parisan_theme_smoke_assert( false !== strpos( $rtl_attrs, 'dir="rtl"' ) && false !== strpos( $rtl_attrs, 'lang="fa-IR"' ), 'Persian RTL attributes are enforced even when WordPress falls back to en-US' );

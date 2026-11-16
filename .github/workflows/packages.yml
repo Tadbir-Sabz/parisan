@@ -1,0 +1,52 @@
+name: Release packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-packages:
+    name: Build and validate ZIP packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: zip, mbstring
+          coverage: none
+
+      - name: Validate local Compose configuration
+        run: docker compose config --quiet
+
+      - name: Build packages from tracked files
+        run: php tools/build-packages.php
+
+      - name: Verify checksums and package manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/SHA256SUMS.txt
+          test -s dist/package-validation.json
+          php -r '$m=json_decode(file_get_contents("dist/package-validation.json"),true); if(!is_array($m)||count($m["packages"])!==3){exit(1);} foreach($m["packages"] as $p){if(empty($p["zip_integrity"])||$p["git_blob_mismatches"]||$p["php_lint_failures"]||$p["required_missing"]||$p["forbidden"]){fwrite(STDERR,"invalid package: ".$p["file"]."\n");exit(1);}} echo "package validation PASS\n";'
+          sha256sum -c dist/SHA256SUMS.txt
+
+      - name: Upload release packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: parisan-release-packages
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+            dist/package-validation.json
+          if-no-files-found: error
