@@ -124,6 +124,10 @@ function parisan_validate_entries( array $entries, string $kind ): array {
 
 $tracked = parisan_tracked_files();
 $head    = trim( (string) shell_exec( 'git rev-parse HEAD' ) );
+$head_override = getenv( 'PARISAN_BUILD_SHA' );
+if ( is_string( $head_override ) && preg_match( '/^[a-f0-9]{40}$/', $head_override ) ) {
+	$head = $head_override;
+}
 $dist    = $root . '/dist';
 if ( ! is_dir( $dist ) && ! mkdir( $dist, 0777, true ) && ! is_dir( $dist ) ) {
 	fwrite( STDERR, "Unable to create dist directory.\n" );
