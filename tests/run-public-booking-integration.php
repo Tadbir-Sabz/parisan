@@ -24,6 +24,7 @@ parisan_public_integration_assert( false !== strpos( $disabled_shortcode, 'رز�
 do_action( 'rest_api_init', rest_get_server() );
 $routes = rest_get_server()->get_routes();
 parisan_public_integration_assert( ! isset( $routes['/parisan/v1/bookings'] ), 'public booking route is not registered by default' );
+parisan_public_integration_assert( ! isset( $routes['/parisan/v1/availability-days'] ), 'public availability-day route is not registered by default' );
 parisan_public_integration_assert( ! isset( $routes['/parisan/v1/customer-booking'] ), 'customer self-service route is not registered by default' );
 parisan_public_integration_assert( ! isset( $routes['/parisan/v1/customer-booking/reschedule'] ) && ! isset( $routes['/parisan/v1/customer-booking/availability'] ), 'customer rescheduling routes are not registered by default' );
 
@@ -34,8 +35,12 @@ $wpdb->query( "DROP TABLE IF EXISTS {$tokens_table}" );
 update_option( 'parisan_core_db_version', 2, false );
 parisan_core_install_database();
 $schema = (int) get_option( 'parisan_core_db_version', 0 );
-parisan_public_integration_assert( 11 === $schema, 'schema v2 upgrades directly to the current additive schema v11' );
+parisan_public_integration_assert( 12 === $schema, 'schema v2 upgrades directly to the current additive schema v12' );
 parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $tokens_table ) ) === $tokens_table, 'customer token table is created by the v2-to-v5 upgrade' );
+$date_overrides_table = $wpdb->prefix . 'parisan_schedule_date_overrides';
+parisan_public_integration_assert( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $date_overrides_table ) ) === $date_overrides_table, 'v12 upgrade creates the date-specific schedule override table without deleting existing data' );
+$override_unique = $wpdb->get_row( $wpdb->prepare( "SHOW INDEX FROM {$date_overrides_table} WHERE Key_name = %s", 'staff_date' ), ARRAY_A );
+parisan_public_integration_assert( is_array( $override_unique ) && 0 === (int) $override_unique['Non_unique'], 'date overrides enforce one row per specialist and local date' );
 $resource_column = $wpdb->get_row( $wpdb->prepare( "SHOW COLUMNS FROM {$bookings_table} LIKE %s", 'resource_id' ), ARRAY_A );
 parisan_public_integration_assert( is_array( $resource_column ) && '0' === (string) $resource_column['Default'], 'v5 migration preserves the backward-compatible primary resource assignment column' );
 $booking_resources_table = $wpdb->prefix . 'parisan_booking_resources';

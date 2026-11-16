@@ -8,6 +8,9 @@
 	const serviceSelect = root.querySelector('[name="service_id"]');
 	const staffSelect = root.querySelector('[name="staff_id"]');
 	const dateInput = root.querySelector('[name="date"]');
+	const dateJalali = root.querySelector('[data-parisan-date-jalali]');
+	const daysPanel = root.querySelector('[data-parisan-days]');
+	const dayChips = root.querySelector('[data-parisan-day-chips]');
 	const slotSelect = root.querySelector('[name="starts_at_local"]');
 	const resultPanel = root.querySelector('[data-parisan-result]');
 	const statusNode = root.querySelector('[data-parisan-status]');
@@ -23,6 +26,7 @@
 	const rescheduleForm = root.querySelector('[data-parisan-reschedule-form]');
 	const rescheduleDate = root.querySelector('[data-parisan-reschedule-date]');
 	const rescheduleSlot = root.querySelector('[data-parisan-reschedule-slot]');
+	const rescheduleJalali = root.querySelector('[data-parisan-reschedule-jalali]');
 	const copyButton = root.querySelector('[data-parisan-copy]');
 	let activeToken = '';
 	let pendingIdempotencyKey = '';
@@ -50,6 +54,70 @@
 		slotSelect.appendChild(option);
 		slotSelect.disabled = true;
 	}
+	function resetDays() {
+		if (!daysPanel || !dayChips) return;
+		dayChips.innerHTML = '';
+		daysPanel.hidden = true;
+	}
+	function updateChipSelection() {
+		if (!dayChips) return;
+		Array.from(dayChips.querySelectorAll('[data-date]')).forEach((chip) => {
+			chip.setAttribute('aria-pressed', chip.dataset.date === dateInput.value ? 'true' : 'false');
+		});
+	}
+	function renderDays(days) {
+		if (!daysPanel || !dayChips) return;
+		dayChips.innerHTML = '';
+		if (!days.length) {
+			const empty = document.createElement('p');
+			empty.className = 'parisan-booking-days-empty';
+			empty.textContent = message('noDays');
+			dayChips.appendChild(empty);
+			daysPanel.hidden = false;
+			return;
+		}
+		days.forEach((day) => {
+			if (!day || !day.date || !day.date_label) return;
+			const chip = document.createElement('button');
+			chip.type = 'button';
+			chip.className = 'parisan-booking-day-chip';
+			chip.dataset.date = day.date;
+			chip.disabled = !day.available;
+			chip.setAttribute('aria-pressed', day.date === dateInput.value ? 'true' : 'false');
+			chip.title = day.available ? day.date_label : day.date_label + ' — ' + message('noSlots');
+			chip.textContent = day.date_label;
+			chip.addEventListener('click', () => {
+				dateInput.value = day.date;
+				updateChipSelection();
+				loadSlots();
+			});
+			dayChips.appendChild(chip);
+		});
+		daysPanel.hidden = false;
+	}
+	async function loadDays() {
+		if (!daysPanel || !dayChips) return;
+		const serviceId = serviceSelect.value;
+		const staffId = staffSelect.value;
+		if (!serviceId || !staffId) {
+			resetDays();
+			return;
+		}
+		dayChips.innerHTML = '';
+		const loading = document.createElement('p');
+		loading.className = 'parisan-booking-days-empty';
+		loading.textContent = message('loadingDays');
+		dayChips.appendChild(loading);
+		daysPanel.hidden = false;
+		try {
+			const query = new URLSearchParams({ service_id: serviceId, staff_id: staffId, days: '14' });
+			const data = await api('availability-days?' + query.toString());
+			renderDays(Array.isArray(data.days) ? data.days : []);
+		} catch (error) {
+			renderDays([]);
+			setLive(error.message || message('genericError'));
+		}
+	}
 	function filterStaff() {
 		const serviceId = serviceSelect.value;
 		let available = 0;
@@ -65,6 +133,8 @@
 		staffSelect.disabled = available === 0;
 		staffSelect.options[0].textContent = available ? 'انتخاب متخصص' : (serviceId ? 'برای این خدمت متخصصی تعریف نشده است' : 'ابتدا خدمت را انتخاب کنید');
 		resetSlots(message('selectTargets'));
+		resetDays();
+		if (dateJalali) dateJalali.textContent = '';
 	}
 	async function loadSlots() {
 		resetSlots(message('loading'));
@@ -73,24 +143,28 @@
 		const date = dateInput.value;
 		if (!serviceId || !staffId || !date) {
 			resetSlots(message('selectTargets'));
+			if (dateJalali) dateJalali.textContent = '';
 			return;
 		}
 		setLive(message('loading'));
 		try {
 			const query = new URLSearchParams({ service_id: serviceId, staff_id: staffId, date });
 			const data = await api('availability?' + query.toString());
+			if (dateJalali) dateJalali.textContent = data.date_label || '';
+			updateChipSelection();
 			resetSlots(data.slots && data.slots.length ? 'انتخاب ساعت' : message('noSlots'));
 			(data.slots || []).forEach((slot) => {
 				if (!slot.starts_at_local) return;
 				const option = document.createElement('option');
 				option.value = slot.starts_at_local;
-				option.textContent = slot.starts_at_local.slice(-5);
+				option.textContent = slot.time_label || slot.starts_at_local.slice(-5);
 				slotSelect.appendChild(option);
 			});
 			slotSelect.disabled = !data.slots || !data.slots.length;
 			setLive(data.slots && data.slots.length ? '' : message('noSlots'));
 		} catch (error) {
 			resetSlots(error.message || message('genericError'));
+			if (dateJalali) dateJalali.textContent = '';
 			setLive(error.message || message('genericError'));
 		}
 	}
@@ -101,8 +175,14 @@
 		return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
 	}
 	serviceSelect.addEventListener('change', filterStaff);
-	staffSelect.addEventListener('change', loadSlots);
-	dateInput.addEventListener('change', loadSlots);
+	staffSelect.addEventListener('change', () => {
+		loadDays();
+		loadSlots();
+	});
+	dateInput.addEventListener('change', () => {
+		updateChipSelection();
+		loadSlots();
+	});
 	createForm.addEventListener('submit', async (event) => {
 		event.preventDefault();
 		const submit = createForm.querySelector('[type="submit"]');
@@ -153,7 +233,7 @@
 			pending: 'در انتظار بررسی سالن', confirmed: 'تأیید شده', cancelled: 'لغو شده',
 			completed: 'انجام شده', expired: 'منقضی شده', no_show: 'عدم مراجعه'
 		};
-		const date = data.starts_at_local_display || data.starts_at_local || '';
+		const date = data.starts_at_jalali_display || data.starts_at_local_display || data.starts_at_local || '';
 		const price = data.currency_code === 'IRR' && Number.isFinite(Number(data.price_amount)) ? new Intl.NumberFormat('fa-IR').format(Math.round(Number(data.price_amount) / 10)) + ' تومان' : '';
 		summaryText.textContent = [
 			'وضعیت: ' + (labels[data.status] || data.status || '—'),
@@ -172,6 +252,7 @@
 		placeholder.textContent = message('loading');
 		rescheduleSlot.appendChild(placeholder);
 		rescheduleSlot.disabled = true;
+		if (rescheduleJalali) rescheduleJalali.textContent = '';
 		if (!activeToken || !rescheduleDate.value) return;
 		try {
 			const query = new URLSearchParams({ date: rescheduleDate.value });
@@ -179,12 +260,13 @@
 				method: 'GET',
 				headers: { 'X-Parisan-Booking-Token': activeToken }
 			});
+			if (rescheduleJalali) rescheduleJalali.textContent = data.date_label || '';
 			placeholder.textContent = data.slots && data.slots.length ? 'انتخاب ساعت جدید' : message('noSlots');
 			(data.slots || []).forEach((slot) => {
 				if (!slot.starts_at_local) return;
 				const option = document.createElement('option');
 				option.value = slot.starts_at_local;
-				option.textContent = slot.starts_at_local.slice(-5);
+				option.textContent = slot.time_label || slot.starts_at_local.slice(-5);
 				rescheduleSlot.appendChild(option);
 			});
 			rescheduleSlot.disabled = !data.slots || !data.slots.length;

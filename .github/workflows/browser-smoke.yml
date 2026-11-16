@@ -102,6 +102,7 @@ jobs:
 
           STAFF_1=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="نگار احمدی" --post_excerpt="متخصص مراقبت و فیشال پوست با رویکرد علمی و آرامش‌بخش." --post_content="با تمرکز بر تجربه‌ای آرام و انتخاب آگاهانه خدمات." --porcelain)
           wp post meta update "$STAFF_1" _parisan_staff_role "متخصص مراقبت پوست" --path="$WP_PATH"
+          wp eval "update_post_meta( $STAFF_1, '_parisan_staff_weekly_schedule', array( 0 => array( 'start' => '09:00', 'end' => '18:00' ), 1 => array( 'start' => '09:00', 'end' => '18:00' ), 2 => array( 'start' => '09:00', 'end' => '18:00' ), 3 => array( 'start' => '09:00', 'end' => '18:00' ), 4 => array( 'start' => '09:00', 'end' => '18:00' ), 5 => array( 'start' => '09:00', 'end' => '18:00' ), 6 => array( 'start' => '09:00', 'end' => '18:00' ) ) );" --path="$WP_PATH"
           wp media import "$WP_PATH/wp-content/themes/parisan/assets/images/specialist-1.jpg" --post_id="$STAFF_1" --featured_image --path="$WP_PATH" --quiet
 
           STAFF_2=$(wp post create --path="$WP_PATH" --post_type=parisan_staff --post_status=publish --post_title="سارا محمدی" --post_excerpt="متخصص طراحی ابرو و میکاپ ظریف متناسب با چهره." --post_content="توجه به جزئیات و تناسب طبیعی، بخشی از رویکرد کاری اوست." --porcelain)

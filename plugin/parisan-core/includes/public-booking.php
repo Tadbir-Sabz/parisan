@@ -248,6 +248,29 @@ function parisan_core_public_booking_request_token( $request ) {
 }
 
 /**
+ * Build a Persian Jalali label for a salon-local date.
+ *
+ * @param string $date Local Gregorian date.
+ * @return string
+ */
+function parisan_core_public_booking_date_label( $date ) {
+	return parisan_core_format_jalali_date( $date, array( 'with_weekday' => true ) );
+}
+
+/**
+ * Build a Persian clock label for a `Y-m-d H:i` local slot.
+ *
+ * @param string $slot Local slot.
+ * @return string
+ */
+function parisan_core_public_booking_time_label( $slot ) {
+	if ( ! is_string( $slot ) || strlen( $slot ) < 16 ) {
+		return '';
+	}
+	return parisan_core_to_persian_digits( substr( $slot, 11, 5 ) );
+}
+
+/**
  * Public, read-only availability handler.
  *
  * @param WP_REST_Request $request Request.
@@ -282,11 +305,87 @@ function parisan_core_rest_public_availability( $request ) {
 	$safe_slots = array();
 	foreach ( array_slice( $slots, 0, 100 ) as $slot ) {
 		if ( isset( $slot['starts_at_local'] ) && is_string( $slot['starts_at_local'] ) ) {
-			$safe_slots[] = array( 'starts_at_local' => $slot['starts_at_local'] );
+			$safe_slots[] = array(
+				'starts_at_local' => $slot['starts_at_local'],
+				'time_label'      => parisan_core_public_booking_time_label( $slot['starts_at_local'] ),
+			);
 		}
 	}
 
-	return parisan_core_private_booking_response( new WP_REST_Response( array( 'date' => $date, 'slots' => $safe_slots ), 200 ) );
+	return parisan_core_private_booking_response(
+		new WP_REST_Response(
+			array(
+				'date'        => $date,
+				'date_label'  => parisan_core_public_booking_date_label( $date ),
+				'timezone'    => $timezone->getName(),
+				'slots'       => $safe_slots,
+			),
+			200
+		)
+	);
+}
+
+/**
+ * Public, read-only availability calendar for the next booking window.
+ *
+ * Returns one privacy-minimal row per salon-local date. Only the availability
+ * boolean and Jalali label leave the server; booking counts, customer data, and
+ * booking identifiers are never included.
+ *
+ * @param WP_REST_Request $request Request.
+ * @return WP_REST_Response
+ */
+function parisan_core_rest_public_availability_days( $request ) {
+	$limited = parisan_core_public_booking_rate_check( 'public_availability_days', 30 );
+	if ( true !== $limited ) {
+		return $limited;
+	}
+
+	$staff_id = absint( $request->get_param( 'staff_id' ) );
+	$service_id = absint( $request->get_param( 'service_id' ) );
+	$timezone = wp_timezone();
+	$today = new DateTimeImmutable( 'today', $timezone );
+	$horizon = parisan_core_get_booking_horizon_days();
+	$last_bookable = $today->modify( '+' . $horizon . ' days' );
+
+	$start_param = $request->get_param( 'start' );
+	$start = is_string( $start_param ) && '' !== $start_param ? $start_param : $today->format( 'Y-m-d' );
+	$start_date = DateTimeImmutable::createFromFormat( '!Y-m-d', $start, $timezone );
+	$date_errors = DateTimeImmutable::getLastErrors();
+	if ( false === $start_date || ( is_array( $date_errors ) && ( $date_errors['warning_count'] || $date_errors['error_count'] ) ) || $start_date->format( 'Y-m-d' ) !== $start || $start_date < $today || $start_date > $last_bookable ) {
+		return parisan_core_public_booking_error( __( 'بازه زمانی درخواستی معتبر نیست.', 'parisan-core' ), 400 );
+	}
+
+	$days = absint( $request->get_param( 'days' ) );
+	$days = $days ? min( 31, max( 1, $days ) ) : 14;
+	$available_days = array();
+	for ( $offset = 0; $offset < $days; $offset++ ) {
+		$day = $start_date->modify( '+' . $offset . ' days' );
+		if ( $day > $last_bookable ) {
+			break;
+		}
+		$date = $day->format( 'Y-m-d' );
+		$slots = parisan_core_get_available_slots( $staff_id, $service_id, $date );
+		if ( is_wp_error( $slots ) ) {
+			return parisan_core_public_booking_error( __( 'در حال حاضر امکان بررسی تقویم آزاد وجود ندارد.', 'parisan-core' ), 400 );
+		}
+		$available_days[] = array(
+			'date'       => $date,
+			'date_label' => parisan_core_public_booking_date_label( $date ),
+			'available'  => ! empty( $slots ),
+		);
+	}
+
+	return parisan_core_private_booking_response(
+		new WP_REST_Response(
+			array(
+				'timezone'  => $timezone->getName(),
+				'start'     => $start,
+				'days'      => $available_days,
+			),
+			200
+		)
+	);
 }
 
 /**
@@ -406,6 +505,14 @@ function parisan_core_rest_customer_booking( $request ) {
 		'specialist' => get_the_title( (int) $booking['staff_id'] ),
 		'starts_at_local' => $local->format( DateTimeInterface::ATOM ),
 		'starts_at_local_display' => $local->format( 'Y-m-d H:i' ),
+		'starts_at_jalali_display' => parisan_core_format_jalali_datetime(
+			$local,
+			array(
+				'timezone'     => $booking['salon_timezone'],
+				'with_time'    => true,
+				'with_weekday' => true,
+			)
+		),
 		'timezone' => $booking['salon_timezone'],
 		'price_amount' => (int) $booking['price_amount'],
 		'currency_code' => $booking['currency_code'],
@@ -457,10 +564,22 @@ function parisan_core_rest_customer_availability( $request ) {
 	$safe_slots = array();
 	foreach ( array_slice( $slots, 0, 100 ) as $slot ) {
 		if ( isset( $slot['starts_at_local'] ) && is_string( $slot['starts_at_local'] ) ) {
-			$safe_slots[] = array( 'starts_at_local' => $slot['starts_at_local'] );
+			$safe_slots[] = array(
+				'starts_at_local' => $slot['starts_at_local'],
+				'time_label'      => parisan_core_public_booking_time_label( $slot['starts_at_local'] ),
+			);
 		}
 	}
-	return parisan_core_private_booking_response( new WP_REST_Response( array( 'date' => $date, 'slots' => $safe_slots ), 200 ) );
+	return parisan_core_private_booking_response(
+		new WP_REST_Response(
+			array(
+				'date'       => $date,
+				'date_label' => parisan_core_public_booking_date_label( $date ),
+				'slots'      => $safe_slots,
+			),
+			200
+		)
+	);
 }
 
 /**
@@ -667,6 +786,15 @@ function parisan_core_register_public_booking_routes() {
 	);
 	register_rest_route(
 		'parisan/v1',
+		'/availability-days',
+		array(
+			'methods' => WP_REST_Server::READABLE,
+			'callback' => 'parisan_core_rest_public_availability_days',
+			'permission_callback' => '__return_true',
+		)
+	);
+	register_rest_route(
+		'parisan/v1',
 		'/bookings',
 		array(
 			'methods' => WP_REST_Server::CREATABLE,
@@ -742,6 +870,10 @@ function parisan_core_enqueue_public_booking_assets() {
 				'genericError' => __( 'انجام درخواست ممکن نشد؛ دوباره تلاش کنید.', 'parisan-core' ),
 				'copySuccess' => __( 'توکن کپی شد.', 'parisan-core' ),
 				'copyFailure' => __( 'کپی خودکار ممکن نشد؛ توکن را دستی کپی کنید.', 'parisan-core' ),
+				'loadingDays' => __( 'در حال بررسی روزهای دارای ظرفیت…', 'parisan-core' ),
+				'noDays' => __( 'در بازهٔ نمایش‌داده‌شده روزی با زمان آزاد پیدا نشد.', 'parisan-core' ),
+				'availableDays' => __( 'روزهای دارای زمان آزاد', 'parisan-core' ),
+				'jalaliDate' => __( 'تاریخ شمسی', 'parisan-core' ),
 			),
 		)
 	);
@@ -861,7 +993,12 @@ function parisan_core_booking_shortcode() {
 				<p class="parisan-booking-field">
 					<label for="parisan-booking-date"><?php esc_html_e( 'تاریخ', 'parisan-core' ); ?></label>
 					<input id="parisan-booking-date" name="date" type="date" min="<?php echo esc_attr( $minimum_date ); ?>" max="<?php echo esc_attr( $maximum_date ); ?>" required>
+					<span class="parisan-booking-jalali-hint" data-parisan-date-jalali aria-live="polite"></span>
 				</p>
+				<div class="parisan-booking-days" data-parisan-days hidden>
+					<p class="parisan-booking-days-label" id="parisan-booking-days-label"><?php esc_html_e( 'روزهای دارای زمان آزاد', 'parisan-core' ); ?></p>
+					<div class="parisan-booking-day-chips" data-parisan-day-chips role="group" aria-labelledby="parisan-booking-days-label"></div>
+				</div>
 				<p class="parisan-booking-field">
 					<label for="parisan-booking-slot"><?php esc_html_e( 'ساعت‌های آزاد', 'parisan-core' ); ?></label>
 					<select id="parisan-booking-slot" name="starts_at_local" required disabled>
@@ -922,6 +1059,7 @@ function parisan_core_booking_shortcode() {
 						<p class="parisan-booking-field">
 							<label for="parisan-customer-reschedule-date"><?php esc_html_e( 'تاریخ جدید', 'parisan-core' ); ?></label>
 							<input id="parisan-customer-reschedule-date" type="date" min="<?php echo esc_attr( $minimum_date ); ?>" max="<?php echo esc_attr( $maximum_date ); ?>" required data-parisan-reschedule-date>
+							<span class="parisan-booking-jalali-hint" data-parisan-reschedule-jalali aria-live="polite"></span>
 						</p>
 						<p class="parisan-booking-field">
 							<label for="parisan-customer-reschedule-slot"><?php esc_html_e( 'ساعت جدید', 'parisan-core' ); ?></label>

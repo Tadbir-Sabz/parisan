@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PARISAN_CORE_DB_VERSION', 11 );
+define( 'PARISAN_CORE_DB_VERSION', 12 );
 
 /**
  * Install or upgrade Parisan's additive database schema.
@@ -26,6 +26,7 @@ function parisan_core_install_database() {
 	$bookings_table  = $wpdb->prefix . 'parisan_bookings';
 	$events_table    = $wpdb->prefix . 'parisan_booking_events';
 	$exceptions_table = $wpdb->prefix . 'parisan_schedule_exceptions';
+	$date_overrides_table = $wpdb->prefix . 'parisan_schedule_date_overrides';
 	$customer_tokens_table = $wpdb->prefix . 'parisan_customer_tokens';
 
 	$bookings_sql = "CREATE TABLE {$bookings_table} (
@@ -90,6 +91,26 @@ function parisan_core_install_database() {
 	dbDelta( $bookings_sql );
 	dbDelta( $events_sql );
 	dbDelta( $exceptions_sql );
+
+	$date_overrides_sql = "CREATE TABLE {$date_overrides_table} (
+		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		staff_id bigint(20) unsigned NOT NULL DEFAULT 0,
+		override_date date NOT NULL,
+		override_type varchar(24) NOT NULL DEFAULT 'custom_hours',
+		is_closed tinyint(1) NOT NULL DEFAULT 0,
+		start_time char(5) NOT NULL DEFAULT '',
+		end_time char(5) NOT NULL DEFAULT '',
+		break_start_time char(5) NOT NULL DEFAULT '',
+		break_end_time char(5) NOT NULL DEFAULT '',
+		note varchar(255) NOT NULL DEFAULT '',
+		created_at_utc datetime NOT NULL,
+		updated_at_utc datetime NOT NULL,
+		PRIMARY KEY  (id),
+		UNIQUE KEY staff_date (staff_id, override_date),
+		KEY date_scope (override_date, staff_id),
+		KEY override_type (override_type)
+	) ENGINE=InnoDB {$charset_collate};";
+	dbDelta( $date_overrides_sql );
 
 	$customer_tokens_sql = "CREATE TABLE {$customer_tokens_table} (
 		id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
